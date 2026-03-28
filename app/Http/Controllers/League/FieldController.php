@@ -48,28 +48,79 @@ class FieldController extends Controller
     {
         $context = app(LeagueContext::class);
 
+        $field->load(['location', 'allowedDivisions']);
+
+        $fieldRules = $field->allowedDivisions->map(fn($d) => [
+            'division_id' => $d->id,
+            'max_weekly_slots' => $d->pivot->max_weekly_slots,
+        ]);
+
         return Inertia::render('Leagues/Fields/Edit', [
             'league' => $context->league(),
-            'field' => $field->load('location'),
+            'field' => $field,
             'surfaceTypes' => array_column(SurfaceType::cases(), 'value'),
+            'divisions' => \App\Models\Division::with('season')->orderBy('name')->get(),
+            'fieldRules' => $fieldRules,
+            'userRole' => $context->userRole(),
         ]);
     }
 
     public function update(Request $request, string $league, Field $field)
     {
         $validated = $request->validate([
+            // Field details
             'name' => 'required|string|max:255',
             'surface_type' => 'nullable|string',
             'capacity' => 'nullable|integer|min:0',
             'is_lighted' => 'boolean',
             'is_active' => 'boolean',
             'notes' => 'nullable|string',
+            // Availability
+            'available_days' => 'nullable|array',
+            'available_days.*' => 'integer|between:0,6',
+            'available_start_time' => 'nullable|date_format:H:i',
+            'available_end_time' => 'nullable|date_format:H:i',
+            'slot_interval_minutes' => 'nullable|integer|in:15,30,60',
+            'min_event_minutes' => 'nullable|integer|in:15,30,45,60,90,120',
+            'max_event_minutes' => 'nullable|integer|in:30,60,90,120,180,240',
+            // Division access
+            'access_mode' => 'nullable|in:open,restricted',
+            'rules' => 'nullable|array',
+            'rules.*.division_id' => 'required|exists:divisions,id',
+            'rules.*.max_weekly_slots' => 'nullable|integer|min:1',
         ]);
 
-        $field->update($validated);
+        // Field details + availability
+        $field->update([
+            'name' => $validated['name'],
+            'surface_type' => $validated['surface_type'] ?? null,
+            'capacity' => $validated['capacity'] ?? null,
+            'is_lighted' => $validated['is_lighted'] ?? false,
+            'is_active' => $validated['is_active'] ?? true,
+            'notes' => $validated['notes'] ?? null,
+            'available_days' => ! empty($validated['available_days']) ? $validated['available_days'] : null,
+            'available_start_time' => $validated['available_start_time'] ?? null,
+            'available_end_time' => $validated['available_end_time'] ?? null,
+            'slot_interval_minutes' => $validated['slot_interval_minutes'] ?? null,
+            'min_event_minutes' => $validated['min_event_minutes'] ?? null,
+            'max_event_minutes' => $validated['max_event_minutes'] ?? null,
+        ]);
 
-        return redirect()->route('leagues.locations.edit', [$league, $field->location])
-            ->with('success', 'Field updated successfully.');
+        // Division access
+        if (isset($validated['access_mode'])) {
+            if ($validated['access_mode'] === 'open') {
+                $field->allowedDivisions()->detach();
+            } else {
+                $syncData = [];
+                foreach ($validated['rules'] ?? [] as $rule) {
+                    $syncData[$rule['division_id']] = ['max_weekly_slots' => $rule['max_weekly_slots'] ?? null];
+                }
+                $field->allowedDivisions()->sync($syncData);
+            }
+        }
+
+        return redirect()->route('leagues.fields.edit', [$league, $field->id])
+            ->with('success', 'Field saved.');
     }
 
     public function destroy(string $league, Field $field)

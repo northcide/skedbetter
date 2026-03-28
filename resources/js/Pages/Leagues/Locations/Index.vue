@@ -131,9 +131,8 @@ const deleteField = (field) => {
                                 </span>
 
                                 <div v-if="isManager" class="flex items-center gap-2">
-                                    <Link :href="route('leagues.fields.rules', [league.slug, field.id])" class="text-xs text-brand-600 hover:text-brand-700">Rules</Link>
-                                    <Link :href="route('leagues.fields.edit', [league.slug, field.id])" class="text-xs text-gray-500 hover:text-gray-700">Edit</Link>
-                                    <button @click="deleteField(field)" class="text-xs text-red-500 hover:text-red-700">Delete</button>
+                                    <Link :href="route('leagues.fields.edit', [league.slug, field.id])" class="text-[10px] text-brand-600 hover:text-brand-700">Edit</Link>
+                                    <button @click="deleteField(field)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
                                 </div>
                             </div>
                         </div>
