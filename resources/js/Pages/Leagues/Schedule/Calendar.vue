@@ -295,12 +295,19 @@ function handleEventClick(info) {
     }
 }
 
-function submitModal() {
-    // Capture details before submit resets things
+function formatTime12(time24) {
+    if (!time24) return '';
+    const [h, m] = time24.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+function buildDetails() {
     const team = props.teams.find(t => t.id == modalForm.team_id);
     const field = availableFields.value.find(f => f.id == modalForm.field_id);
-    const location = field ? props.locations.find(l => (l.fields || []).some(f => f.id == field.id)) : null;
-    const details = {
+    const location = field ? props.locations.find(l => (l.fields || []).some(fl => fl.id == field.id)) : null;
+    return {
         teamName: team?.name || 'Unknown',
         teamColor: team?.color_code || '#3B82F6',
         date: modalForm.date,
@@ -311,9 +318,22 @@ function submitModal() {
         type: modalForm.type,
         title: modalForm.title,
     };
+}
 
+// Step 1: form modal -> show confirmation
+function submitModal() {
+    // Basic client-side check
+    if (!modalForm.team_id || !modalForm.field_id || !modalForm.date || !modalForm.start_time || !modalForm.end_time) {
+        return;
+    }
+    confirmationDetails.value = buildDetails();
+    showModal.value = false;
+    showConfirmation.value = true;
+}
+
+// Step 2: confirmation -> actually save
+function confirmSchedule() {
     modalSubmitting.value = true;
-    modalForm.clearErrors();
 
     axios.post(route('leagues.schedule.store', props.league.slug), {
         season_id: modalForm.season_id,
@@ -325,18 +345,16 @@ function submitModal() {
         type: modalForm.type,
         title: modalForm.title,
     }).then(() => {
-        showModal.value = false;
+        showConfirmation.value = false;
         calendarRef.value?.getApi()?.refetchEvents();
-
-        confirmationDetails.value = details;
-        showConfirmation.value = true;
     }).catch((error) => {
+        // Go back to the form modal with errors
+        showConfirmation.value = false;
+        showModal.value = true;
         const errs = error.response?.data?.errors || {};
-        // Conflicts come back as errors.conflicts array
         if (errs.conflicts) {
             modalForm.setError('conflicts', errs.conflicts);
         } else {
-            // Validation errors
             Object.entries(errs).forEach(([key, msgs]) => {
                 modalForm.setError(key, Array.isArray(msgs) ? msgs[0] : msgs);
             });
@@ -344,6 +362,12 @@ function submitModal() {
     }).finally(() => {
         modalSubmitting.value = false;
     });
+}
+
+// Cancel from confirmation -> go back to form
+function cancelConfirmation() {
+    showConfirmation.value = false;
+    showModal.value = true;
 }
 
 function showError(messages) {
@@ -512,33 +536,38 @@ function showError(messages) {
             </form>
         </Modal>
 
-        <!-- Confirmation Modal -->
-        <Modal :show="showConfirmation" @close="showConfirmation = false" max-width="sm">
-            <div class="p-5 text-center">
-                <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                    <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <h3 class="mt-3 text-sm font-semibold text-gray-900">Scheduled!</h3>
-                <div class="mt-3 space-y-1 text-sm text-gray-700">
-                    <p>
-                        <span class="inline-block h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: confirmationDetails.teamColor }"></span>
+        <!-- Confirm Before Save Modal -->
+        <Modal :show="showConfirmation" @close="cancelConfirmation" max-width="sm">
+            <div class="p-5">
+                <h3 class="text-sm font-semibold text-gray-900">Confirm Schedule</h3>
+                <p class="mt-1 text-xs text-gray-500">Please review the details below.</p>
+
+                <div class="mt-4 rounded-lg bg-gray-50 p-4 space-y-2 text-sm text-gray-700">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block h-3 w-3 rounded-full" :style="{ backgroundColor: confirmationDetails.teamColor }"></span>
                         <strong>{{ confirmationDetails.teamName }}</strong>
-                        <span class="text-gray-400">&mdash; {{ confirmationDetails.type }}</span>
-                    </p>
+                        <span class="rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-600">{{ confirmationDetails.type }}</span>
+                    </div>
                     <p>
                         {{ new Date(confirmationDetails.date + 'T00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) }}
                     </p>
-                    <p>{{ confirmationDetails.startTime }} &ndash; {{ confirmationDetails.endTime }}</p>
+                    <p>
+                        {{ formatTime12(confirmationDetails.startTime) }} &ndash; {{ formatTime12(confirmationDetails.endTime) }}
+                    </p>
                     <p v-if="confirmationDetails.fieldName" class="text-gray-500">
                         {{ confirmationDetails.fieldName }}<span v-if="confirmationDetails.locationName"> @ {{ confirmationDetails.locationName }}</span>
                     </p>
-                    <p v-if="confirmationDetails.title" class="italic text-gray-500">{{ confirmationDetails.title }}</p>
+                    <p v-if="confirmationDetails.title" class="italic text-gray-500">"{{ confirmationDetails.title }}"</p>
                 </div>
-                <button @click="showConfirmation = false" class="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">
-                    Done
-                </button>
+
+                <div class="mt-5 flex justify-end gap-2">
+                    <button @click="cancelConfirmation" class="rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900">
+                        Go Back
+                    </button>
+                    <PrimaryButton @click="confirmSchedule" :disabled="modalSubmitting">
+                        {{ modalSubmitting ? 'Saving...' : 'Confirm' }}
+                    </PrimaryButton>
+                </div>
             </div>
         </Modal>
     </LeagueLayout>
