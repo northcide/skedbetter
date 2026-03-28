@@ -15,7 +15,8 @@ const props = defineProps({
     userRole: String,
 });
 
-const isManager = ['superadmin', 'league_admin', 'division_manager', 'division_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
+const canSchedule = isManager || props.userRole === 'coach';
 
 const filters = ref({
     season_id: props.filters.season_id || '',
@@ -68,7 +69,7 @@ const statusBadge = (status) => {
                             <Link v-if="isManager" :href="route('leagues.schedule.bulk', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
                                 Bulk Schedule
                             </Link>
-                            <Link v-if="isManager" :href="route('leagues.schedule.create', league.slug)">
+                            <Link v-if="canSchedule" :href="route('leagues.schedule.create', league.slug)">
                                 <PrimaryButton>New Entry</PrimaryButton>
                             </Link>
                         </div>

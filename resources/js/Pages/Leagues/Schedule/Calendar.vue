@@ -21,9 +21,18 @@ const props = defineProps({
     seasons: { type: Array, default: () => [] },
     divisions: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
+    coachTeamIds: { type: Array, default: () => [] },
 });
 
-const isManager = ['superadmin', 'league_admin', 'division_manager', 'division_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
+const isCoach = props.userRole === 'coach';
+const canSchedule = isManager || isCoach;
+
+// Coaches can only schedule their own teams
+const schedulableTeams = computed(() => {
+    if (isManager) return props.teams;
+    return props.teams.filter(t => props.coachTeamIds.includes(t.id));
+});
 const calendarRef = ref(null);
 const teamListRef = ref(null);
 const errorMessages = ref([]);
@@ -98,15 +107,15 @@ const availableFields = computed(() => {
 // Teams filtered by main division filter (for calendar events)
 const filteredTeams = computed(() => {
     if (filters.value.division_id) {
-        return props.teams.filter(t => t.division_id == filters.value.division_id);
+        return schedulableTeams.value.filter(t => t.division_id == filters.value.division_id);
     }
-    return props.teams;
+    return schedulableTeams.value;
 });
 
 // Teams filtered by sidebar division picker (independent from calendar filter)
 const sidebarTeams = computed(() => {
     if (sidebarDivision.value) {
-        return props.teams.filter(t => t.division_id == sidebarDivision.value);
+        return schedulableTeams.value.filter(t => t.division_id == sidebarDivision.value);
     }
     return props.teams;
 });
@@ -168,7 +177,7 @@ const modalForm = useForm({
 });
 
 onMounted(() => {
-    if (teamListRef.value && isManager) {
+    if (teamListRef.value && canSchedule) {
         new Draggable(teamListRef.value, {
             itemSelector: '[data-team-id]',
             eventData: (el) => ({
@@ -207,11 +216,11 @@ const calendarOptions = ref({
     contentHeight: 560,
     resourceAreaHeaderContent: 'Fields',
     resourceAreaWidth: '150px',
-    editable: isManager,
-    droppable: isManager,
-    selectable: isManager,
+    editable: canSchedule,
+    droppable: canSchedule,
+    selectable: canSchedule,
     selectMirror: true,
-    eventResourceEditable: isManager,
+    eventResourceEditable: canSchedule,
     resources: {
         url: route('leagues.schedule.resources', props.league.slug),
         method: 'GET',
@@ -222,8 +231,8 @@ const calendarOptions = ref({
         const qs = new URLSearchParams(params).toString();
         axios.get(`${baseUrl}?${qs}`).then(res => successCallback(res.data)).catch(failureCallback);
     },
-    eventStartEditable: isManager,
-    eventDurationEditable: isManager,
+    eventStartEditable: canSchedule,
+    eventDurationEditable: canSchedule,
     datesSet: (info) => {
         saveState({ view: info.view.type, date: info.start.toISOString().slice(0, 10) });
     },
@@ -288,7 +297,7 @@ function handleExternalDrop(info) {
 }
 
 function handleSelect(info) {
-    if (!isManager) return;
+    if (!canSchedule) return;
     const resource = info.resource;
     const fieldId = resource?.id != null ? String(resource.id) : null;
     const date = info.start.toISOString().slice(0, 10);
@@ -527,7 +536,7 @@ function showError(messages) {
 
         <div class="mt-2 flex gap-3">
             <!-- Team drag sidebar -->
-            <div v-if="isManager && teams.length" class="hidden w-44 shrink-0 lg:block">
+            <div v-if="canSchedule && teams.length" class="hidden w-44 shrink-0 lg:block">
                 <div class="sticky top-3 rounded-lg border border-gray-200 bg-white">
                     <div class="border-b border-gray-100 px-2 py-1.5">
                         <h3 class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Drag to Schedule</h3>
@@ -595,7 +604,7 @@ function showError(messages) {
                             <InputLabel for="m_team" value="Team" class="text-xs" />
                             <select id="m_team" v-model="modalForm.team_id" @change="liveValidate" class="mt-1 block w-full" required>
                                 <option value="">-- Select --</option>
-                                <option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}</option>
+                                <option v-for="t in schedulableTeams" :key="t.id" :value="t.id">{{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}</option>
                             </select>
                         </div>
                         <div>

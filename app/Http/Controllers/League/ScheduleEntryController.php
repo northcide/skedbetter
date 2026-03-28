@@ -25,6 +25,9 @@ class ScheduleEntryController extends Controller
     {
         $context = app(LeagueContext::class);
 
+        $user = $request->user();
+        $coachTeamIds = $user->teams()->pluck('teams.id')->toArray();
+
         return Inertia::render('Leagues/Schedule/Calendar', [
             'league' => $context->league(),
             'userRole' => $context->userRole(),
@@ -32,6 +35,7 @@ class ScheduleEntryController extends Controller
             'seasons' => Season::orderByDesc('start_date')->get(),
             'divisions' => \App\Models\Division::with('season')->orderBy('name')->get(),
             'locations' => \App\Models\Location::with(['fields' => fn($q) => $q->orderBy('sort_order')])->orderBy('name')->get(),
+            'coachTeamIds' => $coachTeamIds,
         ]);
     }
 
