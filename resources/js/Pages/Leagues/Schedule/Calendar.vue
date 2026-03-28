@@ -80,7 +80,8 @@ function liveValidate() {
 }
 
 // Persist state in localStorage keyed by league
-const storeKey = `skedbetter-cal-${props.league.id}`;
+const STORE_VERSION = 2;
+const storeKey = `skedbetter-cal-v${STORE_VERSION}-${props.league.id}`;
 
 function loadState() {
     try { return JSON.parse(localStorage.getItem(storeKey)) || {}; } catch { return {}; }
@@ -91,7 +92,23 @@ function saveState(patch) {
     localStorage.setItem(storeKey, JSON.stringify({ ...current, ...patch }));
 }
 
-const saved = loadState();
+const validViews = ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'resourceTimelineDay'];
+
+function validateSavedState(s) {
+    // Validate view
+    if (s.view && !validViews.includes(s.view)) s.view = null;
+    // Validate date — must be a valid date within 1 year
+    if (s.date) {
+        const d = new Date(s.date);
+        const now = new Date();
+        if (isNaN(d.getTime()) || Math.abs(d - now) > 365 * 86400000) s.date = null;
+    }
+    // Clear stale filter IDs that might reference deleted records
+    // (they'll just show "All" which is safe)
+    return s;
+}
+
+const saved = validateSavedState(loadState());
 const sidebarDivision = ref(saved.sidebarDivision || '');
 
 // Filters — restore from localStorage
