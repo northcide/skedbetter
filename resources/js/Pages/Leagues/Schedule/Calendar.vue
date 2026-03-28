@@ -237,34 +237,40 @@ const calendarOptions = ref({
 });
 
 function handleEventDrop(info) {
-    const event = info.event;
-    const ext = event.extendedProps || {};
-    const resource = event.getResources()[0];
-    let dropFieldId = resource?.id;
+    try {
+        const event = info.event;
+        const ext = event.extendedProps || {};
+        const resource = event.getResources()[0];
+        let dropFieldId = resource?.id;
 
-    if (dropFieldId && dropFieldId.startsWith('loc-')) { info.revert(); return; }
+        if (dropFieldId && dropFieldId.startsWith('loc-')) { info.revert(); return; }
 
-    // Capture the NEW position BEFORE reverting
-    const newDate = event.start.toISOString().slice(0, 10);
-    const newStartTime = event.start.toTimeString().slice(0, 5);
-    const newEndTime = event.end.toTimeString().slice(0, 5);
+        // Capture the NEW position BEFORE reverting
+        const newDate = event.start.toISOString().slice(0, 10);
+        const newStartTime = event.start.toTimeString().slice(0, 5);
+        const end = event.end || new Date(event.start.getTime() + 3600000);
+        const newEndTime = end.toTimeString().slice(0, 5);
 
-    info.revert();
+        info.revert();
 
-    const fieldId = (dropFieldId && !dropFieldId.startsWith('loc-')) ? dropFieldId : (ext.field_id || '');
-    const fieldName = (dropFieldId && !dropFieldId.startsWith('loc-')) ? (resource?.title || '') : (ext.field_name || '');
+        const fieldId = (dropFieldId && !dropFieldId.startsWith('loc-')) ? dropFieldId : (ext.field_id || '');
+        const fieldName = (dropFieldId && !dropFieldId.startsWith('loc-')) ? (resource?.title || '') : (ext.field_name || '');
 
-    openModal({
-        entryId: event.id,
-        teamId: ext.team_id || '',
-        date: newDate,
-        startTime: newStartTime,
-        endTime: newEndTime,
-        fieldId: fieldId,
-        fieldName: fieldName,
-        type: ext.type || 'practice',
-        title: event.title || '',
-    });
+        openModal({
+            entryId: event.id,
+            teamId: ext.team_id || '',
+            date: newDate,
+            startTime: newStartTime,
+            endTime: newEndTime,
+            fieldId: fieldId,
+            fieldName: fieldName,
+            type: ext.type || 'practice',
+            title: event.title || '',
+        });
+    } catch (e) {
+        console.error('handleEventDrop error:', e);
+        info.revert();
+    }
 }
 
 function handleExternalDrop(info) {
