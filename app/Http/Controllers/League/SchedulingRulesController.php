@@ -16,8 +16,22 @@ class SchedulingRulesController extends Controller
     {
         $context = app(LeagueContext::class);
 
-        $divisions = Division::with('season')->orderBy('sort_order')->orderBy('name')->get();
+        $divisions = Division::withCount('teams')->with('season')->orderBy('sort_order')->orderBy('name')->get();
         $fields = Field::with('location')->where('is_active', true)->orderBy('name')->get();
+
+        // Group fields by location
+        $fieldsByLocation = [];
+        foreach ($fields as $field) {
+            $locName = $field->location->name ?? 'No Location';
+            $locId = $field->location_id ?? 0;
+            if (!isset($fieldsByLocation[$locId])) {
+                $fieldsByLocation[$locId] = [
+                    'name' => $locName,
+                    'fields' => [],
+                ];
+            }
+            $fieldsByLocation[$locId]['fields'][] = $field;
+        }
 
         // Get all division_field pivot data
         $pivots = DB::table('division_field')
@@ -44,6 +58,7 @@ class SchedulingRulesController extends Controller
             'league' => $context->league(),
             'divisions' => $divisions,
             'fields' => $fields,
+            'fieldsByLocation' => array_values($fieldsByLocation),
             'matrix' => $matrix,
             'userRole' => $context->userRole(),
         ]);
