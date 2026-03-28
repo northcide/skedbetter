@@ -72,10 +72,13 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::resource('seasons', SeasonController::class)->except(['show']);
             Route::resource('divisions', DivisionController::class)->except(['show']);
+            Route::post('divisions/bulk', [DivisionController::class, 'bulkStore'])->name('divisions.bulk');
             Route::resource('teams', TeamController::class);
+            Route::post('teams/bulk', [TeamController::class, 'bulkStore'])->name('teams.bulk');
             Route::get('teams-import', [TeamImportController::class, 'create'])->name('teams.import');
             Route::post('teams-import', [TeamImportController::class, 'store'])->name('teams.import.store');
             Route::resource('locations', LocationController::class)->except(['show']);
+            Route::post('locations/bulk', [LocationController::class, 'bulkStore'])->name('locations.bulk');
             Route::resource('fields', FieldController::class)->except(['index', 'show']);
             Route::get('fields/{field}/rules', [FieldRulesController::class, 'edit'])->name('fields.rules');
             Route::put('fields/{field}/rules', [FieldRulesController::class, 'update'])->name('fields.rules.update');

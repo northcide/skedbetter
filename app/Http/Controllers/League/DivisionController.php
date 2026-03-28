@@ -56,6 +56,37 @@ class DivisionController extends Controller
             ->with('success', 'Division created successfully.');
     }
 
+    public function bulkStore(Request $request, string $league)
+    {
+        $context = app(LeagueContext::class);
+        $season = Season::where('is_current', true)->first();
+
+        $validated = $request->validate([
+            'divisions' => 'required|array|min:1',
+            'divisions.*.name' => 'required|string|max:255',
+            'divisions.*.age_group' => 'nullable|string|max:255',
+        ]);
+
+        $count = 0;
+        foreach ($validated['divisions'] as $div) {
+            if (empty($div['name'])) continue;
+            Division::create([
+                'league_id' => $context->league()->id,
+                'season_id' => $season?->id,
+                'name' => $div['name'],
+                'age_group' => $div['age_group'] ?? null,
+            ]);
+            $count++;
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'count' => $count]);
+        }
+
+        return redirect()->route('leagues.divisions.index', $league)
+            ->with('success', "{$count} division(s) added.");
+    }
+
     public function edit(string $league, Division $division)
     {
         $context = app(LeagueContext::class);

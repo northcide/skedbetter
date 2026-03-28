@@ -55,6 +55,39 @@ class LocationController extends Controller
             ->with('success', 'Location created successfully.');
     }
 
+    public function bulkStore(Request $request, string $league)
+    {
+        $context = app(LeagueContext::class);
+
+        $validated = $request->validate([
+            'locations' => 'required|array|min:1',
+            'locations.*.name' => 'required|string|max:255',
+            'locations.*.address' => 'nullable|string|max:255',
+            'locations.*.city' => 'nullable|string|max:255',
+            'locations.*.state' => 'nullable|string|max:2',
+        ]);
+
+        $count = 0;
+        foreach ($validated['locations'] as $loc) {
+            if (empty($loc['name'])) continue;
+            Location::create([
+                'league_id' => $context->league()->id,
+                'name' => $loc['name'],
+                'address' => $loc['address'] ?? null,
+                'city' => $loc['city'] ?? null,
+                'state' => $loc['state'] ?? null,
+            ]);
+            $count++;
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'count' => $count]);
+        }
+
+        return redirect()->route('leagues.locations.index', $league)
+            ->with('success', "{$count} location(s) added.");
+    }
+
     public function edit(string $league, Location $location)
     {
         $context = app(LeagueContext::class);

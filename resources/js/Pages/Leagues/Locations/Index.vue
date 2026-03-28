@@ -2,6 +2,7 @@
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import BulkAddModal from '@/Components/BulkAddModal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -13,6 +14,21 @@ const props = defineProps({
 
 const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 const expanded = ref({});
+const showBulkAdd = ref(false);
+
+const bulkLocationFields = [
+    { key: 'name', label: 'Name', required: true, placeholder: 'Location name' },
+    { key: 'address', label: 'Address', required: false, placeholder: 'Address' },
+    { key: 'city', label: 'City', required: false, placeholder: 'City' },
+    { key: 'state', label: 'ST', required: false, placeholder: 'ST' },
+];
+
+const submitBulkLocations = (rows, done) => {
+    axios.post(route('leagues.locations.bulk', props.league.slug), { locations: rows })
+        .then(() => { showBulkAdd.value = false; router.reload(); })
+        .catch(() => {})
+        .finally(() => done());
+};
 
 const toggle = (id) => {
     expanded.value[id] = !expanded.value[id];
@@ -44,9 +60,12 @@ const deleteField = (field) => {
     <LeagueLayout :league="league" :userRole="userRole || ''">
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold text-gray-900">Locations & Fields</h2>
-            <Link v-if="isManager" :href="route('leagues.locations.create', league.slug)">
-                <PrimaryButton>Add Location</PrimaryButton>
-            </Link>
+            <div v-if="isManager" class="flex items-center gap-2">
+                <button @click="showBulkAdd = true" class="text-[10px] text-brand-600 hover:text-brand-700">Bulk Add</button>
+                <Link :href="route('leagues.locations.create', league.slug)">
+                    <PrimaryButton>Add Location</PrimaryButton>
+                </Link>
+            </div>
         </div>
 
         <FlashMessage />
@@ -150,5 +169,6 @@ const deleteField = (field) => {
                 </div>
             </div>
         </div>
+        <BulkAddModal :show="showBulkAdd" title="Bulk Add Locations" :fields="bulkLocationFields" @close="showBulkAdd = false" @submit="submitBulkLocations" />
     </LeagueLayout>
 </template>

@@ -70,6 +70,39 @@ class TeamController extends Controller
             ->with('success', 'Team created successfully.');
     }
 
+    public function bulkStore(Request $request, string $league)
+    {
+        $context = app(LeagueContext::class);
+
+        $validated = $request->validate([
+            'division_id' => 'required|exists:divisions,id',
+            'teams' => 'required|array|min:1',
+            'teams.*.name' => 'required|string|max:255',
+            'teams.*.contact_name' => 'nullable|string|max:255',
+            'teams.*.contact_email' => 'nullable|email',
+        ]);
+
+        $count = 0;
+        foreach ($validated['teams'] as $t) {
+            if (empty($t['name'])) continue;
+            Team::create([
+                'division_id' => $validated['division_id'],
+                'league_id' => $context->league()->id,
+                'name' => $t['name'],
+                'contact_name' => $t['contact_name'] ?? null,
+                'contact_email' => $t['contact_email'] ?? null,
+            ]);
+            $count++;
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'count' => $count]);
+        }
+
+        return redirect()->route('leagues.divisions.index', $league)
+            ->with('success', "{$count} team(s) added.");
+    }
+
     public function show(string $league, Team $team)
     {
         $context = app(LeagueContext::class);

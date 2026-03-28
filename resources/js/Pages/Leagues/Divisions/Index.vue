@@ -3,6 +3,7 @@ import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import BulkAddModal from '@/Components/BulkAddModal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -51,6 +52,35 @@ const deleteDivision = (div) => {
         router.delete(route('leagues.divisions.destroy', [props.league.slug, div.id]));
     }
 };
+
+// Bulk add divisions
+const showBulkDivisions = ref(false);
+const bulkDivFields = [
+    { key: 'name', label: 'Division Name', required: true, placeholder: 'e.g. U10 Boys' },
+    { key: 'age_group', label: 'Age Group', required: false, placeholder: 'e.g. Under 10' },
+];
+const submitBulkDivisions = (rows, done) => {
+    axios.post(route('leagues.divisions.bulk', props.league.slug), { divisions: rows })
+        .then(() => { showBulkDivisions.value = false; router.reload({ only: ['divisions'] }); })
+        .catch(() => {})
+        .finally(() => done());
+};
+
+// Bulk add teams (per division)
+const showBulkTeams = ref(false);
+const bulkTeamDivId = ref(null);
+const bulkTeamFields = [
+    { key: 'name', label: 'Team Name', required: true, placeholder: 'Team name' },
+    { key: 'contact_name', label: 'Coach Name', required: false, placeholder: 'Coach name' },
+    { key: 'contact_email', label: 'Coach Email', required: false, placeholder: 'email@example.com', type: 'email' },
+];
+const openBulkTeams = (divId) => { bulkTeamDivId.value = divId; showBulkTeams.value = true; };
+const submitBulkTeams = (rows, done) => {
+    axios.post(route('leagues.teams.bulk', props.league.slug), { division_id: bulkTeamDivId.value, teams: rows })
+        .then(() => { showBulkTeams.value = false; router.reload({ only: ['divisions'] }); })
+        .catch(() => {})
+        .finally(() => done());
+};
 </script>
 
 <template>
@@ -59,9 +89,12 @@ const deleteDivision = (div) => {
     <LeagueLayout :league="league" :userRole="userRole || ''">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-900">Divisions & Teams</h2>
-            <Link v-if="isManager" :href="route('leagues.divisions.create', league.slug)">
-                <PrimaryButton>Add Division</PrimaryButton>
-            </Link>
+            <div v-if="isManager" class="flex items-center gap-2">
+                <button @click="showBulkDivisions = true" class="text-[10px] text-brand-600 hover:text-brand-700">Bulk Add</button>
+                <Link :href="route('leagues.divisions.create', league.slug)">
+                    <PrimaryButton>Add Division</PrimaryButton>
+                </Link>
+            </div>
         </div>
 
         <FlashMessage />
@@ -121,10 +154,14 @@ const deleteDivision = (div) => {
                         <div class="flex items-center gap-1.5 pl-5" @click.stop>
                             <TextInput v-model="newTeamName[div.id]" class="flex-1 py-1 text-xs" placeholder="Add team..." @keyup.enter="addTeam(div.id)" />
                             <button @click="addTeam(div.id)" :disabled="!newTeamName[div.id]" class="rounded bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold text-white disabled:opacity-50">Add</button>
+                            <button @click.stop="openBulkTeams(div.id)" class="text-[10px] text-brand-600 hover:text-brand-700">Bulk</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <BulkAddModal :show="showBulkDivisions" title="Bulk Add Divisions" :fields="bulkDivFields" @close="showBulkDivisions = false" @submit="submitBulkDivisions" />
+        <BulkAddModal :show="showBulkTeams" title="Bulk Add Teams" :fields="bulkTeamFields" @close="showBulkTeams = false" @submit="submitBulkTeams" />
     </LeagueLayout>
 </template>
