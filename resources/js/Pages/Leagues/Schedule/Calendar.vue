@@ -29,6 +29,7 @@ const teamListRef = ref(null);
 const errorMessages = ref([]);
 const showModal = ref(false);
 const modalFieldName = ref('');
+const sidebarDivision = ref('');
 
 // Filters
 const filters = ref({
@@ -47,10 +48,18 @@ const availableFields = computed(() => {
     return props.locations.flatMap(l => l.fields || []);
 });
 
-// Derived: teams filtered by division
+// Teams filtered by main division filter (for calendar events)
 const filteredTeams = computed(() => {
     if (filters.value.division_id) {
         return props.teams.filter(t => t.division_id == filters.value.division_id);
+    }
+    return props.teams;
+});
+
+// Teams filtered by sidebar division picker (independent from calendar filter)
+const sidebarTeams = computed(() => {
+    if (sidebarDivision.value) {
+        return props.teams.filter(t => t.division_id == sidebarDivision.value);
     }
     return props.teams;
 });
@@ -308,14 +317,18 @@ function showError(messages) {
 
         <div class="mt-2 flex gap-3">
             <!-- Team drag sidebar -->
-            <div v-if="isManager && teams.length" class="hidden w-40 shrink-0 lg:block">
+            <div v-if="isManager && teams.length" class="hidden w-44 shrink-0 lg:block">
                 <div class="sticky top-3 rounded-lg border border-gray-200 bg-white">
-                    <div class="border-b border-gray-100 px-2.5 py-2">
+                    <div class="border-b border-gray-100 px-2 py-1.5">
                         <h3 class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Drag to Schedule</h3>
+                        <select v-model="sidebarDivision" class="mt-1 w-full rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
+                            <option value="">All Divisions</option>
+                            <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+                        </select>
                     </div>
-                    <div ref="teamListRef" class="max-h-[520px] overflow-y-auto p-1">
+                    <div ref="teamListRef" class="max-h-[490px] overflow-y-auto p-1">
                         <div
-                            v-for="team in filteredTeams"
+                            v-for="team in sidebarTeams"
                             :key="team.id"
                             :data-team-id="team.id"
                             :data-team-name="team.name"
@@ -325,6 +338,7 @@ function showError(messages) {
                             <span class="inline-block h-2 w-2 shrink-0 rounded-full" :style="{ backgroundColor: team.color_code || '#3B82F6' }"></span>
                             <span class="truncate">{{ team.name }}</span>
                         </div>
+                        <div v-if="sidebarTeams.length === 0" class="px-2 py-3 text-center text-[10px] text-gray-400">No teams</div>
                     </div>
                 </div>
             </div>
