@@ -6,12 +6,13 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
     league: Object,
     members: Array,
     invitations: Array,
+    divisions: { type: Array, default: () => [] },
     teams: { type: Array, default: () => [] },
     userRole: String,
 });
@@ -19,7 +20,20 @@ const props = defineProps({
 const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 const copiedMemberId = ref(null);
 
-const form = useForm({ email: '', name: '', role: 'coach', team_id: '' });
+const form = useForm({ email: '', name: '', role: 'coach', division_ids: [], team_ids: [] });
+
+// Coach flow: pick divisions first to filter team list
+const coachDivFilter = ref([]);
+const coachFilteredTeams = computed(() => {
+    if (coachDivFilter.value.length === 0) return props.teams;
+    return props.teams.filter(t => coachDivFilter.value.includes(String(t.division_id)));
+});
+
+// When coach div filter changes, remove team_ids no longer in filtered list
+watch(coachDivFilter, () => {
+    const validIds = coachFilteredTeams.value.map(t => t.id);
+    form.team_ids = form.team_ids.filter(id => validIds.includes(id));
+});
 
 const submit = () => {
     form.post(route('leagues.invitations.store', props.league.slug), {
@@ -92,23 +106,53 @@ const roleBadge = (role) => ({
                         </div>
                         <div>
                             <InputLabel for="role" value="Role" />
-                            <select id="role" v-model="form.role" class="mt-1 block w-full">
+                            <select id="role" v-model="form.role" class="mt-1 block w-full" @change="form.division_ids = []; form.team_ids = []; coachDivFilter = [];">
                                 <option value="league_admin">League Admin</option>
                                 <option value="division_manager">Division Manager</option>
                                 <option value="coach">Coach</option>
                             </select>
                         </div>
                     </div>
-                    <div v-if="form.role === 'coach'" class="flex items-end gap-2">
-                        <div class="flex-1">
-                            <InputLabel for="team_id" value="Assign to Team" />
-                            <select id="team_id" v-model="form.team_id" class="mt-1 block w-full" required>
-                                <option value="">-- Select Team --</option>
-                                <option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}</option>
-                            </select>
-                            <InputError :message="form.errors.team_id" class="mt-1" />
+
+                    <!-- Division Manager: pick divisions -->
+                    <div v-if="form.role === 'division_manager' && divisions.length">
+                        <InputLabel value="Assign to Divisions" />
+                        <div class="mt-1 flex flex-wrap gap-1">
+                            <label v-for="div in divisions" :key="div.id" class="flex items-center gap-1 rounded border px-2 py-1 cursor-pointer text-[11px] transition"
+                                :class="form.division_ids.includes(div.id) ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'">
+                                <input type="checkbox" :value="div.id" v-model="form.division_ids" class="hidden" />
+                                {{ div.name }}
+                            </label>
                         </div>
                     </div>
+
+                    <!-- Coach: pick divisions to filter, then teams -->
+                    <div v-if="form.role === 'coach'" class="space-y-2">
+                        <div>
+                            <InputLabel value="Filter by Division" />
+                            <div class="mt-1 flex flex-wrap gap-1">
+                                <label v-for="div in divisions" :key="div.id" class="flex items-center gap-1 rounded border px-2 py-1 cursor-pointer text-[11px] transition"
+                                    :class="coachDivFilter.includes(String(div.id)) ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'">
+                                    <input type="checkbox" :value="String(div.id)" v-model="coachDivFilter" class="hidden" />
+                                    {{ div.name }}
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <InputLabel value="Assign to Teams" />
+                            <div class="mt-1 flex flex-wrap gap-1">
+                                <label v-for="t in coachFilteredTeams" :key="t.id" class="flex items-center gap-1 rounded border px-2 py-1 cursor-pointer text-[11px] transition"
+                                    :class="form.team_ids.includes(t.id) ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'">
+                                    <input type="checkbox" :value="t.id" v-model="form.team_ids" class="hidden" />
+                                    <span v-if="t.color_code" class="inline-block h-2 w-2 rounded-full" :style="{ backgroundColor: t.color_code }"></span>
+                                    {{ t.name }}
+                                </label>
+                            </div>
+                            <InputError :message="form.errors.team_ids" class="mt-1" />
+                            <p v-if="coachFilteredTeams.length === 0" class="text-[10px] text-gray-400 mt-1">No teams in selected divisions.</p>
+                        </div>
+                    </div>
+
                     <div class="flex justify-end">
                         <PrimaryButton :disabled="form.processing">Add Member</PrimaryButton>
                     </div>
