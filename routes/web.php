@@ -13,6 +13,7 @@ use App\Http\Controllers\League\FieldController;
 use App\Http\Controllers\League\FieldRulesController;
 use App\Http\Controllers\League\LocationController;
 use App\Http\Controllers\League\ScheduleEntryController;
+use App\Http\Controllers\League\SchedulingRulesController;
 use App\Http\Controllers\League\SeasonController;
 use App\Http\Controllers\League\TeamController;
 use App\Http\Controllers\NotificationController;
@@ -82,6 +83,10 @@ Route::middleware('auth')->group(function () {
             Route::resource('fields', FieldController::class)->except(['index', 'show']);
             Route::get('fields/{field}/rules', [FieldRulesController::class, 'edit'])->name('fields.rules');
             Route::put('fields/{field}/rules', [FieldRulesController::class, 'update'])->name('fields.rules.update');
+
+            // Scheduling Rules Dashboard
+            Route::get('scheduling-rules', [SchedulingRulesController::class, 'index'])->name('scheduling-rules.index');
+            Route::post('scheduling-rules', [SchedulingRulesController::class, 'update'])->name('scheduling-rules.update');
 
             // Nested: fields under locations
             Route::get('locations/{location}/fields/create', [FieldController::class, 'create'])

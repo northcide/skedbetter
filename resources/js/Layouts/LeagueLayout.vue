@@ -21,6 +21,7 @@ const navSections = computed(() => {
                 { label: 'Calendar', route: 'leagues.schedule.calendar', match: 'schedule/calendar' },
                 { label: 'Schedule List', route: 'leagues.schedule.index', match: '/schedule', exact: false },
                 { label: 'Blackout Rules', route: 'leagues.blackouts.index', match: 'blackouts' },
+                { label: 'Scheduling Rules', route: 'leagues.scheduling-rules.index', match: 'scheduling-rules' },
             ],
         },
         {
