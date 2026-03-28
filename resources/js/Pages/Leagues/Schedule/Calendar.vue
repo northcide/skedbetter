@@ -289,10 +289,40 @@ function openModal({ teamId, date, startTime, endTime, fieldId, fieldName }) {
     showModal.value = true;
 }
 
+// Event detail popover
+const showEventDetail = ref(false);
+const eventDetail = ref({});
+
 function handleEventClick(info) {
-    if (isManager) {
-        window.location.href = route('leagues.schedule.edit', [props.league.slug, info.event.id]);
-    }
+    const ev = info.event;
+    const ext = ev.extendedProps || {};
+    eventDetail.value = {
+        id: ev.id,
+        title: ev.title,
+        teamName: ext.team_name || '',
+        fieldName: ext.field_name || '',
+        locationName: ext.location_name || '',
+        type: ext.type || '',
+        status: ext.status || '',
+        date: ev.start?.toISOString().slice(0, 10) || '',
+        startTime: ev.start?.toTimeString().slice(0, 5) || '',
+        endTime: ev.end?.toTimeString().slice(0, 5) || '',
+    };
+    showEventDetail.value = true;
+}
+
+function cancelEvent() {
+    if (!confirm('Cancel this schedule entry?')) return;
+    axios.delete(route('leagues.schedule.destroy', [props.league.slug, eventDetail.value.id]))
+        .then(() => {
+            showEventDetail.value = false;
+            calendarRef.value?.getApi()?.refetchEvents();
+        });
+}
+
+function editEvent() {
+    showEventDetail.value = false;
+    window.location.href = route('leagues.schedule.edit', [props.league.slug, eventDetail.value.id]);
 }
 
 function formatTime12(time24) {
@@ -567,6 +597,40 @@ function showError(messages) {
                     <PrimaryButton @click="confirmSchedule" :disabled="modalSubmitting">
                         {{ modalSubmitting ? 'Saving...' : 'Confirm' }}
                     </PrimaryButton>
+                </div>
+            </div>
+        </Modal>
+
+        <!-- Event Detail Modal -->
+        <Modal :show="showEventDetail" @close="showEventDetail = false" max-width="sm">
+            <div class="p-4">
+                <h3 class="text-sm font-semibold text-gray-900">{{ eventDetail.title }}</h3>
+                <div class="mt-3 space-y-1.5 text-sm text-gray-700">
+                    <p>
+                        {{ new Date(eventDetail.date + 'T00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) }}
+                    </p>
+                    <p>{{ formatTime12(eventDetail.startTime) }} &ndash; {{ formatTime12(eventDetail.endTime) }}</p>
+                    <p v-if="eventDetail.fieldName" class="text-gray-500">
+                        {{ eventDetail.fieldName }}<span v-if="eventDetail.locationName"> @ {{ eventDetail.locationName }}</span>
+                    </p>
+                    <p>
+                        <span class="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-600">{{ eventDetail.type }}</span>
+                        <span class="ml-1 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase"
+                            :class="eventDetail.status === 'confirmed' ? 'bg-green-100 text-green-700' : eventDetail.status === 'tentative' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'">
+                            {{ eventDetail.status }}
+                        </span>
+                    </p>
+                </div>
+                <div v-if="isManager" class="mt-4 flex justify-end gap-2">
+                    <button v-if="eventDetail.status !== 'cancelled'" @click="cancelEvent" class="rounded-md px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                        Cancel Entry
+                    </button>
+                    <button @click="editEvent" class="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">
+                        Edit
+                    </button>
+                </div>
+                <div v-else class="mt-4 flex justify-end">
+                    <button @click="showEventDetail = false" class="rounded-md px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900">Close</button>
                 </div>
             </div>
         </Modal>

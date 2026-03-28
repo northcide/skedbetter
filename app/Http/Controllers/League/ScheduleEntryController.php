@@ -154,7 +154,14 @@ class ScheduleEntryController extends Controller
         $result = $this->schedulingService->update($scheduleEntry, $validated, $request->user()->id);
 
         if ($result instanceof ConflictResult) {
+            if ($request->wantsJson()) {
+                return response()->json(['errors' => ['conflicts' => $result->getAllMessages()]], 422);
+            }
             return back()->withErrors(['conflicts' => $result->getAllMessages()]);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
         }
 
         return redirect()->route('leagues.schedule.index', $league)
@@ -164,6 +171,10 @@ class ScheduleEntryController extends Controller
     public function destroy(string $league, ScheduleEntry $scheduleEntry)
     {
         $this->schedulingService->cancel($scheduleEntry, request()->user()->id);
+
+        if (request()->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return redirect()->route('leagues.schedule.index', $league)
             ->with('success', 'Schedule entry cancelled.');
@@ -332,6 +343,10 @@ class ScheduleEntryController extends Controller
             $message .= ' ' . count($result['skipped']) . ' skipped due to conflicts.';
         }
 
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $message, 'result' => $result]);
+        }
+
         return redirect()->route('leagues.schedule.index', $league)
             ->with('success', $message)
             ->with('bulk_result', $result);
@@ -340,6 +355,9 @@ class ScheduleEntryController extends Controller
     public function cancelSeries(Request $request, string $league, ScheduleEntry $scheduleEntry)
     {
         if (! $scheduleEntry->recurrence_group_id) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'This entry is not part of a series.'], 422);
+            }
             return back()->with('error', 'This entry is not part of a series.');
         }
 
@@ -348,6 +366,10 @@ class ScheduleEntryController extends Controller
             $scheduleEntry->date->toDateString(),
             $request->user()->id
         );
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'cancelled' => $cancelled]);
+        }
 
         return redirect()->route('leagues.schedule.index', $league)
             ->with('success', "Cancelled {$cancelled} entries in this series.");
