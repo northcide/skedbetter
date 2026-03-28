@@ -153,8 +153,15 @@ class ConflictDetector
             return;
         }
 
-        // Get the limit: team override, or check scheduling_constraints
+        // Get the limit: team override > division setting > scheduling_constraints
         $limit = $team->max_weekly_slots;
+
+        if (is_null($limit)) {
+            $division = DB::table('divisions')->where('id', $team->division_id)->first();
+            if ($division && $division->max_weekly_events_per_team) {
+                $limit = $division->max_weekly_events_per_team;
+            }
+        }
 
         if (is_null($limit)) {
             $limit = $this->getConstraintValue($request, 'max_weekly_slots');

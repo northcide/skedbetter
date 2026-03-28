@@ -47,6 +47,7 @@ const deleteDivision = (division) => {
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Age Group</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Teams</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Max Duration</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Weekly Limit</th>
                                 <th v-if="isManager" class="px-6 py-3"></th>
                             </tr>
                         </thead>
@@ -58,7 +59,11 @@ const deleteDivision = (division) => {
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ division.teams_count }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                                     <span v-if="division.max_event_minutes">{{ division.max_event_minutes }} min</span>
-                                    <span v-else class="text-gray-300">No limit</span>
+                                    <span v-else class="text-gray-300">&mdash;</span>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                    <span v-if="division.max_weekly_events_per_team">{{ division.max_weekly_events_per_team }}/week</span>
+                                    <span v-else class="text-gray-300">&mdash;</span>
                                 </td>
                                 <td v-if="isManager" class="whitespace-nowrap px-6 py-4 text-right text-sm">
                                     <Link :href="route('leagues.divisions.edit', [league.slug, division.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>

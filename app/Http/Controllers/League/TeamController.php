@@ -99,17 +99,22 @@ class TeamController extends Controller
             ];
         }
 
-        // 1b. Division max event duration
+        // 1b. Division rules
         $division = $team->division;
         if ($division && $division->max_event_minutes) {
-            $hours = floor($division->max_event_minutes / 60);
-            $mins = $division->max_event_minutes % 60;
-            $label = $hours > 0 ? "{$hours}h" . ($mins > 0 ? " {$mins}m" : '') : "{$mins}m";
             $rules[] = [
                 'source' => 'Division',
                 'sourceDetail' => $division->name,
-                'rule' => "Max event duration: {$label} ({$division->max_event_minutes} minutes)",
+                'rule' => "Max event duration: {$division->max_event_minutes} minutes",
                 'type' => 'constraint',
+            ];
+        }
+        if ($division && $division->max_weekly_events_per_team) {
+            $rules[] = [
+                'source' => 'Division',
+                'sourceDetail' => $division->name,
+                'rule' => "Max {$division->max_weekly_events_per_team} events per team per week",
+                'type' => 'weekly_limit',
             ];
         }
 

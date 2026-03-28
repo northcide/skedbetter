@@ -14,6 +14,7 @@ const form = useForm({
     age_group: '',
     skill_level: '',
     max_event_minutes: '',
+    max_weekly_events_per_team: '',
 });
 
 const submit = () => {
@@ -66,10 +67,26 @@ const submit = () => {
                             </div>
                         </div>
 
-                        <div>
-                            <InputLabel for="max_event_minutes" value="Max Event Duration (minutes)" />
-                            <TextInput id="max_event_minutes" v-model="form.max_event_minutes" type="number" class="mt-1 block w-full" min="15" max="480" step="15" placeholder="e.g. 90, 120 (leave blank for no limit)" />
-                            <InputError :message="form.errors.max_event_minutes" class="mt-2" />
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <InputLabel for="max_event_minutes" value="Max Event Duration" />
+                                <select id="max_event_minutes" v-model="form.max_event_minutes" class="mt-1 block w-full">
+                                    <option value="">No limit</option>
+                                    <option value="30">30 minutes</option>
+                                    <option value="60">60 minutes</option>
+                                    <option value="90">90 minutes</option>
+                                    <option value="120">120 minutes</option>
+                                </select>
+                                <InputError :message="form.errors.max_event_minutes" class="mt-2" />
+                            </div>
+                            <div>
+                                <InputLabel for="max_weekly_events_per_team" value="Max Events Per Team/Week" />
+                                <select id="max_weekly_events_per_team" v-model="form.max_weekly_events_per_team" class="mt-1 block w-full">
+                                    <option value="">No limit</option>
+                                    <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                                </select>
+                                <InputError :message="form.errors.max_weekly_events_per_team" class="mt-2" />
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end gap-4">

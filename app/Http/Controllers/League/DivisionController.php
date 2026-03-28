@@ -46,7 +46,8 @@ class DivisionController extends Controller
             'season_id' => 'required|exists:seasons,id',
             'age_group' => 'nullable|string|max:255',
             'skill_level' => 'nullable|string|max:255',
-            'max_event_minutes' => 'nullable|integer|min:15|max:480',
+            'max_event_minutes' => 'nullable|integer|in:30,60,90,120',
+            'max_weekly_events_per_team' => 'nullable|integer|min:1|max:20',
         ]);
 
         Division::create($validated);
@@ -75,6 +76,8 @@ class DivisionController extends Controller
             'season_id' => 'required|exists:seasons,id',
             'age_group' => 'nullable|string|max:255',
             'skill_level' => 'nullable|string|max:255',
+            'max_event_minutes' => 'nullable|integer|in:30,60,90,120',
+            'max_weekly_events_per_team' => 'nullable|integer|min:1|max:20',
         ]);
 
         $division->update($validated);
