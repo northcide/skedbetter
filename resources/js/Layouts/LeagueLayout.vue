@@ -27,8 +27,7 @@ const navSections = computed(() => {
             label: 'League Setup',
             items: [
                 { label: 'Seasons', route: 'leagues.seasons.index', match: 'seasons' },
-                { label: 'Divisions', route: 'leagues.divisions.index', match: 'divisions' },
-                { label: 'Teams', route: 'leagues.teams.index', match: 'teams' },
+                { label: 'Divisions & Teams', route: 'leagues.divisions.index', match: 'divisions' },
                 { label: 'Locations & Fields', route: 'leagues.locations.index', match: 'locations' },
             ],
         },

@@ -60,7 +60,11 @@ class TeamController extends Controller
 
         $validated['league_id'] = $context->league()->id;
 
-        Team::create($validated);
+        $team = Team::create($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'team' => $team]);
+        }
 
         return redirect()->route('leagues.teams.index', $league)
             ->with('success', 'Team created successfully.');
@@ -335,13 +339,21 @@ class TeamController extends Controller
 
         $team->update($validated);
 
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
         return redirect()->route('leagues.teams.index', $league)
             ->with('success', 'Team updated successfully.');
     }
 
-    public function destroy(string $league, Team $team)
+    public function destroy(Request $request, string $league, Team $team)
     {
         $team->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
 
         return redirect()->route('leagues.teams.index', $league)
             ->with('success', 'Team deleted successfully.');

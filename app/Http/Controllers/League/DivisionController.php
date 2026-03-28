@@ -15,7 +15,7 @@ class DivisionController extends Controller
     {
         $context = app(LeagueContext::class);
 
-        $divisions = Division::with('season')
+        $divisions = Division::with(['season', 'teams' => fn($q) => $q->orderBy('name')])
             ->withCount('teams')
             ->orderBy('sort_order')
             ->get();
