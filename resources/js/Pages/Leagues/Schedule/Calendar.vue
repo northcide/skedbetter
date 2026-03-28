@@ -6,7 +6,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Modal from '@/Components/Modal.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -19,6 +19,8 @@ const props = defineProps({
     userRole: String,
     teams: { type: Array, default: () => [] },
     seasons: { type: Array, default: () => [] },
+    divisions: { type: Array, default: () => [] },
+    locations: { type: Array, default: () => [] },
 });
 
 const isManager = ['superadmin', 'league_manager', 'division_manager'].includes(props.userRole);
@@ -28,6 +30,83 @@ const errorMessages = ref([]);
 const showModal = ref(false);
 const modalFieldName = ref('');
 
+// Filters
+const filters = ref({
+    division_id: '',
+    team_id: '',
+    location_id: '',
+    field_id: '',
+});
+
+// Derived: fields for the selected location (or all)
+const availableFields = computed(() => {
+    if (filters.value.location_id) {
+        const loc = props.locations.find(l => l.id == filters.value.location_id);
+        return loc?.fields || [];
+    }
+    return props.locations.flatMap(l => l.fields || []);
+});
+
+// Derived: teams filtered by division
+const filteredTeams = computed(() => {
+    if (filters.value.division_id) {
+        return props.teams.filter(t => t.division_id == filters.value.division_id);
+    }
+    return props.teams;
+});
+
+// Build extra params string for event fetching
+const filterParams = computed(() => {
+    const params = {};
+    if (filters.value.division_id) params.division_id = filters.value.division_id;
+    if (filters.value.team_id) params.team_id = filters.value.team_id;
+    if (filters.value.location_id) params.location_id = filters.value.location_id;
+    if (filters.value.field_id) params.field_id = filters.value.field_id;
+    return params;
+});
+
+// Refetch events when filters change
+watch(filters, () => {
+    const api = calendarRef.value?.getApi();
+    if (!api) return;
+
+    // Update the event source URL with filter params
+    const sources = api.getEventSources();
+    sources.forEach(s => s.remove());
+
+    const baseUrl = route('leagues.schedule.events', props.league.slug);
+    const qs = new URLSearchParams(filterParams.value).toString();
+    const url = qs ? `${baseUrl}?${qs}` : baseUrl;
+
+    api.addEventSource({ url, method: 'GET' });
+}, { deep: true });
+
+// Reset dependent filters
+watch(() => filters.value.division_id, () => {
+    // If filtered team is no longer in this division, clear it
+    if (filters.value.team_id && filters.value.division_id) {
+        const team = props.teams.find(t => t.id == filters.value.team_id);
+        if (team && team.division_id != filters.value.division_id) {
+            filters.value.team_id = '';
+        }
+    }
+});
+
+watch(() => filters.value.location_id, () => {
+    // If filtered field is no longer at this location, clear it
+    if (filters.value.field_id && filters.value.location_id) {
+        const field = availableFields.value.find(f => f.id == filters.value.field_id);
+        if (!field) filters.value.field_id = '';
+    }
+});
+
+function clearFilters() {
+    filters.value = { division_id: '', team_id: '', location_id: '', field_id: '' };
+}
+
+const hasFilters = computed(() => Object.values(filters.value).some(v => v));
+
+// Modal form
 const modalForm = useForm({
     season_id: props.seasons.find(s => s.is_current)?.id || props.seasons[0]?.id || '',
     field_id: '',
@@ -75,7 +154,7 @@ const calendarOptions = ref({
     nowIndicator: true,
     expandRows: true,
     height: 'auto',
-    contentHeight: 580,
+    contentHeight: 560,
     resourceAreaHeaderContent: 'Fields',
     resourceAreaWidth: '150px',
     editable: isManager,
@@ -195,21 +274,48 @@ function showError(messages) {
 
         <FlashMessage />
 
+        <!-- Filter Bar -->
+        <div class="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Filter:</span>
+
+            <select v-model="filters.division_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                <option value="">All Divisions</option>
+                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+            </select>
+
+            <select v-model="filters.team_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                <option value="">All Teams</option>
+                <option v-for="t in filteredTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
+            </select>
+
+            <select v-model="filters.location_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                <option value="">All Locations</option>
+                <option v-for="l in locations" :key="l.id" :value="l.id">{{ l.name }}</option>
+            </select>
+
+            <select v-model="filters.field_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                <option value="">All Fields</option>
+                <option v-for="f in availableFields" :key="f.id" :value="f.id">{{ f.name }}</option>
+            </select>
+
+            <button v-if="hasFilters" @click="clearFilters" class="text-[11px] font-medium text-brand-600 hover:text-brand-700">Clear</button>
+        </div>
+
         <div v-if="errorMessages.length" class="fixed top-3 right-3 z-50 max-w-sm rounded-lg bg-red-500 px-3 py-2 text-xs text-white shadow-lg">
             <p class="font-semibold">Conflict:</p>
             <ul class="mt-1 list-disc pl-4"><li v-for="msg in errorMessages" :key="msg">{{ msg }}</li></ul>
         </div>
 
-        <div class="mt-3 flex gap-3">
+        <div class="mt-2 flex gap-3">
             <!-- Team drag sidebar -->
             <div v-if="isManager && teams.length" class="hidden w-40 shrink-0 lg:block">
                 <div class="sticky top-3 rounded-lg border border-gray-200 bg-white">
                     <div class="border-b border-gray-100 px-2.5 py-2">
                         <h3 class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Drag to Schedule</h3>
                     </div>
-                    <div ref="teamListRef" class="max-h-[560px] overflow-y-auto p-1">
+                    <div ref="teamListRef" class="max-h-[520px] overflow-y-auto p-1">
                         <div
-                            v-for="team in teams"
+                            v-for="team in filteredTeams"
                             :key="team.id"
                             :data-team-id="team.id"
                             :data-team-name="team.name"

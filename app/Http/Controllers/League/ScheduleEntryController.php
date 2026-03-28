@@ -30,6 +30,8 @@ class ScheduleEntryController extends Controller
             'userRole' => $context->userRole(),
             'teams' => Team::with('division')->orderBy('name')->get(),
             'seasons' => Season::orderByDesc('start_date')->get(),
+            'divisions' => \App\Models\Division::with('season')->orderBy('name')->get(),
+            'locations' => \App\Models\Location::with(['fields' => fn($q) => $q->orderBy('sort_order')])->orderBy('name')->get(),
         ]);
     }
 
@@ -179,6 +181,18 @@ class ScheduleEntryController extends Controller
         }
         if ($request->has('team_id')) {
             $query->where('team_id', $request->team_id);
+        }
+        if ($request->has('division_id')) {
+            $teamIds = \App\Models\Team::withoutGlobalScopes()
+                ->where('division_id', $request->division_id)
+                ->pluck('id');
+            $query->whereIn('team_id', $teamIds);
+        }
+        if ($request->has('location_id')) {
+            $fieldIds = \App\Models\Field::withoutGlobalScopes()
+                ->where('location_id', $request->location_id)
+                ->pluck('id');
+            $query->whereIn('field_id', $fieldIds);
         }
 
         $entries = $query->get();
