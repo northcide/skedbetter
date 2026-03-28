@@ -110,6 +110,18 @@ class ScheduleEntryController extends Controller
 
         $validated['league_id'] = $context->league()->id;
 
+        // Coaches can only schedule their own teams
+        $role = $context->userRole();
+        if ($role === 'coach') {
+            $coachTeamIds = $request->user()->teams()->pluck('teams.id')->toArray();
+            if (! in_array($validated['team_id'], $coachTeamIds)) {
+                $error = 'You can only schedule your own teams.';
+                return $request->wantsJson()
+                    ? response()->json(['errors' => ['conflicts' => [$error]]], 422)
+                    : back()->withErrors(['conflicts' => [$error]]);
+            }
+        }
+
         $result = $this->schedulingService->create($validated, $request->user()->id);
 
         if ($result instanceof ConflictResult) {
@@ -222,6 +234,10 @@ class ScheduleEntryController extends Controller
     public function events(Request $request, string $league)
     {
         $context = app(LeagueContext::class);
+        $user = $request->user();
+        $role = $context->userRole();
+        $isManager = in_array($role, ['superadmin', 'league_admin', 'division_manager']);
+        $coachTeamIds = $isManager ? [] : $user->teams()->pluck('teams.id')->toArray();
 
         $query = ScheduleEntry::with(['team', 'field.location'])
             ->active();
@@ -253,14 +269,15 @@ class ScheduleEntryController extends Controller
 
         $entries = $query->get();
 
-        return response()->json($entries->map(function ($entry) {
+        return response()->json($entries->map(function ($entry) use ($isManager, $coachTeamIds) {
+            $canEdit = $isManager || in_array($entry->team_id, $coachTeamIds);
             return [
                 'id' => $entry->id,
                 'title' => $entry->title ?: $entry->team->name . ' - ' . ucfirst($entry->type->value ?? $entry->type),
                 'start' => $entry->date->format('Y-m-d') . 'T' . $entry->start_time,
                 'end' => $entry->date->format('Y-m-d') . 'T' . $entry->end_time,
                 'resourceId' => $entry->field_id,
-                'editable' => true,
+                'editable' => $canEdit,
                 'backgroundColor' => $entry->team->color_code ?? '#3B82F6',
                 'borderColor' => $entry->team->color_code ?? '#3B82F6',
                 'extendedProps' => [

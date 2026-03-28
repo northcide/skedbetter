@@ -216,11 +216,11 @@ const calendarOptions = ref({
     contentHeight: 560,
     resourceAreaHeaderContent: 'Fields',
     resourceAreaWidth: '150px',
-    editable: canSchedule,
+    editable: false,  // per-event editable from server
     droppable: canSchedule,
     selectable: canSchedule,
     selectMirror: true,
-    eventResourceEditable: canSchedule,
+    eventResourceEditable: false,  // per-event from server
     resources: {
         url: route('leagues.schedule.resources', props.league.slug),
         method: 'GET',
@@ -231,8 +231,6 @@ const calendarOptions = ref({
         const qs = new URLSearchParams(params).toString();
         axios.get(`${baseUrl}?${qs}`).then(res => successCallback(res.data)).catch(failureCallback);
     },
-    eventStartEditable: canSchedule,
-    eventDurationEditable: canSchedule,
     datesSet: (info) => {
         saveState({ view: info.view.type, date: info.start.toISOString().slice(0, 10) });
     },
