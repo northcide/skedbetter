@@ -13,6 +13,7 @@ const form = useForm({
     season_id: props.seasons.find(s => s.is_current)?.id || props.seasons[0]?.id || '',
     age_group: '',
     skill_level: '',
+    max_event_minutes: '',
 });
 
 const submit = () => {
@@ -63,6 +64,12 @@ const submit = () => {
                                 <InputLabel for="skill_level" value="Skill Level" />
                                 <TextInput id="skill_level" v-model="form.skill_level" type="text" class="mt-1 block w-full" placeholder="e.g. Recreational, Competitive" />
                             </div>
+                        </div>
+
+                        <div>
+                            <InputLabel for="max_event_minutes" value="Max Event Duration (minutes)" />
+                            <TextInput id="max_event_minutes" v-model="form.max_event_minutes" type="number" class="mt-1 block w-full" min="15" max="480" step="15" placeholder="e.g. 90, 120 (leave blank for no limit)" />
+                            <InputError :message="form.errors.max_event_minutes" class="mt-2" />
                         </div>
 
                         <div class="flex items-center justify-end gap-4">

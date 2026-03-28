@@ -99,6 +99,20 @@ class TeamController extends Controller
             ];
         }
 
+        // 1b. Division max event duration
+        $division = $team->division;
+        if ($division && $division->max_event_minutes) {
+            $hours = floor($division->max_event_minutes / 60);
+            $mins = $division->max_event_minutes % 60;
+            $label = $hours > 0 ? "{$hours}h" . ($mins > 0 ? " {$mins}m" : '') : "{$mins}m";
+            $rules[] = [
+                'source' => 'Division',
+                'sourceDetail' => $division->name,
+                'rule' => "Max event duration: {$label} ({$division->max_event_minutes} minutes)",
+                'type' => 'constraint',
+            ];
+        }
+
         // 2. Field access restrictions — which fields this team's division can/cannot use
         $restrictedFields = DB::table('division_field')
             ->join('fields', 'fields.id', '=', 'division_field.field_id')

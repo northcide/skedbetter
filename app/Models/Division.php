@@ -12,7 +12,7 @@ class Division extends Model
     use BelongsToLeague, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'league_id', 'season_id', 'name', 'age_group', 'skill_level', 'sort_order',
+        'league_id', 'season_id', 'name', 'age_group', 'skill_level', 'max_event_minutes', 'sort_order',
     ];
 
     public function season()

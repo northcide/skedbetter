@@ -12,6 +12,10 @@ class ConstraintValidator
     public function validate(ScheduleRequest $request): ConflictResult
     {
         $result = new ConflictResult();
+
+        // Division max event duration
+        $this->validateDivisionMaxDuration($request, $result);
+
         $constraints = $this->loadConstraints($request);
 
         foreach ($constraints as $constraint) {
@@ -186,6 +190,29 @@ class ConstraintValidator
             $result->addViolation(
                 'constraint',
                 "Team has reached the daily limit of {$maxDaily} slots (currently {$count} on this date)."
+            );
+        }
+    }
+
+    protected function validateDivisionMaxDuration(ScheduleRequest $request, ConflictResult $result): void
+    {
+        $team = DB::table('teams')->where('id', $request->teamId)->first();
+        if (! $team) return;
+
+        $division = DB::table('divisions')->where('id', $team->division_id)->first();
+        if (! $division || ! $division->max_event_minutes) return;
+
+        $start = Carbon::parse($request->date . ' ' . $request->startTime);
+        $end = Carbon::parse($request->date . ' ' . $request->endTime);
+        $duration = $start->diffInMinutes($end);
+
+        if ($duration > $division->max_event_minutes) {
+            $hours = floor($division->max_event_minutes / 60);
+            $mins = $division->max_event_minutes % 60;
+            $limit = $hours > 0 ? "{$hours}h" . ($mins > 0 ? " {$mins}m" : '') : "{$mins}m";
+            $result->addViolation(
+                'constraint',
+                "Event duration ({$duration} min) exceeds the {$division->name} division maximum of {$limit}."
             );
         }
     }
