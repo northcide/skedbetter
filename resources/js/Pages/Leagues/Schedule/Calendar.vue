@@ -465,24 +465,30 @@ function confirmSchedule() {
         title: modalForm.title,
     };
 
-    const request = editingEntryId.value
-        ? axios.put(route('leagues.schedule.update', [props.league.slug, editingEntryId.value]), { ...payload, status: 'confirmed', notes: '' })
-        : axios.post(route('leagues.schedule.store', props.league.slug), payload);
+    const headers = { Accept: 'application/json' };
 
-    request.then(() => {
+    const request = editingEntryId.value
+        ? axios.put(route('leagues.schedule.update', [props.league.slug, editingEntryId.value]), { ...payload, status: 'confirmed', notes: '' }, { headers })
+        : axios.post(route('leagues.schedule.store', props.league.slug), payload, { headers });
+
+    request.then((res) => {
         showConfirmation.value = false;
         editingEntryId.value = null;
         calendarRef.value?.getApi()?.refetchEvents();
     }).catch((error) => {
+        console.error('Schedule save error:', error.response?.status, error.response?.data);
         showConfirmation.value = false;
         showModal.value = true;
         const errs = error.response?.data?.errors || {};
+        const msg = error.response?.data?.message;
         if (errs.conflicts) {
             modalForm.setError('conflicts', errs.conflicts);
-        } else {
+        } else if (Object.keys(errs).length) {
             Object.entries(errs).forEach(([key, msgs]) => {
                 modalForm.setError(key, Array.isArray(msgs) ? msgs[0] : msgs);
             });
+        } else {
+            modalForm.setError('conflicts', [msg || 'An error occurred. Please try again.']);
         }
     }).finally(() => {
         modalSubmitting.value = false;
