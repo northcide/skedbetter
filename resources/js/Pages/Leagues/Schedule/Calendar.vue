@@ -493,6 +493,23 @@ watch(
     () => { if (showModal.value) liveValidate(); },
 );
 
+// When team changes, clear field if it's now blocked
+watch(() => modalForm.team_id, () => {
+    if (!showModal.value) return;
+    if (modalForm.field_id) {
+        // Find the field and check if it's blocked for the new team
+        let field = null;
+        for (const loc of props.locations) {
+            field = (loc.fields || []).find(f => f.id == modalForm.field_id);
+            if (field) break;
+        }
+        if (field && isFieldBlocked(field)) {
+            modalForm.field_id = '';
+        }
+    }
+    liveValidate();
+});
+
 // Event detail popover
 const showEventDetail = ref(false);
 const eventDetail = ref({});
@@ -771,6 +788,7 @@ function showError(messages) {
                                 id="m_field"
                                 v-model="modalForm.field_id"
                                 @change="liveValidate"
+                                :key="'field-' + modalForm.team_id + '-' + modalForm.date"
                                 class="mt-1 block w-full"
                                 :class="liveErrors.length ? 'border-red-400 ring-1 ring-red-400' : ''"
                                 required
