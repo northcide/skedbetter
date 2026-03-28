@@ -27,7 +27,7 @@ const deleteLocation = (location) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
+                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
                     <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Locations & Fields</h2>
                 </div>
                 <Link v-if="isManager" :href="route('leagues.locations.create', league.slug)">
@@ -55,7 +55,7 @@ const deleteLocation = (location) => {
                                 <p class="mt-1 text-sm text-gray-400">{{ location.fields_count }} field(s)</p>
                             </div>
                             <div v-if="isManager" class="flex gap-2">
-                                <Link :href="route('leagues.locations.edit', [league.slug, location.id])" class="text-sm text-indigo-600 hover:text-indigo-900">
+                                <Link :href="route('leagues.locations.edit', [league.slug, location.id])" class="text-sm text-brand-600 hover:text-brand-700">
                                     Edit
                                 </Link>
                                 <button @click="deleteLocation(location)" class="text-sm text-red-600 hover:text-red-900">

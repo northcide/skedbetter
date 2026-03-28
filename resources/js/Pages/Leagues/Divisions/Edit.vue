@@ -25,7 +25,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.divisions.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Divisions</Link>
+            <Link :href="route('leagues.divisions.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Divisions</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Edit {{ division.name }}</h2>
         </template>
 
@@ -41,7 +41,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="season_id" value="Season" />
-                            <select id="season_id" v-model="form.season_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select id="season_id" v-model="form.season_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                 <option v-for="season in seasons" :key="season.id" :value="season.id">
                                     {{ season.name }}{{ season.is_current ? ' (Current)' : '' }}
                                 </option>

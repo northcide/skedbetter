@@ -105,7 +105,7 @@ function handleEventClick(info) {
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
+                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
                     <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Schedule Calendar</h2>
                 </div>
                 <div class="flex gap-2">

@@ -13,7 +13,7 @@ defineProps({ league: Object });
             <p class="mt-2 text-gray-600">
                 This invitation to <strong>{{ league.name }}</strong> has already been accepted.
             </p>
-            <Link :href="route('leagues.show', league.slug)" class="mt-4 inline-block text-indigo-600 hover:text-indigo-900">
+            <Link :href="route('leagues.show', league.slug)" class="mt-4 inline-block text-brand-600 hover:text-brand-700">
                 Go to {{ league.name }}
             </Link>
         </div>

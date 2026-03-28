@@ -35,7 +35,7 @@ const deleteField = (field) => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.locations.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Locations</Link>
+            <Link :href="route('leagues.locations.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Locations</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Edit {{ location.name }}</h2>
         </template>
 
@@ -74,7 +74,7 @@ const deleteField = (field) => {
 
                         <div>
                             <InputLabel for="notes" value="Notes" />
-                            <textarea id="notes" v-model="form.notes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" rows="2" />
+                            <textarea id="notes" v-model="form.notes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" rows="2" />
                         </div>
 
                         <div class="flex items-center justify-end gap-4">
@@ -106,7 +106,7 @@ const deleteField = (field) => {
                                 <span v-if="!field.is_active" class="ml-2 text-xs text-red-500">Inactive</span>
                             </div>
                             <div class="flex gap-2">
-                                <Link :href="route('leagues.fields.edit', [league.slug, field.id])" class="text-sm text-indigo-600 hover:text-indigo-900">Edit</Link>
+                                <Link :href="route('leagues.fields.edit', [league.slug, field.id])" class="text-sm text-brand-600 hover:text-brand-700">Edit</Link>
                                 <button @click="deleteField(field)" class="text-sm text-red-600 hover:text-red-900">Delete</button>
                             </div>
                         </li>

@@ -56,7 +56,7 @@ const statusBadge = (status) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
+                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
                     <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Schedule</h2>
                 </div>
                 <div class="flex items-center gap-3">
@@ -140,7 +140,7 @@ const statusBadge = (status) => {
                                     </span>
                                 </td>
                                 <td v-if="isManager" class="whitespace-nowrap px-4 py-3 text-right text-sm">
-                                    <Link :href="route('leagues.schedule.edit', [league.slug, entry.id])" class="text-indigo-600 hover:text-indigo-900">Edit</Link>
+                                    <Link :href="route('leagues.schedule.edit', [league.slug, entry.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>
                                     <button v-if="entry.status !== 'cancelled'" @click="cancelEntry(entry)" class="ml-2 text-red-600 hover:text-red-900">Cancel</button>
                                 </td>
                             </tr>
@@ -156,7 +156,7 @@ const statusBadge = (status) => {
                         :href="link.url || '#'"
                         v-html="link.label"
                         class="rounded px-3 py-1 text-sm"
-                        :class="link.active ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                        :class="link.active ? 'bg-brand-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
                     />
                 </div>
             </div>

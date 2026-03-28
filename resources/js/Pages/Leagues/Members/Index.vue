@@ -66,7 +66,7 @@ const roleBadge = (role) => {
     <AuthenticatedLayout>
         <template #header>
             <div>
-                <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
+                <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
                 <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Members & Invitations</h2>
             </div>
         </template>
@@ -88,7 +88,7 @@ const roleBadge = (role) => {
                         </div>
                         <div class="w-48">
                             <InputLabel for="role" value="Role" />
-                            <select id="role" v-model="form.role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="role" v-model="form.role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500">
                                 <option value="league_manager">League Manager</option>
                                 <option value="division_manager">Division Manager</option>
                                 <option value="team_manager">Team Manager</option>

@@ -27,7 +27,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.locations.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Locations</Link>
+            <Link :href="route('leagues.locations.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Locations</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Add Location</h2>
         </template>
 
@@ -64,7 +64,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="notes" value="Notes" />
-                            <textarea id="notes" v-model="form.notes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" rows="2" />
+                            <textarea id="notes" v-model="form.notes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" rows="2" />
                         </div>
 
                         <div class="flex items-center justify-end gap-4">

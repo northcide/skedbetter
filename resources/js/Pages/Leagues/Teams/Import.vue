@@ -24,7 +24,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Teams</Link>
+            <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Teams</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Import Teams from CSV</h2>
         </template>
 
@@ -34,7 +34,7 @@ const submit = () => {
                     <form @submit.prevent="submit" class="space-y-6 p-6">
                         <div>
                             <InputLabel for="division_id" value="Import into Division" />
-                            <select id="division_id" v-model="form.division_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select id="division_id" v-model="form.division_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                 <option v-for="div in divisions" :key="div.id" :value="div.id">
                                     {{ div.name }} ({{ div.season?.name }})
                                 </option>
@@ -49,7 +49,7 @@ const submit = () => {
                                 type="file"
                                 accept=".csv,.txt"
                                 @input="form.csv_file = $event.target.files[0]"
-                                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
+                                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand-700 hover:file:bg-brand-100"
                             />
                             <InputError :message="form.errors.csv_file" class="mt-2" />
                         </div>

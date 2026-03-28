@@ -21,7 +21,7 @@ const deleteRule = (rule) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
+                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
                     <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Blackout Rules</h2>
                 </div>
                 <Link v-if="isManager" :href="route('leagues.blackouts.create', league.slug)">
@@ -68,7 +68,7 @@ const deleteRule = (rule) => {
                                     </span>
                                 </td>
                                 <td v-if="isManager" class="whitespace-nowrap px-6 py-4 text-right text-sm">
-                                    <Link :href="route('leagues.blackouts.edit', [league.slug, rule.id])" class="text-indigo-600 hover:text-indigo-900">Edit</Link>
+                                    <Link :href="route('leagues.blackouts.edit', [league.slug, rule.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>
                                     <button @click="deleteRule(rule)" class="ml-3 text-red-600 hover:text-red-900">Delete</button>
                                 </td>
                             </tr>

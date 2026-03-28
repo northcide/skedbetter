@@ -4,19 +4,19 @@ import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <div
-        class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0"
-    >
-        <div>
-            <Link href="/">
-                <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
-            </Link>
-        </div>
+    <div class="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 px-4">
+        <div class="w-full max-w-md">
+            <div class="mb-8 text-center">
+                <Link href="/" class="inline-flex flex-col items-center gap-3">
+                    <ApplicationLogo class="h-12 w-12 text-brand-300" />
+                    <span class="text-2xl font-bold tracking-tight text-white">SkedBetter</span>
+                </Link>
+                <p class="mt-2 text-sm text-brand-300/70">Field scheduling made simple</p>
+            </div>
 
-        <div
-            class="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg"
-        >
-            <slot />
+            <div class="rounded-2xl bg-white p-8 shadow-2xl ring-1 ring-black/5">
+                <slot />
+            </div>
         </div>
     </div>
 </template>

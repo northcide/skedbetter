@@ -43,7 +43,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.blackouts.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Blackout Rules</Link>
+            <Link :href="route('leagues.blackouts.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Blackout Rules</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Add Blackout Rule</h2>
         </template>
 
@@ -64,7 +64,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="scope_type" value="Applies To" />
-                            <select id="scope_type" v-model="form.scope_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="scope_type" v-model="form.scope_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500">
                                 <option value="league">Entire League</option>
                                 <option value="location">Specific Location</option>
                                 <option value="field">Specific Field</option>
@@ -73,14 +73,14 @@ const submit = () => {
 
                         <div v-if="form.scope_type === 'location'">
                             <InputLabel for="scope_id" value="Location" />
-                            <select id="scope_id" v-model="form.scope_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select id="scope_id" v-model="form.scope_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                 <option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option>
                             </select>
                         </div>
 
                         <div v-if="form.scope_type === 'field'">
                             <InputLabel for="scope_id" value="Field" />
-                            <select id="scope_id" v-model="form.scope_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select id="scope_id" v-model="form.scope_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                 <option v-for="f in allFields" :key="f.id" :value="f.id">{{ f.name }} @ {{ f.location_name }}</option>
                             </select>
                         </div>
@@ -111,7 +111,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="recurrence" value="Recurrence" />
-                            <select id="recurrence" v-model="form.recurrence" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="recurrence" v-model="form.recurrence" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500">
                                 <option value="none">None (one-time)</option>
                                 <option value="weekly">Weekly</option>
                                 <option value="yearly">Yearly</option>
@@ -120,7 +120,7 @@ const submit = () => {
 
                         <div v-if="form.recurrence === 'weekly'">
                             <InputLabel for="day_of_week" value="Day of Week" />
-                            <select id="day_of_week" v-model="form.day_of_week" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select id="day_of_week" v-model="form.day_of_week" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                 <option v-for="(name, i) in dayNames" :key="i" :value="i">{{ name }}</option>
                             </select>
                         </div>

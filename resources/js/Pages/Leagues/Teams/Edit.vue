@@ -28,7 +28,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Teams</Link>
+            <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Teams</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Edit {{ team.name }}</h2>
         </template>
 
@@ -44,7 +44,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="division_id" value="Division" />
-                            <select id="division_id" v-model="form.division_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select id="division_id" v-model="form.division_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                 <option v-for="div in divisions" :key="div.id" :value="div.id">
                                     {{ div.name }} ({{ div.season?.name }})
                                 </option>

@@ -27,7 +27,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.locations.edit', [league.slug, location.id])" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ location.name }}</Link>
+            <Link :href="route('leagues.locations.edit', [league.slug, location.id])" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ location.name }}</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Add Field</h2>
         </template>
 
@@ -43,7 +43,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="surface_type" value="Surface Type" />
-                            <select id="surface_type" v-model="form.surface_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="surface_type" v-model="form.surface_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500">
                                 <option value="">-- Select --</option>
                                 <option v-for="st in surfaceTypes" :key="st" :value="st">{{ st.charAt(0).toUpperCase() + st.slice(1) }}</option>
                             </select>
@@ -61,7 +61,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="notes" value="Notes" />
-                            <textarea id="notes" v-model="form.notes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" rows="2" />
+                            <textarea id="notes" v-model="form.notes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" rows="2" />
                         </div>
 
                         <div class="flex items-center justify-end gap-4">

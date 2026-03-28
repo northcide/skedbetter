@@ -13,13 +13,13 @@ const isManager = ['superadmin', 'league_manager', 'division_manager'].includes(
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Teams</Link>
+                    <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Teams</Link>
                     <h2 class="mt-1 flex items-center gap-2 text-xl font-semibold leading-tight text-gray-800">
                         <span v-if="team.color_code" class="inline-block h-4 w-4 rounded-full" :style="{ backgroundColor: team.color_code }"></span>
                         {{ team.name }}
                     </h2>
                 </div>
-                <Link v-if="isManager" :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-sm text-indigo-600 hover:text-indigo-900">
+                <Link v-if="isManager" :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-sm text-brand-600 hover:text-brand-700">
                     Edit Team
                 </Link>
             </div>
@@ -63,7 +63,7 @@ const isManager = ['superadmin', 'league_manager', 'division_manager'].includes(
                             />
                             <button
                                 @click="navigator.clipboard.writeText(icalUrl)"
-                                class="whitespace-nowrap rounded-md bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-600 hover:bg-indigo-100"
+                                class="whitespace-nowrap rounded-md bg-brand-50 px-3 py-2 text-xs font-medium text-brand-600 hover:bg-brand-100"
                             >
                                 Copy
                             </button>

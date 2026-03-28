@@ -21,7 +21,7 @@ const deleteTeam = (team) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
+                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
                     <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Teams</h2>
                 </div>
                 <div v-if="isManager" class="flex items-center gap-3">
@@ -56,7 +56,7 @@ const deleteTeam = (team) => {
                                 <td class="whitespace-nowrap px-6 py-4">
                                     <div class="flex items-center gap-2">
                                         <span v-if="team.color_code" class="inline-block h-3 w-3 rounded-full" :style="{ backgroundColor: team.color_code }"></span>
-                                        <Link :href="route('leagues.teams.show', [league.slug, team.id])" class="font-medium text-indigo-600 hover:text-indigo-900">
+                                        <Link :href="route('leagues.teams.show', [league.slug, team.id])" class="font-medium text-brand-600 hover:text-brand-700">
                                             {{ team.name }}
                                         </Link>
                                     </div>
@@ -67,7 +67,7 @@ const deleteTeam = (team) => {
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ team.contact_name || '&mdash;' }}</td>
                                 <td v-if="isManager" class="whitespace-nowrap px-6 py-4 text-right text-sm">
-                                    <Link :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-indigo-600 hover:text-indigo-900">Edit</Link>
+                                    <Link :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>
                                     <button @click="deleteTeam(team)" class="ml-3 text-red-600 hover:text-red-900">Delete</button>
                                 </td>
                             </tr>

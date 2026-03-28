@@ -26,7 +26,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.seasons.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Seasons</Link>
+            <Link :href="route('leagues.seasons.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Seasons</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Add Season</h2>
         </template>
 

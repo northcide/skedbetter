@@ -21,7 +21,7 @@ const deleteSeason = (season) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
+                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
                     <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Seasons</h2>
                 </div>
                 <Link v-if="isManager" :href="route('leagues.seasons.create', league.slug)">
@@ -60,7 +60,7 @@ const deleteSeason = (season) => {
                                     <span v-if="season.is_current" class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">Current</span>
                                 </td>
                                 <td v-if="isManager" class="whitespace-nowrap px-6 py-4 text-right text-sm">
-                                    <Link :href="route('leagues.seasons.edit', [league.slug, season.id])" class="text-indigo-600 hover:text-indigo-900">Edit</Link>
+                                    <Link :href="route('leagues.seasons.edit', [league.slug, season.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>
                                     <button @click="deleteSeason(season)" class="ml-3 text-red-600 hover:text-red-900">Delete</button>
                                 </td>
                             </tr>

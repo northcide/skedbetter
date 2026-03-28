@@ -37,7 +37,7 @@ const navItems = [
                         {{ league.description }}
                     </p>
                 </div>
-                <Link v-if="isManager" :href="route('leagues.edit', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">
+                <Link v-if="isManager" :href="route('leagues.edit', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">
                     Edit League
                 </Link>
             </div>

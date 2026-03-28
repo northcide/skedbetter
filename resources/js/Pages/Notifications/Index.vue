@@ -50,7 +50,7 @@ const markRead = (id) => {
                             <button
                                 v-if="!n.read"
                                 @click="markRead(n.id)"
-                                class="text-xs text-indigo-600 hover:text-indigo-900"
+                                class="text-xs text-brand-600 hover:text-brand-700"
                             >
                                 Mark read
                             </button>

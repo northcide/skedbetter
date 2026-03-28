@@ -50,7 +50,7 @@ const submit = () => {
                             <textarea
                                 id="description"
                                 v-model="form.description"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500"
                                 rows="3"
                             />
                             <InputError :message="form.errors.description" class="mt-2" />
@@ -61,7 +61,7 @@ const submit = () => {
                             <select
                                 id="timezone"
                                 v-model="form.timezone"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500"
                             >
                                 <option value="America/New_York">Eastern</option>
                                 <option value="America/Chicago">Central</option>

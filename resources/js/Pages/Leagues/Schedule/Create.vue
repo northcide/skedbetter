@@ -43,7 +43,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <Link :href="route('leagues.schedule.index', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; Schedule</Link>
+            <Link :href="route('leagues.schedule.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Schedule</Link>
             <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">New Schedule Entry</h2>
         </template>
 
@@ -62,7 +62,7 @@ const submit = () => {
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <InputLabel for="season_id" value="Season" />
-                                <select id="season_id" v-model="form.season_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                <select id="season_id" v-model="form.season_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                     <option v-for="s in seasons" :key="s.id" :value="s.id">
                                         {{ s.name }}{{ s.is_current ? ' (Current)' : '' }}
                                     </option>
@@ -71,7 +71,7 @@ const submit = () => {
                             </div>
                             <div>
                                 <InputLabel for="type" value="Type" />
-                                <select id="type" v-model="form.type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="type" v-model="form.type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500">
                                     <option value="practice">Practice</option>
                                     <option value="game">Game</option>
                                     <option value="scrimmage">Scrimmage</option>
@@ -83,7 +83,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="team_id" value="Team" />
-                            <select id="team_id" v-model="form.team_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select id="team_id" v-model="form.team_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                 <option value="">-- Select Team --</option>
                                 <option v-for="t in teams" :key="t.id" :value="t.id">
                                     {{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}
@@ -94,7 +94,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="field_id" value="Field" />
-                            <select id="field_id" v-model="form.field_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                            <select id="field_id" v-model="form.field_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
                                 <option value="">-- Select Field --</option>
                                 <option v-for="f in fields" :key="f.id" :value="f.id">
                                     {{ f.name }} @ {{ f.location?.name }}
@@ -129,7 +129,7 @@ const submit = () => {
 
                         <div>
                             <InputLabel for="notes" value="Notes" />
-                            <textarea id="notes" v-model="form.notes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" rows="2" />
+                            <textarea id="notes" v-model="form.notes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" rows="2" />
                         </div>
 
                         <div class="flex items-center justify-end gap-4">

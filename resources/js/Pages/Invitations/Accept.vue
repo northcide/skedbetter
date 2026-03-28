@@ -55,7 +55,7 @@ const accept = () => {
                         Log In to Accept
                     </PrimaryButton>
                 </Link>
-                <Link :href="route('register')" class="block text-center text-sm text-indigo-600 hover:text-indigo-900">
+                <Link :href="route('register')" class="block text-center text-sm text-brand-600 hover:text-brand-700">
                     Don't have an account? Register
                 </Link>
             </div>

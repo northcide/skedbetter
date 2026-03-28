@@ -88,7 +88,7 @@ const stepComplete = (num) => {
                                 @click="activeStep = step.num"
                                 class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition"
                                 :class="{
-                                    'bg-indigo-600 text-white': activeStep === step.num,
+                                    'bg-brand-600 text-white': activeStep === step.num,
                                     'bg-green-100 text-green-800': stepComplete(step.num) && activeStep !== step.num,
                                     'bg-gray-100 text-gray-500': !stepComplete(step.num) && activeStep !== step.num,
                                 }"
@@ -163,7 +163,7 @@ const stepComplete = (num) => {
                                 <TextInput v-model="field.name" class="flex-1" :placeholder="`Field ${i + 1}`" required />
                                 <button v-if="locationForm.fields.length > 1" type="button" @click="removeField(i)" class="text-sm text-red-500">Remove</button>
                             </div>
-                            <button type="button" @click="addField" class="mt-2 text-sm text-indigo-600 hover:text-indigo-900">+ Add another field</button>
+                            <button type="button" @click="addField" class="mt-2 text-sm text-brand-600 hover:text-brand-700">+ Add another field</button>
                         </div>
 
                         <div class="flex justify-between">
@@ -231,7 +231,7 @@ const stepComplete = (num) => {
                                 <TextInput v-model="team.name" class="flex-1" :placeholder="`Team ${i + 1}`" required />
                                 <button v-if="teamsForm.teams.length > 1" type="button" @click="removeTeam(i)" class="text-sm text-red-500">Remove</button>
                             </div>
-                            <button type="button" @click="addTeam" class="mt-2 text-sm text-indigo-600 hover:text-indigo-900">+ Add another team</button>
+                            <button type="button" @click="addTeam" class="mt-2 text-sm text-brand-600 hover:text-brand-700">+ Add another team</button>
                         </div>
 
                         <div class="flex justify-between">
@@ -247,19 +247,19 @@ const stepComplete = (num) => {
                     <p class="mt-2 text-gray-600">Your league is ready. Here's what you've set up:</p>
                     <div class="mt-6 grid grid-cols-2 gap-4 text-left sm:grid-cols-4">
                         <div class="rounded-lg bg-gray-50 p-4 text-center">
-                            <p class="text-2xl font-bold text-indigo-600">{{ seasons.length }}</p>
+                            <p class="text-2xl font-bold text-brand-600">{{ seasons.length }}</p>
                             <p class="text-sm text-gray-500">Season(s)</p>
                         </div>
                         <div class="rounded-lg bg-gray-50 p-4 text-center">
-                            <p class="text-2xl font-bold text-indigo-600">{{ locations.length }}</p>
+                            <p class="text-2xl font-bold text-brand-600">{{ locations.length }}</p>
                             <p class="text-sm text-gray-500">Location(s)</p>
                         </div>
                         <div class="rounded-lg bg-gray-50 p-4 text-center">
-                            <p class="text-2xl font-bold text-indigo-600">{{ divisions.length }}</p>
+                            <p class="text-2xl font-bold text-brand-600">{{ divisions.length }}</p>
                             <p class="text-sm text-gray-500">Division(s)</p>
                         </div>
                         <div class="rounded-lg bg-gray-50 p-4 text-center">
-                            <p class="text-2xl font-bold text-indigo-600">{{ teams.length }}</p>
+                            <p class="text-2xl font-bold text-brand-600">{{ teams.length }}</p>
                             <p class="text-sm text-gray-500">Team(s)</p>
                         </div>
                     </div>
