@@ -13,6 +13,16 @@ use Illuminate\Support\Facades\DB;
 
 class ConflictDetector
 {
+    protected function fmt(string $time): string
+    {
+        $parts = explode(':', $time);
+        $h = (int)$parts[0];
+        $m = $parts[1] ?? '00';
+        $ampm = $h >= 12 ? 'PM' : 'AM';
+        $h12 = $h === 0 ? 12 : ($h > 12 ? $h - 12 : $h);
+        return "{$h12}:{$m} {$ampm}";
+    }
+
     public function check(ScheduleRequest $request): ConflictResult
     {
         $result = new ConflictResult();
@@ -46,7 +56,7 @@ class ConflictDetector
             $teamName = $conflict->team?->name ?? 'Unknown';
             $result->addViolation(
                 'field_overlap',
-                "Field is already booked from {$conflict->start_time} to {$conflict->end_time} by {$teamName}."
+                "Field is already booked from {$this->fmt($conflict->start_time)} to {$this->fmt($conflict->end_time)} by {$teamName}."
             );
         }
     }
@@ -72,7 +82,7 @@ class ConflictDetector
             $where = $locationName ? "{$fieldName} at {$locationName}" : $fieldName;
             $result->addViolation(
                 'team_overlap',
-                "Team is already scheduled from {$conflict->start_time} to {$conflict->end_time} at {$where}."
+                "Team is already scheduled from {$this->fmt($conflict->start_time)} to {$this->fmt($conflict->end_time)} at {$where}."
             );
         }
     }

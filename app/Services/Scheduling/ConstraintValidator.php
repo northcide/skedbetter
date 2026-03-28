@@ -9,6 +9,16 @@ use Illuminate\Support\Facades\DB;
 
 class ConstraintValidator
 {
+    protected function fmt(string $time): string
+    {
+        $parts = explode(':', $time);
+        $h = (int)$parts[0];
+        $m = $parts[1] ?? '00';
+        $ampm = $h >= 12 ? 'PM' : 'AM';
+        $h12 = $h === 0 ? 12 : ($h > 12 ? $h - 12 : $h);
+        return "{$h12}:{$m} {$ampm}";
+    }
+
     public function validate(ScheduleRequest $request): ConflictResult
     {
         $result = new ConflictResult();
@@ -84,7 +94,7 @@ class ConstraintValidator
         if ($request->startTime < $earliest) {
             $result->addViolation(
                 'constraint',
-                "Start time ({$request->startTime}) is before the earliest allowed time ({$earliest})."
+                "Start time ({$this->fmt($request->startTime)}) is before the earliest allowed time ({$this->fmt($earliest)})."
             );
         }
     }
@@ -99,7 +109,7 @@ class ConstraintValidator
         if ($request->endTime > $latest) {
             $result->addViolation(
                 'constraint',
-                "End time ({$request->endTime}) is after the latest allowed time ({$latest})."
+                "End time ({$this->fmt($request->endTime)}) is after the latest allowed time ({$this->fmt($latest)})."
             );
         }
     }
@@ -153,7 +163,7 @@ class ConstraintValidator
                 if ($gap < $minGapMinutes) {
                     $result->addViolation(
                         'constraint',
-                        "Minimum gap of {$minGapMinutes} minutes required between slots. Only {$gap} minutes gap before existing slot at {$entry->start_time}."
+                        "Minimum gap of {$minGapMinutes} minutes required between slots. Only {$gap} minutes gap before existing slot at {$this->fmt($entry->start_time)}."
                     );
                 }
             }
@@ -164,7 +174,7 @@ class ConstraintValidator
                 if ($gap < $minGapMinutes) {
                     $result->addViolation(
                         'constraint',
-                        "Minimum gap of {$minGapMinutes} minutes required between slots. Only {$gap} minutes gap after existing slot ending at {$entry->end_time}."
+                        "Minimum gap of {$minGapMinutes} minutes required between slots. Only {$gap} minutes gap after existing slot ending at {$this->fmt($entry->end_time)}."
                     );
                 }
             }
@@ -242,7 +252,7 @@ class ConstraintValidator
         if ($field->available_start_time && $request->startTime < $field->available_start_time) {
             $result->addViolation(
                 'field_availability',
-                "Start time ({$request->startTime}) is before this field opens (" . substr($field->available_start_time, 0, 5) . ")."
+                "Start time ({$this->fmt($request->startTime)}) is before this field opens ({$this->fmt(substr($field->available_start_time, 0, 5))})."
             );
         }
 
@@ -250,7 +260,7 @@ class ConstraintValidator
         if ($field->available_end_time && $request->endTime > $field->available_end_time) {
             $result->addViolation(
                 'field_availability',
-                "End time ({$request->endTime}) is after this field closes (" . substr($field->available_end_time, 0, 5) . ")."
+                "End time ({$this->fmt($request->endTime)}) is after this field closes ({$this->fmt(substr($field->available_end_time, 0, 5))})."
             );
         }
 
