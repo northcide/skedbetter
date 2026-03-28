@@ -113,8 +113,8 @@ class ScheduleEntryController extends Controller
         // Coaches can only schedule their own teams
         $role = $context->userRole();
         if ($role === 'coach') {
-            $coachTeamIds = $request->user()->teams()->pluck('teams.id')->toArray();
-            if (! in_array($validated['team_id'], $coachTeamIds)) {
+            $coachTeamIds = $request->user()->teams()->pluck('teams.id')->map(fn($id) => (int) $id)->toArray();
+            if (! in_array((int) $validated['team_id'], $coachTeamIds)) {
                 $error = 'You can only schedule your own teams.';
                 return $request->wantsJson()
                     ? response()->json(['errors' => ['conflicts' => [$error]]], 422)
