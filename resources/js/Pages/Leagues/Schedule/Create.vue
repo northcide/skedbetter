@@ -84,7 +84,7 @@ const submit = () => {
                         <div>
                             <InputLabel for="team_id" value="Team" />
                             <select id="team_id" v-model="form.team_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
-                                <option value="">-- Select Team --</option>
+                                <option value="">Select team</option>
                                 <option v-for="t in teams" :key="t.id" :value="t.id">
                                     {{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}
                                 </option>
@@ -95,7 +95,7 @@ const submit = () => {
                         <div>
                             <InputLabel for="field_id" value="Field" />
                             <select id="field_id" v-model="form.field_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>
-                                <option value="">-- Select Field --</option>
+                                <option value="">Select field</option>
                                 <option v-for="f in fields" :key="f.id" :value="f.id">
                                     {{ f.name }} @ {{ f.location?.name }}
                                 </option>

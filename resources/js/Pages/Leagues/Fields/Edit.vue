@@ -90,7 +90,7 @@ const submit = () => {
                         <div>
                             <InputLabel for="surface_type" value="Surface" />
                             <select id="surface_type" v-model="form.surface_type" class="mt-1 block w-full">
-                                <option value="">--</option>
+                                <option value="">Select</option>
                                 <option v-for="st in surfaceTypes" :key="st" :value="st">{{ st.charAt(0).toUpperCase() + st.slice(1) }}</option>
                             </select>
                         </div>

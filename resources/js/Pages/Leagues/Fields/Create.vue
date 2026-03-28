@@ -44,7 +44,7 @@ const submit = () => {
                         <div>
                             <InputLabel for="surface_type" value="Surface Type" />
                             <select id="surface_type" v-model="form.surface_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500">
-                                <option value="">-- Select --</option>
+                                <option value="">Select</option>
                                 <option v-for="st in surfaceTypes" :key="st" :value="st">{{ st.charAt(0).toUpperCase() + st.slice(1) }}</option>
                             </select>
                         </div>

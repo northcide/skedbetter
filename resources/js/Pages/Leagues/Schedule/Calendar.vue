@@ -697,7 +697,7 @@ function showError(messages) {
                         <div>
                             <InputLabel for="m_team" value="Team" class="text-xs" />
                             <select id="m_team" v-model="modalForm.team_id" @change="liveValidate" class="mt-1 block w-full" required>
-                                <option value="">-- Select --</option>
+                                <option value="">Select</option>
                                 <option v-for="t in schedulableTeams" :key="t.id" :value="t.id">{{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}</option>
                             </select>
                         </div>
@@ -711,7 +711,7 @@ function showError(messages) {
                                 :class="liveErrors.length ? 'border-red-400 ring-1 ring-red-400' : ''"
                                 required
                             >
-                                <option value="">-- Select --</option>
+                                <option value="">Select</option>
                                 <template v-for="loc in locations" :key="loc.id">
                                     <option v-for="f in (loc.fields || [])" :key="f.id" :value="f.id">{{ f.name }} @ {{ loc.name }}</option>
                                 </template>
@@ -727,7 +727,7 @@ function showError(messages) {
                         <div>
                             <InputLabel for="m_start" value="Start Time" class="text-xs" />
                             <select id="m_start" v-model="modalForm.start_time" class="mt-1 block w-full" required>
-                                <option value="">--</option>
+                                <option value="">Select</option>
                                 <option v-for="t in timeSlots" :key="t.value" :value="t.value">{{ t.label }}</option>
                             </select>
                         </div>
