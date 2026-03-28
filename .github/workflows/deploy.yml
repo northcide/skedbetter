@@ -31,55 +31,24 @@ jobs:
       - name: Install npm dependencies and build
         run: npm ci && npm run build
 
-      - name: Prepare deploy package
-        run: |
-          mkdir -p deploy/skedbetter deploy/public_html
-
-          rsync -a \
-            --exclude='node_modules' \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='tests' \
-            --exclude='.env' \
-            --exclude='storage/logs/*.log' \
-            --exclude='storage/framework/cache/data/*' \
-            --exclude='storage/framework/sessions/*' \
-            --exclude='storage/framework/views/*' \
-            --exclude='hosting' \
-            ./ deploy/skedbetter/
-
-          cp hosting/cpanel/index.php deploy/public_html/
-          cp hosting/cpanel/.htaccess deploy/public_html/
-          cp hosting/cpanel/setup.php deploy/public_html/
-          cp -r public/build deploy/public_html/build
-          cp public/favicon.ico deploy/public_html/ 2>/dev/null || true
-          cp public/robots.txt deploy/public_html/ 2>/dev/null || true
-
-      - name: Deploy via SFTP
-        run: |
-          sudo apt-get install -y lftp > /dev/null 2>&1
-
-          # Deploy app files
-          lftp -e "
-            set sftp:auto-confirm yes;
-            set net:timeout 30;
-            set net:max-retries 3;
-            open sftp://${{ secrets.SFTP_USER }}:${{ secrets.SFTP_PASSWORD }}@${{ secrets.SFTP_HOST }}:${{ secrets.SFTP_PORT }};
-            mirror -R --parallel=5 --exclude=.env --exclude=storage/logs/ --exclude=storage/framework/sessions/ --exclude=storage/framework/cache/data/ deploy/skedbetter/ ${{ secrets.REMOTE_APP_PATH }};
-            mirror -R --parallel=5 deploy/public_html/ ${{ secrets.REMOTE_PUBLIC_PATH }};
-            bye;
-          "
-
-      - name: Run migrations via SSH
-        uses: appleboy/ssh-action@v1
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          host: ${{ secrets.SFTP_HOST }}
-          username: ${{ secrets.SFTP_USER }}
-          password: ${{ secrets.SFTP_PASSWORD }}
-          port: ${{ secrets.SFTP_PORT }}
-          script: |
-            cd ${{ secrets.REMOTE_APP_PATH }}
-            php artisan migrate --force 2>&1 || true
-            php artisan config:cache 2>&1 || true
-            php artisan route:cache 2>&1 || true
-            php artisan view:cache 2>&1 || true
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftps
+          local-dir: ./
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            **/.env
+            **/storage/logs/*.log
+            **/storage/framework/sessions/**
+            **/storage/framework/cache/data/**
+            **/storage/framework/views/**
+            **/hosting/**
