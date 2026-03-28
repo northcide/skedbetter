@@ -386,12 +386,17 @@ function handleEventClick(info) {
 }
 
 function cancelEvent() {
+    const entryId = eventDetail.value.id;
     showEventDetail.value = false;
-    if (!confirm('Delete this schedule entry?')) return;
-    axios.delete(route('leagues.schedule.destroy', [props.league.slug, eventDetail.value.id]), {
+    axios.delete(route('leagues.schedule.destroy', [props.league.slug, entryId]), {
         headers: { Accept: 'application/json' },
     }).then(() => {
-        calendarRef.value?.getApi()?.refetchEvents();
+        // Remove the event from the calendar immediately
+        const api = calendarRef.value?.getApi();
+        if (api) {
+            const ev = api.getEventById(entryId);
+            if (ev) ev.remove();
+        }
     });
 }
 
