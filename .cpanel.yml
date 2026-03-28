@@ -1,0 +1,11 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/skedbetter/public_html
+    - cd $DEPLOYPATH
+    - /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction 2>&1 || composer install --no-dev --optimize-autoloader --no-interaction 2>&1
+    - php artisan migrate --force 2>&1 || true
+    - php artisan config:cache 2>&1 || true
+    - php artisan route:cache 2>&1 || true
+    - php artisan view:cache 2>&1 || true
+    - chmod -R 775 storage bootstrap/cache 2>&1 || true
