@@ -269,7 +269,7 @@ class ScheduleEntryController extends Controller
 
         $entries = $query->get();
 
-        return response()->json($entries->map(function ($entry) use ($isManager, $coachTeamIds) {
+        $events = $entries->map(function ($entry) use ($isManager, $coachTeamIds) {
             $canEdit = $isManager || in_array($entry->team_id, $coachTeamIds);
             return [
                 'id' => $entry->id,
