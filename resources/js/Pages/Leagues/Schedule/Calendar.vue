@@ -191,6 +191,47 @@ const modalForm = useForm({
     title: '',
 });
 
+// Time slot generation (6:00 AM to 10:00 PM in 30-min increments)
+function fmt12(time24) {
+    if (!time24) return '';
+    const [h, m] = time24.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+const timeSlots = computed(() => {
+    const slots = [];
+    for (let h = 6; h <= 21; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            const val = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            slots.push({ value: val, label: fmt12(val) });
+        }
+    }
+    return slots;
+});
+
+const durationOptions = [
+    { value: 30, label: '30 min' },
+    { value: 60, label: '1 hour' },
+    { value: 90, label: '1.5 hours' },
+    { value: 120, label: '2 hours' },
+];
+
+const modalDuration = ref(60);
+
+// Auto-calculate end_time when start_time or duration changes
+watch([() => modalForm.start_time, modalDuration], ([start, dur]) => {
+    if (!start) return;
+    const [h, m] = start.split(':').map(Number);
+    const totalMin = h * 60 + m + dur;
+    const endH = Math.floor(totalMin / 60);
+    const endM = totalMin % 60;
+    if (endH < 24) {
+        modalForm.end_time = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+    }
+});
+
 onMounted(() => {
     if (teamListRef.value && canSchedule) {
         new Draggable(teamListRef.value, {
@@ -344,14 +385,37 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
 
     modalForm.team_id = resolvedTeamId;
     modalForm.date = date;
-    modalForm.start_time = startTime;
-    modalForm.end_time = endTime;
     modalForm.field_id = resolvedFieldId;
     modalFieldName.value = resolvedFieldName;
     modalForm.title = title || '';
     modalForm.type = type || 'practice';
     modalForm.clearErrors();
     liveErrors.value = [];
+
+    // Calculate duration from start/end if both provided, otherwise default 60
+    if (startTime && endTime) {
+        const [sh, sm] = startTime.split(':').map(Number);
+        const [eh, em] = endTime.split(':').map(Number);
+        const dur = (eh * 60 + em) - (sh * 60 + sm);
+        const closest = durationOptions.find(d => d.value === dur);
+        modalDuration.value = closest ? dur : 60;
+    } else {
+        modalDuration.value = 60;
+    }
+
+    // Snap start to nearest 30-min slot
+    let snappedStart = startTime || '';
+    if (snappedStart) {
+        const [sh, sm] = snappedStart.split(':').map(Number);
+        const snappedMin = Math.round(sm / 30) * 30;
+        const adjH = snappedMin >= 60 ? sh + 1 : sh;
+        const adjM = snappedMin >= 60 ? 0 : snappedMin;
+        snappedStart = `${String(adjH).padStart(2, '0')}:${String(adjM).padStart(2, '0')}`;
+    }
+
+    // Set start_time AFTER duration so the watcher calculates end_time
+    modalForm.start_time = snappedStart;
+    modalForm.end_time = endTime || '';
     showModal.value = true;
     liveValidate();
 }
@@ -428,14 +492,6 @@ function editEvent() {
         const f = (loc.fields || []).find(f => f.name === ev.fieldName);
         if (f) { modalForm.field_id = f.id; break; }
     }
-}
-
-function formatTime12(time24) {
-    if (!time24) return '';
-    const [h, m] = time24.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
 function buildDetails() {
@@ -666,14 +722,22 @@ function showError(messages) {
                             <TextInput id="m_date" v-model="modalForm.date" type="date" class="mt-1 block w-full" required />
                         </div>
                         <div>
-                            <InputLabel for="m_start" value="Start" class="text-xs" />
-                            <TextInput id="m_start" v-model="modalForm.start_time" type="time" class="mt-1 block w-full" required />
+                            <InputLabel for="m_start" value="Start Time" class="text-xs" />
+                            <select id="m_start" v-model="modalForm.start_time" class="mt-1 block w-full" required>
+                                <option value="">--</option>
+                                <option v-for="t in timeSlots" :key="t.value" :value="t.value">{{ t.label }}</option>
+                            </select>
                         </div>
                         <div>
-                            <InputLabel for="m_end" value="End" class="text-xs" />
-                            <TextInput id="m_end" v-model="modalForm.end_time" type="time" class="mt-1 block w-full" required />
+                            <InputLabel for="m_dur" value="Duration" class="text-xs" />
+                            <select id="m_dur" v-model="modalDuration" class="mt-1 block w-full">
+                                <option v-for="d in durationOptions" :key="d.value" :value="d.value">{{ d.label }}</option>
+                            </select>
                         </div>
                     </div>
+                    <p v-if="modalForm.start_time && modalForm.end_time" class="text-[10px] text-gray-400">
+                        {{ fmt12(modalForm.start_time) }} &ndash; {{ fmt12(modalForm.end_time) }}
+                    </p>
 
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -715,7 +779,7 @@ function showError(messages) {
                         {{ new Date(confirmationDetails.date + 'T00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) }}
                     </p>
                     <p>
-                        {{ formatTime12(confirmationDetails.startTime) }} &ndash; {{ formatTime12(confirmationDetails.endTime) }}
+                        {{ fmt12(confirmationDetails.startTime) }} &ndash; {{ fmt12(confirmationDetails.endTime) }}
                     </p>
                     <p v-if="confirmationDetails.fieldName" class="text-gray-500">
                         {{ confirmationDetails.fieldName }}<span v-if="confirmationDetails.locationName"> @ {{ confirmationDetails.locationName }}</span>
@@ -742,7 +806,7 @@ function showError(messages) {
                     <p>
                         {{ new Date(eventDetail.date + 'T00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) }}
                     </p>
-                    <p>{{ formatTime12(eventDetail.startTime) }} &ndash; {{ formatTime12(eventDetail.endTime) }}</p>
+                    <p>{{ fmt12(eventDetail.startTime) }} &ndash; {{ fmt12(eventDetail.endTime) }}</p>
                     <p v-if="eventDetail.fieldName" class="text-gray-500">
                         {{ eventDetail.fieldName }}<span v-if="eventDetail.locationName"> @ {{ eventDetail.locationName }}</span>
                     </p>
