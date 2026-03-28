@@ -109,7 +109,14 @@ class ScheduleEntryController extends Controller
         $result = $this->schedulingService->create($validated, $request->user()->id);
 
         if ($result instanceof ConflictResult) {
+            if ($request->wantsJson()) {
+                return response()->json(['errors' => ['conflicts' => $result->getAllMessages()]], 422);
+            }
             return back()->withErrors(['conflicts' => $result->getAllMessages()]);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'id' => $result->id]);
         }
 
         return redirect()->route('leagues.schedule.index', $league)

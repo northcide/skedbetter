@@ -29,6 +29,7 @@ const teamListRef = ref(null);
 const errorMessages = ref([]);
 const showModal = ref(false);
 const showConfirmation = ref(false);
+const modalSubmitting = ref(false);
 const confirmationDetails = ref({});
 const modalFieldName = ref('');
 
@@ -311,17 +312,37 @@ function submitModal() {
         title: modalForm.title,
     };
 
-    modalForm.post(route('leagues.schedule.store', props.league.slug), {
-        preserveScroll: true,
-        onSuccess: () => {
-            showModal.value = false;
-            modalForm.reset();
-            calendarRef.value?.getApi()?.refetchEvents();
+    modalSubmitting.value = true;
+    modalForm.clearErrors();
 
-            // Show confirmation
-            confirmationDetails.value = details;
-            showConfirmation.value = true;
-        },
+    axios.post(route('leagues.schedule.store', props.league.slug), {
+        season_id: modalForm.season_id,
+        field_id: modalForm.field_id,
+        team_id: modalForm.team_id,
+        date: modalForm.date,
+        start_time: modalForm.start_time,
+        end_time: modalForm.end_time,
+        type: modalForm.type,
+        title: modalForm.title,
+    }).then(() => {
+        showModal.value = false;
+        calendarRef.value?.getApi()?.refetchEvents();
+
+        confirmationDetails.value = details;
+        showConfirmation.value = true;
+    }).catch((error) => {
+        const errs = error.response?.data?.errors || {};
+        // Conflicts come back as errors.conflicts array
+        if (errs.conflicts) {
+            modalForm.setError('conflicts', errs.conflicts);
+        } else {
+            // Validation errors
+            Object.entries(errs).forEach(([key, msgs]) => {
+                modalForm.setError(key, Array.isArray(msgs) ? msgs[0] : msgs);
+            });
+        }
+    }).finally(() => {
+        modalSubmitting.value = false;
     });
 }
 
@@ -486,7 +507,7 @@ function showError(messages) {
 
                 <div class="mt-4 flex justify-end gap-2">
                     <button type="button" @click="showModal = false" class="rounded px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900">Cancel</button>
-                    <PrimaryButton :disabled="modalForm.processing || !modalForm.team_id">Schedule</PrimaryButton>
+                    <PrimaryButton :disabled="modalSubmitting || !modalForm.team_id || !modalForm.field_id">Schedule</PrimaryButton>
                 </div>
             </form>
         </Modal>
