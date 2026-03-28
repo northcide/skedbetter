@@ -124,18 +124,7 @@ const filterParams = computed(() => {
 // Refetch events when filters change + persist
 watch(filters, (val) => {
     saveState({ division_id: val.division_id, team_id: val.team_id, location_id: val.location_id, field_id: val.field_id });
-
-    const api = calendarRef.value?.getApi();
-    if (!api) return;
-
-    const sources = api.getEventSources();
-    sources.forEach(s => s.remove());
-
-    const baseUrl = route('leagues.schedule.events', props.league.slug);
-    const qs = new URLSearchParams(filterParams.value).toString();
-    const url = qs ? `${baseUrl}?${qs}` : baseUrl;
-
-    api.addEventSource({ url, method: 'GET' });
+    calendarRef.value?.getApi()?.refetchEvents();
 }, { deep: true });
 
 // Persist sidebar division
@@ -227,10 +216,14 @@ const calendarOptions = ref({
         url: route('leagues.schedule.resources', props.league.slug),
         method: 'GET',
     },
-    events: {
-        url: route('leagues.schedule.events', props.league.slug),
-        method: 'GET',
+    events: function(info, successCallback, failureCallback) {
+        const baseUrl = route('leagues.schedule.events', props.league.slug);
+        const params = { start: info.startStr.slice(0, 10), end: info.endStr.slice(0, 10), ...filterParams.value };
+        const qs = new URLSearchParams(params).toString();
+        axios.get(`${baseUrl}?${qs}`).then(res => successCallback(res.data)).catch(failureCallback);
     },
+    eventStartEditable: isManager,
+    eventDurationEditable: isManager,
     datesSet: (info) => {
         saveState({ view: info.view.type, date: info.start.toISOString().slice(0, 10) });
     },
