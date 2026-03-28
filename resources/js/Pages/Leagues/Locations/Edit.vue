@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -33,13 +33,13 @@ const deleteField = (field) => {
 <template>
     <Head :title="`${league.name} - Edit ${location.name}`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <Link :href="route('leagues.locations.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Locations</Link>
-            <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Edit {{ location.name }}</h2>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <FlashMessage />
+        
+        <!-- Page Header -->
+        <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Edit {{ location.name }}</h2>
+<FlashMessage />
 
         <div class="py-12">
             <div class="mx-auto max-w-2xl sm:px-6 lg:px-8 space-y-8">
@@ -114,5 +114,5 @@ const deleteField = (field) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>

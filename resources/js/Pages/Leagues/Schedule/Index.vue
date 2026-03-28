@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -52,28 +52,28 @@ const statusBadge = (status) => {
 <template>
     <Head :title="`${league.name} - Schedule`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
-                    <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Schedule</h2>
-                </div>
-                <div class="flex items-center gap-3">
-                    <Link :href="route('leagues.schedule.calendar', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
-                        Calendar View
-                    </Link>
-                    <Link v-if="isManager" :href="route('leagues.schedule.bulk', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
-                        Bulk Schedule
-                    </Link>
-                    <Link v-if="isManager" :href="route('leagues.schedule.create', league.slug)">
-                        <PrimaryButton>New Entry</PrimaryButton>
-                    </Link>
-                </div>
-            </div>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <FlashMessage />
+        
+        <!-- Page Header -->
+        <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Schedule</h2>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <Link :href="route('leagues.schedule.calendar', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
+                                Calendar View
+                            </Link>
+                            <Link v-if="isManager" :href="route('leagues.schedule.bulk', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
+                                Bulk Schedule
+                            </Link>
+                            <Link v-if="isManager" :href="route('leagues.schedule.create', league.slug)">
+                                <PrimaryButton>New Entry</PrimaryButton>
+                            </Link>
+                        </div>
+                    </div>
+<FlashMessage />
 
         <div class="py-6">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -161,5 +161,5 @@ const statusBadge = (status) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>

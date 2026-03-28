@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -63,15 +63,15 @@ const roleBadge = (role) => {
 <template>
     <Head :title="`${league.name} - Members`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div>
-                <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
-                <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Members & Invitations</h2>
-            </div>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <FlashMessage />
+        
+        <!-- Page Header -->
+        <div>
+                        <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Members & Invitations</h2>
+                    </div>
+<FlashMessage />
 
         <div class="py-12">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8 space-y-8">
@@ -144,5 +144,5 @@ const roleBadge = (role) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>

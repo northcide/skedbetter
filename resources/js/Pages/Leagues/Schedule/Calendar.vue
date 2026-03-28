@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -101,25 +101,25 @@ function handleEventClick(info) {
 <template>
     <Head :title="`${league.name} - Calendar`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
-                    <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Schedule Calendar</h2>
-                </div>
-                <div class="flex gap-2">
-                    <Link :href="route('leagues.schedule.index', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
-                        List View
-                    </Link>
-                    <Link v-if="isManager" :href="route('leagues.schedule.create', league.slug)">
-                        <PrimaryButton>New Entry</PrimaryButton>
-                    </Link>
-                </div>
-            </div>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <FlashMessage />
+        
+        <!-- Page Header -->
+        <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Schedule Calendar</h2>
+                        </div>
+                        <div class="flex gap-2">
+                            <Link :href="route('leagues.schedule.index', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
+                                List View
+                            </Link>
+                            <Link v-if="isManager" :href="route('leagues.schedule.create', league.slug)">
+                                <PrimaryButton>New Entry</PrimaryButton>
+                            </Link>
+                        </div>
+                    </div>
+<FlashMessage />
 
         <!-- Conflict errors from drag-drop -->
         <div v-if="errorMessages.length" class="fixed top-4 right-4 z-50 max-w-md rounded-lg bg-red-500 p-4 text-sm text-white shadow-lg">
@@ -136,7 +136,7 @@ function handleEventClick(info) {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>
 
 <style>

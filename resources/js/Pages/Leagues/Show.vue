@@ -1,6 +1,7 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -10,81 +11,73 @@ const props = defineProps({
 });
 
 const isManager = ['superadmin', 'league_manager'].includes(props.userRole);
-
-const navItems = [
-    { label: 'Schedule Calendar', route: 'leagues.schedule.calendar' },
-    { label: 'Schedule List', route: 'leagues.schedule.index' },
-    { label: 'Seasons', route: 'leagues.seasons.index' },
-    { label: 'Divisions', route: 'leagues.divisions.index' },
-    { label: 'Teams', route: 'leagues.teams.index' },
-    { label: 'Locations & Fields', route: 'leagues.locations.index' },
-    { label: 'Blackout Rules', route: 'leagues.blackouts.index' },
-    { label: 'Members', route: 'leagues.members.index' },
-];
 </script>
 
 <template>
     <Head :title="league.name" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        {{ league.name }}
-                    </h2>
-                    <p v-if="league.description" class="mt-1 text-sm text-gray-500">
-                        {{ league.description }}
-                    </p>
-                </div>
-                <Link v-if="isManager" :href="route('leagues.edit', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">
-                    Edit League
-                </Link>
-            </div>
-        </template>
-
+    <LeagueLayout :league="league" :userRole="userRole">
         <FlashMessage />
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <!-- Stats -->
-                <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-                    <div class="overflow-hidden rounded-lg bg-white p-6 shadow-sm">
-                        <dt class="truncate text-sm font-medium text-gray-500">Teams</dt>
-                        <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ league.teams_count }}</dd>
-                    </div>
-                    <div class="overflow-hidden rounded-lg bg-white p-6 shadow-sm">
-                        <dt class="truncate text-sm font-medium text-gray-500">Locations</dt>
-                        <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ league.locations_count }}</dd>
-                    </div>
-                    <div class="overflow-hidden rounded-lg bg-white p-6 shadow-sm">
-                        <dt class="truncate text-sm font-medium text-gray-500">Divisions</dt>
-                        <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ league.divisions_count }}</dd>
-                    </div>
+        <div class="space-y-6">
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="rounded-xl border border-gray-100 bg-white px-4 py-5">
+                    <p class="text-2xl font-bold text-gray-900">{{ league.teams_count }}</p>
+                    <p class="text-xs font-medium text-gray-500">Teams</p>
                 </div>
-
-                <!-- Current Season -->
-                <div v-if="currentSeason" class="mb-8 overflow-hidden rounded-lg bg-white p-6 shadow-sm">
-                    <h3 class="text-lg font-medium text-gray-900">Current Season</h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        {{ currentSeason.name }} &mdash;
-                        {{ new Date(currentSeason.start_date).toLocaleDateString() }} to
-                        {{ new Date(currentSeason.end_date).toLocaleDateString() }}
-                    </p>
+                <div class="rounded-xl border border-gray-100 bg-white px-4 py-5">
+                    <p class="text-2xl font-bold text-gray-900">{{ league.locations_count }}</p>
+                    <p class="text-xs font-medium text-gray-500">Locations</p>
                 </div>
+                <div class="rounded-xl border border-gray-100 bg-white px-4 py-5">
+                    <p class="text-2xl font-bold text-gray-900">{{ league.divisions_count }}</p>
+                    <p class="text-xs font-medium text-gray-500">Divisions</p>
+                </div>
+            </div>
 
-                <!-- Navigation Cards -->
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    <Link
-                        v-for="item in navItems"
-                        :key="item.route"
-                        :href="route(item.route, league.slug)"
-                        class="flex items-center gap-4 rounded-lg bg-white p-6 shadow-sm transition hover:shadow-md"
-                    >
-                        <div class="text-lg font-medium text-gray-900">{{ item.label }}</div>
+            <!-- Current Season -->
+            <div v-if="currentSeason" class="rounded-xl border border-gray-100 bg-white p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">Current Season</p>
+                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ currentSeason.name }}</p>
+                        <p class="text-sm text-gray-500">
+                            {{ new Date(currentSeason.start_date).toLocaleDateString() }} &ndash;
+                            {{ new Date(currentSeason.end_date).toLocaleDateString() }}
+                        </p>
+                    </div>
+                    <Link :href="route('leagues.schedule.calendar', league.slug)">
+                        <PrimaryButton>Open Calendar</PrimaryButton>
+                    </Link>
+                </div>
+            </div>
+
+            <div v-else class="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+                <p class="text-sm text-gray-500">No season set up yet.</p>
+                <Link v-if="isManager" :href="route('leagues.onboarding', league.slug)" class="mt-2 inline-block text-sm font-medium text-brand-600 hover:text-brand-700">
+                    Run setup wizard
+                </Link>
+            </div>
+
+            <!-- Quick Actions -->
+            <div v-if="isManager" class="rounded-xl border border-gray-100 bg-white p-5">
+                <p class="mb-3 text-xs font-medium uppercase tracking-wider text-gray-400">Quick Actions</p>
+                <div class="flex flex-wrap gap-2">
+                    <Link :href="route('leagues.schedule.create', league.slug)" class="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50">
+                        New Schedule Entry
+                    </Link>
+                    <Link :href="route('leagues.schedule.bulk', league.slug)" class="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50">
+                        Bulk Schedule
+                    </Link>
+                    <Link :href="route('leagues.teams.create', league.slug)" class="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50">
+                        Add Team
+                    </Link>
+                    <Link :href="route('leagues.members.index', league.slug)" class="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50">
+                        Invite Member
                     </Link>
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>

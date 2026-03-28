@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -41,13 +41,13 @@ const submit = () => {
 <template>
     <Head :title="`${league.name} - New Schedule Entry`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <Link :href="route('leagues.schedule.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Schedule</Link>
-            <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">New Schedule Entry</h2>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <div class="py-12">
+        
+        <!-- Page Header -->
+        <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">New Schedule Entry</h2>
+<div class="py-12">
             <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
                 <!-- Conflict Errors -->
                 <div v-if="conflictErrors.length" class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
@@ -140,5 +140,5 @@ const submit = () => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>

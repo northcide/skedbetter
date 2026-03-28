@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -70,13 +70,14 @@ const stepComplete = (num) => {
 <template>
     <Head :title="`Setup ${league.name}`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Setup {{ league.name }}</h2>
-            <p class="mt-1 text-sm text-gray-500">Complete these steps to get your league ready for scheduling.</p>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <FlashMessage />
+        
+        <!-- Page Header -->
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">Setup {{ league.name }}</h2>
+                    <p class="mt-1 text-sm text-gray-500">Complete these steps to get your league ready for scheduling.</p>
+<FlashMessage />
 
         <div class="py-8">
             <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
@@ -271,5 +272,5 @@ const stepComplete = (num) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>

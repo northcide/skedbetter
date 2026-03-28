@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -26,13 +26,13 @@ const submit = () => {
 <template>
     <Head :title="`Edit Team - ${team.name}`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Teams</Link>
-            <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Edit {{ team.name }}</h2>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <div class="py-12">
+        
+        <!-- Page Header -->
+        <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Edit {{ team.name }}</h2>
+<div class="py-12">
             <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <form @submit.prevent="submit" class="space-y-6 p-6">
@@ -89,5 +89,5 @@ const submit = () => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>

@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -17,20 +17,20 @@ const deleteRule = (rule) => {
 <template>
     <Head :title="`${league.name} - Blackout Rules`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <Link :href="route('leagues.show', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; {{ league.name }}</Link>
-                    <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Blackout Rules</h2>
-                </div>
-                <Link v-if="isManager" :href="route('leagues.blackouts.create', league.slug)">
-                    <PrimaryButton>Add Blackout</PrimaryButton>
-                </Link>
-            </div>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <FlashMessage />
+        
+        <!-- Page Header -->
+        <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Blackout Rules</h2>
+                        </div>
+                        <Link v-if="isManager" :href="route('leagues.blackouts.create', league.slug)">
+                            <PrimaryButton>Add Blackout</PrimaryButton>
+                        </Link>
+                    </div>
+<FlashMessage />
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -77,5 +77,5 @@ const deleteRule = (rule) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>

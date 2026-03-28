@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 
 const props = defineProps({ league: Object, team: Object, userRole: String, icalUrl: String });
@@ -9,23 +9,20 @@ const isManager = ['superadmin', 'league_manager', 'division_manager'].includes(
 <template>
     <Head :title="`${team.name} - ${league.name}`" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-brand-600 hover:text-brand-700">&larr; Teams</Link>
-                    <h2 class="mt-1 flex items-center gap-2 text-xl font-semibold leading-tight text-gray-800">
-                        <span v-if="team.color_code" class="inline-block h-4 w-4 rounded-full" :style="{ backgroundColor: team.color_code }"></span>
-                        {{ team.name }}
-                    </h2>
-                </div>
-                <Link v-if="isManager" :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-sm text-brand-600 hover:text-brand-700">
-                    Edit Team
-                </Link>
-            </div>
-        </template>
+    <LeagueLayout :league="league" :userRole="userRole || ''">
+        
 
-        <div class="py-12">
+        
+        <!-- Page Header -->
+        <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="mt-1 flex items-center gap-2 text-xl font-semibold leading-tight text-gray-800">
+                                <span v-if="team.color_code" class="inline-block h-4 w-4 rounded-full" :style="{ backgroundColor: team.color_code }"></span>
+                                {{ team.name }}
+                            </h2>
+                        </div>
+                        </div>
+<div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8">
                 <!-- Team Info -->
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
@@ -123,5 +120,5 @@ const isManager = ['superadmin', 'league_manager', 'division_manager'].includes(
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </LeagueLayout>
 </template>
