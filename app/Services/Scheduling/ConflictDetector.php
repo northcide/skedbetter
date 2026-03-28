@@ -230,27 +230,37 @@ class ConflictDetector
             return;
         }
 
-        // If the field has no division restrictions, it's open to all
-        $restrictedDivisionIds = DB::table('division_field')
-            ->where('field_id', $request->fieldId)
-            ->pluck('division_id')
-            ->toArray();
-
-        if (empty($restrictedDivisionIds)) {
-            return; // Open access
-        }
-
-        // Get the team's division
         $team = Team::withoutGlobalScopes()->find($request->teamId);
         if (! $team) {
             return;
         }
 
-        if (! in_array($team->division_id, $restrictedDivisionIds)) {
+        // Check 1: If the FIELD has restrictions, the division must be in the list
+        $fieldRestrictions = DB::table('division_field')
+            ->where('field_id', $request->fieldId)
+            ->pluck('division_id')
+            ->toArray();
+
+        if (! empty($fieldRestrictions) && ! in_array($team->division_id, $fieldRestrictions)) {
             $divisionName = DB::table('divisions')->where('id', $team->division_id)->value('name') ?? 'Unknown';
             $result->addViolation(
                 'field_access',
                 "Field \"{$field->name}\" is not available to the \"{$divisionName}\" division."
+            );
+            return;
+        }
+
+        // Check 2: If the DIVISION has any field assignments, it can ONLY use those fields
+        $divisionFields = DB::table('division_field')
+            ->where('division_id', $team->division_id)
+            ->pluck('field_id')
+            ->toArray();
+
+        if (! empty($divisionFields) && ! in_array($request->fieldId, $divisionFields)) {
+            $divisionName = DB::table('divisions')->where('id', $team->division_id)->value('name') ?? 'Unknown';
+            $result->addViolation(
+                'field_access',
+                "The \"{$divisionName}\" division can only schedule on its assigned fields."
             );
         }
     }

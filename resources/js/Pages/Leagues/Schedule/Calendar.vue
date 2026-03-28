@@ -192,16 +192,39 @@ const modalForm = useForm({
 });
 
 // Check if a field is blocked for the currently selected team's division
+// Build a set of field IDs each division is assigned to
+const divisionFieldMap = computed(() => {
+    const map = {};
+    props.locations.forEach(loc => {
+        (loc.fields || []).forEach(f => {
+            (f.allowed_divisions || []).forEach(d => {
+                if (!map[d.id]) map[d.id] = new Set();
+                map[d.id].add(f.id);
+            });
+        });
+    });
+    return map;
+});
+
 function getFieldBlockReason(field) {
     if (!modalForm.team_id) return null;
     const team = props.teams.find(t => t.id == modalForm.team_id);
     if (!team) return null;
 
+    // Check 1: field has restrictions and division not in list
     const allowed = field.allowed_divisions;
-    if (!allowed || allowed.length === 0) return null;
+    if (allowed && allowed.length > 0) {
+        const divEntry = allowed.find(d => d.id === team.division_id);
+        if (!divEntry) return 'restricted';
+    }
 
-    const divEntry = allowed.find(d => d.id === team.division_id);
-    if (!divEntry) return 'restricted';
+    // Check 2: division has field assignments — can only use those fields
+    const divFields = divisionFieldMap.value[team.division_id];
+    if (divFields && divFields.size > 0 && !divFields.has(field.id)) return 'not assigned';
+
+    // If we get here, check booking window
+    const divEntry = (allowed || []).find(d => d.id === team.division_id);
+    if (!divEntry) return null;
 
     // Check booking window from pivot
     const pivot = divEntry.pivot;
