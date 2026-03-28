@@ -20,13 +20,17 @@ class TeamController extends Controller
     {
         $context = app(LeagueContext::class);
 
-        $teams = Team::with('division.season')
+        $teams = Team::with(['division'])
+            ->orderBy('division_id')
             ->orderBy('name')
             ->get();
+
+        $divisions = Division::orderBy('name')->get();
 
         return Inertia::render('Leagues/Teams/Index', [
             'league' => $context->league(),
             'teams' => $teams,
+            'divisions' => $divisions,
             'userRole' => $context->userRole(),
         ]);
     }

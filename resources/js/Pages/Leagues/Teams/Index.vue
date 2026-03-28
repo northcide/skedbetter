@@ -2,79 +2,132 @@
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 
-const props = defineProps({ league: Object, teams: Array, userRole: String });
+const props = defineProps({
+    league: Object,
+    teams: Array,
+    divisions: { type: Array, default: () => [] },
+    userRole: String,
+});
+
 const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
+const filterDiv = ref('');
+const saving = ref({});
+const saved = ref({});
 
-const deleteTeam = (team) => {
-    if (confirm(`Delete team "${team.name}"?`)) {
-        router.delete(route('leagues.teams.destroy', [props.league.slug, team.id]));
+const filteredTeams = computed(() => {
+    if (filterDiv.value) return props.teams.filter(t => t.division_id == filterDiv.value);
+    return props.teams;
+});
+
+// Editable state — clone team data
+const edits = ref({});
+props.teams.forEach(t => {
+    edits.value[t.id] = {
+        name: t.name,
+        contact_name: t.contact_name || '',
+        contact_email: t.contact_email || '',
+        color_code: t.color_code || '',
+    };
+});
+
+function saveTeam(team) {
+    saving.value[team.id] = true;
+    axios.put(route('leagues.teams.update', [props.league.slug, team.id]), {
+        name: edits.value[team.id].name,
+        contact_name: edits.value[team.id].contact_name,
+        contact_email: edits.value[team.id].contact_email,
+        color_code: edits.value[team.id].color_code,
+        division_id: team.division_id,
+    }).then(() => {
+        saved.value[team.id] = true;
+        setTimeout(() => { saved.value[team.id] = false; }, 1500);
+    }).finally(() => {
+        saving.value[team.id] = false;
+    });
+}
+
+function deleteTeam(team) {
+    if (confirm(`Delete "${team.name}"?`)) {
+        axios.delete(route('leagues.teams.destroy', [props.league.slug, team.id]))
+            .then(() => router.reload({ only: ['teams'] }));
     }
-};
+}
+
+function isDirty(team) {
+    const e = edits.value[team.id];
+    return e.name !== team.name
+        || e.contact_name !== (team.contact_name || '')
+        || e.contact_email !== (team.contact_email || '')
+        || e.color_code !== (team.color_code || '');
+}
 </script>
 
 <template>
-    <Head :title="`${league.name} - Teams`" />
+    <Head :title="`${league.name} - Team Roster`" />
 
     <LeagueLayout :league="league" :userRole="userRole || ''">
-        
-
-        
-        <!-- Page Header -->
         <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Teams</h2>
-                        </div>
-                        <div v-if="isManager" class="flex items-center gap-3">
-                            <Link :href="route('leagues.teams.import', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">Import CSV</Link>
-                            <Link :href="route('leagues.teams.create', league.slug)">
-                                <PrimaryButton>Add Team</PrimaryButton>
-                            </Link>
-                        </div>
-                    </div>
-<FlashMessage />
+            <h2 class="text-base font-semibold text-gray-900">Team Roster</h2>
+            <select v-model="filterDiv" class="w-40">
+                <option value="">All Divisions</option>
+                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+            </select>
+        </div>
 
-        <div class="mt-4">
-            <div class="">
-                <div v-if="teams.length === 0" class="rounded-lg bg-white p-12 text-center shadow-sm">
-                    <p class="text-gray-500">No teams yet. Create divisions first, then add teams.</p>
+        <FlashMessage />
+
+        <div class="mt-3 rounded-lg border border-gray-200 bg-white">
+            <!-- Header -->
+            <div class="grid grid-cols-[40px_1fr_1fr_1fr_30px_60px] gap-1 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
+                <span></span>
+                <span>Team Name</span>
+                <span>Coach Name</span>
+                <span>Coach Email</span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <!-- Team rows -->
+            <div v-for="team in filteredTeams" :key="team.id" class="grid grid-cols-[40px_1fr_1fr_1fr_30px_60px] gap-1 items-center px-3 py-1 border-b border-gray-50 hover:bg-gray-50">
+                <!-- Color -->
+                <div class="flex justify-center">
+                    <input type="color" v-model="edits[team.id].color_code" class="h-5 w-5 cursor-pointer rounded border-0 p-0" :disabled="!isManager" />
                 </div>
 
-                <div v-else class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Team</th>
-                                <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Division</th>
-                                <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Contact</th>
-                                <th v-if="isManager" class="px-3 py-2"></th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="team in teams" :key="team.id">
-                                <td class="whitespace-nowrap px-3 py-2">
-                                    <div class="flex items-center gap-2">
-                                        <span v-if="team.color_code" class="inline-block h-3 w-3 rounded-full" :style="{ backgroundColor: team.color_code }"></span>
-                                        <Link :href="route('leagues.teams.show', [league.slug, team.id])" class="font-medium text-brand-600 hover:text-brand-700">
-                                            {{ team.name }}
-                                        </Link>
-                                    </div>
-                                </td>
-                                <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
-                                    {{ team.division?.name }}
-                                    <span v-if="team.division?.season" class="text-gray-400"> ({{ team.division.season.name }})</span>
-                                </td>
-                                <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">{{ team.contact_name || '&mdash;' }}</td>
-                                <td v-if="isManager" class="whitespace-nowrap px-3 py-2 text-right text-sm">
-                                    <Link :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>
-                                    <button @click="deleteTeam(team)" class="ml-3 text-red-600 hover:text-red-900">Delete</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Name -->
+                <input v-model="edits[team.id].name" :disabled="!isManager"
+                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-900 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+
+                <!-- Coach Name -->
+                <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="—"
+                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+
+                <!-- Coach Email -->
+                <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="—"
+                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+
+                <!-- Division badge -->
+                <span class="text-[9px] text-gray-400 truncate" :title="team.division?.name">{{ team.division?.name?.slice(0, 4) }}</span>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-1 justify-end" v-if="isManager">
+                    <button v-if="isDirty(team)" @click="saveTeam(team)" :disabled="saving[team.id]"
+                        class="rounded bg-brand-600 px-1.5 py-0.5 text-[9px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                        {{ saving[team.id] ? '...' : 'Save' }}
+                    </button>
+                    <span v-if="saved[team.id]" class="text-[9px] text-green-600">Saved</span>
+                    <button @click="deleteTeam(team)" class="text-[9px] text-red-400 hover:text-red-600">Del</button>
                 </div>
             </div>
+
+            <div v-if="filteredTeams.length === 0" class="px-3 py-6 text-center text-xs text-gray-400">
+                No teams{{ filterDiv ? ' in this division' : '' }}.
+            </div>
         </div>
+
+        <p class="mt-2 text-[10px] text-gray-400">Click any field to edit. Changes save per row. {{ filteredTeams.length }} team(s) shown.</p>
     </LeagueLayout>
 </template>
