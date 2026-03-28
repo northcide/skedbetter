@@ -294,35 +294,40 @@ class ScheduleEntryController extends Controller
         });
 
         // Append blackout rules as background events
-        $blackouts = \App\Models\BlackoutRule::withoutGlobalScopes()
-            ->where('league_id', $context->league()->id)
-            ->where('is_active', true)
-            ->get();
-
-        $startDate = $request->has('start') ? \Carbon\Carbon::parse($request->start) : now()->startOfMonth();
-        $endDate = $request->has('end') ? \Carbon\Carbon::parse($request->end) : now()->endOfMonth();
-
         $blackoutEvents = collect();
-        foreach ($blackouts as $bo) {
-            $dates = $this->expandBlackoutDates($bo, $startDate, $endDate);
-            foreach ($dates as $date) {
-                $start = $bo->start_time ? $date . 'T' . $bo->start_time : $date;
-                $end = $bo->end_time ? $date . 'T' . $bo->end_time : $date . 'T23:59:59';
-                $allDay = !$bo->start_time && !$bo->end_time;
+        try {
+            $blackouts = \App\Models\BlackoutRule::withoutGlobalScopes()
+                ->where('league_id', $context->league()->id)
+                ->where('is_active', true)
+                ->get();
 
-                $blackoutEvents->push([
-                    'id' => 'blackout-' . $bo->id . '-' . $date,
-                    'title' => $bo->name,
-                    'start' => $allDay ? $date : $start,
-                    'end' => $allDay ? $date : $end,
-                    'allDay' => $allDay,
-                    'display' => 'background',
-                    'backgroundColor' => '#f3f4f6',
-                    'borderColor' => '#d1d5db',
-                    'editable' => false,
-                    'extendedProps' => ['is_blackout' => true, 'reason' => $bo->reason],
-                ]);
+            $startDate = $request->has('start') ? \Carbon\Carbon::parse($request->start) : now()->startOfMonth();
+            $endDate = $request->has('end') ? \Carbon\Carbon::parse($request->end) : now()->endOfMonth();
+
+            foreach ($blackouts as $bo) {
+                if (! $bo->start_date || ! $bo->end_date) continue;
+                $dates = $this->expandBlackoutDates($bo, $startDate, $endDate);
+                foreach ($dates as $date) {
+                    $start = $bo->start_time ? $date . 'T' . $bo->start_time : $date;
+                    $end = $bo->end_time ? $date . 'T' . $bo->end_time : $date . 'T23:59:59';
+                    $allDay = !$bo->start_time && !$bo->end_time;
+
+                    $blackoutEvents->push([
+                        'id' => 'blackout-' . $bo->id . '-' . $date,
+                        'title' => $bo->name,
+                        'start' => $allDay ? $date : $start,
+                        'end' => $allDay ? $date : $end,
+                        'allDay' => $allDay,
+                        'display' => 'background',
+                        'backgroundColor' => '#f3f4f6',
+                        'borderColor' => '#d1d5db',
+                        'editable' => false,
+                        'extendedProps' => ['is_blackout' => true, 'reason' => $bo->reason],
+                    ]);
+                }
             }
+        } catch (\Exception $e) {
+            // Don't let blackout errors break the calendar
         }
 
         return response()->json($events->concat($blackoutEvents)->values());
