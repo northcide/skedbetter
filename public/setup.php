@@ -27,6 +27,18 @@ $envExample = $basePath . '/.env.example';
 $step = $_POST['step'] ?? $_GET['step'] ?? 'check';
 $errors = [];
 $success = '';
+$warnings = [];
+
+// Pre-flight checks
+$phpOk = version_compare(PHP_VERSION, '8.2.0', '>=');
+$vendorOk = file_exists($basePath . '/vendor/autoload.php');
+$writableOk = is_writable($basePath) || is_writable($basePath . '/.env') || !file_exists($basePath . '/.env');
+$artisanOk = file_exists($basePath . '/artisan');
+
+if (!$phpOk) $warnings[] = 'PHP 8.2+ required. Current: ' . PHP_VERSION . '. Contact your host to upgrade.';
+if (!$vendorOk) $warnings[] = 'vendor/ directory missing. Run "composer install" locally and upload the vendor/ folder.';
+if (!$writableOk) $warnings[] = 'Cannot write to project directory. Check file permissions.';
+if (!$artisanOk) $warnings[] = 'artisan file not found. Make sure all project files are uploaded.';
 
 // ── Check if already set up ─────────────────────────────────────────────
 if ($step !== 'lock' && file_exists($envFile)) {
@@ -174,9 +186,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Method 2: Bootstrap Laravel and run migrate programmatically
-        if (!$migrated) {
+        if (!$migrated && file_exists($basePath . '/vendor/autoload.php')) {
             try {
-                // Require composer autoloader and bootstrap the app
                 require $basePath . '/vendor/autoload.php';
                 $app = require_once $basePath . '/bootstrap/app.php';
                 $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
@@ -185,6 +196,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
                 $output = \Illuminate\Support\Facades\Artisan::output();
                 $migrated = ($exitCode === 0);
+            } catch (Exception $e) {
+                $output = $e->getMessage();
+            }
+        }
+
+        // Method 3: If vendor doesn't exist, run essential tables via raw SQL
+        if (!$migrated && !file_exists($basePath . '/vendor/autoload.php')) {
+            try {
+                $env = parseEnv($envFile);
+                $pdo = getDbConnection($env);
+                if ($pdo) {
+                    // Run all .sql migration files or create essential tables
+                    $sqlFile = $basePath . '/database/schema/setup.sql';
+                    if (file_exists($sqlFile)) {
+                        $sql = file_get_contents($sqlFile);
+                        $pdo->exec($sql);
+                        $migrated = true;
+                    } else {
+                        $output = "vendor/ directory not found. Please run 'composer install' locally and upload the vendor/ folder to your server. Or if your host has SSH/Terminal access, run: cd " . $basePath . " && composer install";
+                    }
+                }
             } catch (Exception $e) {
                 $output = $e->getMessage();
             }
@@ -316,6 +348,13 @@ $pageTitle = match($step) {
 
         <h2>Database & App Configuration</h2>
         <p class="subtitle">Enter your database credentials and app URL.</p>
+
+        <?php if (!empty($warnings)): ?>
+            <div class="errors" style="background:#fffbeb;border-color:#fde68a;">
+                <p style="font-weight:600;color:#92400e;">Pre-flight checks:</p>
+                <?php foreach ($warnings as $w): ?><p style="color:#92400e;">&bull; <?= htmlspecialchars($w) ?></p><?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
         <?php if (!empty($errors)): ?>
             <div class="errors"><?php foreach ($errors as $e): ?><p><?= htmlspecialchars($e) ?></p><?php endforeach; ?></div>
