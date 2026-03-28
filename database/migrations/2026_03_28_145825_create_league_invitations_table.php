@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('token', 64)->unique();
             $table->foreignId('invited_by')->constrained('users');
             $table->timestamp('accepted_at')->nullable();
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->useCurrent();
             $table->timestamps();
 
             $table->index(['email', 'league_id']);
