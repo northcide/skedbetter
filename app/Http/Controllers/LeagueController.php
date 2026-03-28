@@ -13,10 +13,10 @@ class LeagueController extends Controller
         $user = $request->user();
 
         if ($user->isSuperadmin()) {
-            $leagues = League::withCount(['teams', 'locations'])->latest()->get();
+            $leagues = League::withCount(['teams', 'locations', 'divisions'])->latest()->get();
         } else {
             $leagues = $user->leagues()
-                ->withCount(['teams', 'locations'])
+                ->withCount(['teams', 'locations', 'divisions'])
                 ->latest()
                 ->get();
         }
@@ -24,6 +24,7 @@ class LeagueController extends Controller
         return Inertia::render('Leagues/Index', [
             'leagues' => $leagues,
             'canCreateLeague' => $user->isSuperadmin(),
+            'isSuperadmin' => $user->isSuperadmin(),
         ]);
     }
 
