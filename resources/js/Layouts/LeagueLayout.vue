@@ -40,6 +40,7 @@ const navSections = computed(() => {
             label: 'Admin',
             items: [
                 { label: 'Members', route: 'leagues.members.index', match: 'members' },
+                { label: 'Audit Log', route: 'leagues.audit-log.index', match: 'audit-log' },
                 { label: 'Settings', route: 'leagues.edit', match: '/edit' },
             ],
         });

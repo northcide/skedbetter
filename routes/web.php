@@ -12,6 +12,7 @@ use App\Http\Controllers\League\DivisionController;
 use App\Http\Controllers\League\FieldController;
 use App\Http\Controllers\League\FieldRulesController;
 use App\Http\Controllers\League\LocationController;
+use App\Http\Controllers\League\AuditLogController;
 use App\Http\Controllers\League\ScheduleEntryController;
 use App\Http\Controllers\League\SchedulingRulesController;
 use App\Http\Controllers\League\SeasonController;
@@ -128,6 +129,9 @@ Route::middleware('auth')->group(function () {
             Route::delete('members/{user}', [InvitationController::class, 'removeMember'])->name('members.destroy');
             Route::post('members/{user}/send-magic-link', [InvitationController::class, 'sendMagicLink'])->name('members.send-magic-link');
             Route::post('members/{user}/generate-magic-link', [InvitationController::class, 'generateMagicLink'])->name('members.generate-magic-link');
+
+            // Audit log (superadmin + league admin only)
+            Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 
             // Blackout rules
             Route::resource('blackouts', BlackoutRuleController::class)
