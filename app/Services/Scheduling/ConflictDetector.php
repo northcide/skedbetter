@@ -26,7 +26,8 @@ class ConflictDetector
 
     protected function checkFieldOverlap(ScheduleRequest $request, ConflictResult $result): void
     {
-        $query = ScheduleEntry::where('field_id', $request->fieldId)
+        $query = ScheduleEntry::withoutGlobalScopes()
+            ->where('field_id', $request->fieldId)
             ->where('date', $request->date)
             ->where('status', '!=', 'cancelled')
             ->where('start_time', '<', $request->endTime)
@@ -36,7 +37,7 @@ class ConflictDetector
             $query->where('id', '!=', $request->excludeEntryId);
         }
 
-        $conflicts = $query->with('team')->get();
+        $conflicts = $query->get();
 
         foreach ($conflicts as $conflict) {
             $teamName = $conflict->team?->name ?? 'Unknown';
@@ -49,7 +50,8 @@ class ConflictDetector
 
     protected function checkTeamOverlap(ScheduleRequest $request, ConflictResult $result): void
     {
-        $query = ScheduleEntry::where('team_id', $request->teamId)
+        $query = ScheduleEntry::withoutGlobalScopes()
+            ->where('team_id', $request->teamId)
             ->where('date', $request->date)
             ->where('status', '!=', 'cancelled')
             ->where('start_time', '<', $request->endTime)
@@ -76,7 +78,8 @@ class ConflictDetector
     {
         $date = Carbon::parse($request->date);
 
-        $rules = BlackoutRule::where('league_id', $request->leagueId)
+        $rules = BlackoutRule::withoutGlobalScopes()
+            ->where('league_id', $request->leagueId)
             ->where('is_active', true)
             ->get();
 
@@ -142,7 +145,7 @@ class ConflictDetector
 
     protected function checkWeeklySlotLimit(ScheduleRequest $request, ConflictResult $result): void
     {
-        $team = Team::find($request->teamId);
+        $team = Team::withoutGlobalScopes()->find($request->teamId);
         if (! $team) {
             return;
         }
@@ -162,7 +165,8 @@ class ConflictDetector
         $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
         $weekEnd = $date->copy()->endOfWeek(Carbon::SUNDAY);
 
-        $query = ScheduleEntry::where('team_id', $request->teamId)
+        $query = ScheduleEntry::withoutGlobalScopes()
+            ->where('team_id', $request->teamId)
             ->where('status', '!=', 'cancelled')
             ->whereBetween('date', [$weekStart->toDateString(), $weekEnd->toDateString()]);
 

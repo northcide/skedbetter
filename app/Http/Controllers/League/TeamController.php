@@ -7,6 +7,7 @@ use App\Models\Division;
 use App\Models\Team;
 use App\Services\LeagueContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 
 class TeamController extends Controller
@@ -73,6 +74,7 @@ class TeamController extends Controller
             'league' => $context->league(),
             'team' => $team,
             'userRole' => $context->userRole(),
+            'icalUrl' => URL::signedRoute('ical.team', ['teamId' => $team->id]),
         ]);
     }
 

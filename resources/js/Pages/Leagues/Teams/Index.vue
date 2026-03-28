@@ -24,9 +24,12 @@ const deleteTeam = (team) => {
                     <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
                     <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Teams</h2>
                 </div>
-                <Link v-if="isManager" :href="route('leagues.teams.create', league.slug)">
-                    <PrimaryButton>Add Team</PrimaryButton>
-                </Link>
+                <div v-if="isManager" class="flex items-center gap-3">
+                    <Link :href="route('leagues.teams.import', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">Import CSV</Link>
+                    <Link :href="route('leagues.teams.create', league.slug)">
+                        <PrimaryButton>Add Team</PrimaryButton>
+                    </Link>
+                </div>
             </div>
         </template>
 

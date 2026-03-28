@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 
-const props = defineProps({ league: Object, team: Object, userRole: String });
+const props = defineProps({ league: Object, team: Object, userRole: String, icalUrl: String });
 const isManager = ['superadmin', 'league_manager', 'division_manager'].includes(props.userRole);
 </script>
 
@@ -45,6 +45,29 @@ const isManager = ['superadmin', 'league_manager', 'division_manager'].includes(
                                 <dd v-if="team.contact_email" class="text-sm text-gray-500">{{ team.contact_email }}</dd>
                             </div>
                         </dl>
+                    </div>
+                </div>
+
+                <!-- iCal Feed -->
+                <div v-if="icalUrl" class="overflow-hidden rounded-lg bg-white shadow-sm">
+                    <div class="p-6">
+                        <h3 class="text-sm font-medium text-gray-900">Calendar Subscription</h3>
+                        <p class="mt-1 text-xs text-gray-500">Subscribe to this team's schedule in Google Calendar, Apple Calendar, or Outlook.</p>
+                        <div class="mt-2 flex items-center gap-2">
+                            <input
+                                type="text"
+                                :value="icalUrl"
+                                readonly
+                                class="block w-full rounded-md border-gray-300 bg-gray-50 text-xs text-gray-600"
+                                @click="$event.target.select()"
+                            />
+                            <button
+                                @click="navigator.clipboard.writeText(icalUrl)"
+                                class="whitespace-nowrap rounded-md bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-600 hover:bg-indigo-100"
+                            >
+                                Copy
+                            </button>
+                        </div>
                     </div>
                 </div>
 

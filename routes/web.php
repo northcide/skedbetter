@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\AcceptInvitationController;
+use App\Http\Controllers\IcalController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\League\BlackoutRuleController;
 use App\Http\Controllers\League\InvitationController;
+use App\Http\Controllers\League\OnboardingController;
+use App\Http\Controllers\League\TeamImportController;
 use App\Http\Controllers\League\DivisionController;
 use App\Http\Controllers\League\FieldController;
 use App\Http\Controllers\League\LocationController;
@@ -24,6 +27,9 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+// iCal feed (signed URL, no auth required)
+Route::get('/ical/teams/{teamId}', [IcalController::class, 'team'])->name('ical.team');
 
 // Invitation accept (public)
 Route::get('/invitations/{token}', [AcceptInvitationController::class, 'show'])->name('invitations.show');
@@ -56,6 +62,8 @@ Route::middleware('auth')->group(function () {
             Route::resource('seasons', SeasonController::class)->except(['show']);
             Route::resource('divisions', DivisionController::class)->except(['show']);
             Route::resource('teams', TeamController::class);
+            Route::get('teams-import', [TeamImportController::class, 'create'])->name('teams.import');
+            Route::post('teams-import', [TeamImportController::class, 'store'])->name('teams.import.store');
             Route::resource('locations', LocationController::class)->except(['show']);
             Route::resource('fields', FieldController::class)->except(['index', 'show']);
 
@@ -85,6 +93,14 @@ Route::middleware('auth')->group(function () {
                 ->name('schedule.bulk.store');
             Route::post('schedule/{scheduleEntry}/cancel-series', [ScheduleEntryController::class, 'cancelSeries'])
                 ->name('schedule.cancel-series');
+
+            // Onboarding wizard
+            Route::get('setup', [OnboardingController::class, 'index'])->name('onboarding');
+            Route::post('setup/season', [OnboardingController::class, 'storeSeason'])->name('onboarding.season');
+            Route::post('setup/location', [OnboardingController::class, 'storeLocation'])->name('onboarding.location');
+            Route::post('setup/division', [OnboardingController::class, 'storeDivision'])->name('onboarding.division');
+            Route::post('setup/teams', [OnboardingController::class, 'storeTeams'])->name('onboarding.teams');
+            Route::post('setup/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 
             // Members & invitations
             Route::get('members', [InvitationController::class, 'index'])->name('members.index');
