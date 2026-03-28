@@ -111,7 +111,15 @@ const availableFields = computed(() => {
     return props.locations.flatMap(l => l.fields || []);
 });
 
-// Teams filtered by main division filter (for calendar events)
+// All teams filtered by division (for calendar view filter — everyone can see all)
+const viewFilteredTeams = computed(() => {
+    if (filters.value.division_id) {
+        return props.teams.filter(t => t.division_id == filters.value.division_id);
+    }
+    return props.teams;
+});
+
+// Schedulable teams filtered by division (for drag sidebar — only user's teams)
 const filteredTeams = computed(() => {
     if (filters.value.division_id) {
         return schedulableTeams.value.filter(t => t.division_id == filters.value.division_id);
@@ -512,13 +520,13 @@ function showError(messages) {
             <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Filter:</span>
 
             <select v-model="filters.division_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                <option value="">{{ isCoach ? 'My Divisions' : 'All Divisions' }}</option>
-                <option v-for="d in schedulableDivisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+                <option value="">All Divisions</option>
+                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
             </select>
 
             <select v-model="filters.team_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                <option value="">{{ isCoach ? 'My Teams' : 'All Teams' }}</option>
-                <option v-for="t in filteredTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
+                <option value="">All Teams</option>
+                <option v-for="t in viewFilteredTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
             </select>
 
             <select v-model="filters.location_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
@@ -546,8 +554,8 @@ function showError(messages) {
                     <div class="border-b border-gray-100 px-2 py-1.5">
                         <h3 class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Drag to Schedule</h3>
                         <select v-model="sidebarDivision" class="mt-1 w-full rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
-                            <option value="">{{ isCoach ? 'My Divisions' : 'All Divisions' }}</option>
-                            <option v-for="d in schedulableDivisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+                            <option value="">{{ schedulableDivisions.length === 1 ? schedulableDivisions[0].name : (isCoach ? 'My Teams' : 'All Divisions') }}</option>
+                            <option v-for="d in schedulableDivisions" :key="d.id" :value="d.id" v-show="schedulableDivisions.length > 1">{{ d.name }}</option>
                         </select>
                     </div>
                     <div ref="teamListRef" class="max-h-[490px] overflow-y-auto p-1">
