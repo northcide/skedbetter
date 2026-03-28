@@ -34,7 +34,7 @@ class ScheduleEntryController extends Controller
             'teams' => Team::with('division')->orderBy('name')->get(),
             'seasons' => Season::orderByDesc('start_date')->get(),
             'divisions' => \App\Models\Division::with('season')->orderBy('name')->get(),
-            'locations' => \App\Models\Location::with(['fields' => fn($q) => $q->orderBy('sort_order')])->orderBy('name')->get(),
+            'locations' => \App\Models\Location::with(['fields' => fn($q) => $q->orderBy('sort_order')->with('allowedDivisions:id')])->orderBy('name')->get(),
             'coachTeamIds' => $coachTeamIds,
         ]);
     }

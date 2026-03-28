@@ -191,7 +191,21 @@ const modalForm = useForm({
     title: '',
 });
 
-// Time slot generation (6:00 AM to 10:00 PM in 30-min increments)
+// Check if a field is blocked for the currently selected team's division
+function isFieldBlocked(field) {
+    if (!modalForm.team_id) return false;
+    const team = props.teams.find(t => t.id == modalForm.team_id);
+    if (!team) return false;
+
+    // If the field has no allowed_divisions, it's open to all
+    const allowed = field.allowed_divisions;
+    if (!allowed || allowed.length === 0) return false;
+
+    // If the field has restrictions, check if this team's division is in the list
+    return !allowed.some(d => d.id === team.division_id);
+}
+
+// Time slot generation (6:00 AM to 10:00 PM in 15-min increments)
 function fmt12(time24) {
     if (!time24) return '';
     const [h, m] = time24.split(':').map(Number);
@@ -713,7 +727,13 @@ function showError(messages) {
                             >
                                 <option value="">Select</option>
                                 <template v-for="loc in locations" :key="loc.id">
-                                    <option v-for="f in (loc.fields || [])" :key="f.id" :value="f.id">{{ f.name }} @ {{ loc.name }}</option>
+                                    <option
+                                        v-for="f in (loc.fields || [])"
+                                        :key="f.id"
+                                        :value="f.id"
+                                        :disabled="isFieldBlocked(f)"
+                                        :class="isFieldBlocked(f) ? 'text-gray-400' : ''"
+                                    >{{ f.name }} @ {{ loc.name }}{{ isFieldBlocked(f) ? ' (restricted)' : '' }}</option>
                                 </template>
                             </select>
                         </div>

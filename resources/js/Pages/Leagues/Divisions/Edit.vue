@@ -12,6 +12,7 @@ const props = defineProps({
     league: Object, division: Object, seasons: Array,
     fields: { type: Array, default: () => [] },
     allowedFieldIds: { type: Array, default: () => [] },
+    blockedFieldIds: { type: Array, default: () => [] },
     userRole: String,
 });
 
@@ -127,8 +128,8 @@ const fieldsByLocation = props.fields.reduce((acc, f) => {
             <div class="border-t border-gray-100">
                 <button type="button" @click="toggle('fields')" class="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50">
                     <span class="text-xs font-semibold text-gray-900">Field Access</span>
-                    <span class="rounded-full px-1.5 py-0.5 text-[10px] font-medium" :class="form.field_access === 'all' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
-                        {{ form.field_access === 'all' ? 'All fields' : form.allowed_field_ids.length + ' field(s)' }}
+                    <span class="rounded-full px-1.5 py-0.5 text-[10px] font-medium" :class="blockedFieldIds.length ? 'bg-red-100 text-red-700' : form.field_access === 'all' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+                        {{ blockedFieldIds.length ? blockedFieldIds.length + ' blocked' : form.field_access === 'all' ? 'All fields' : form.allowed_field_ids.length + ' field(s)' }}
                     </span>
                 </button>
                 <div v-if="open.fields" class="border-t border-gray-100 px-3 py-2 space-y-2">
@@ -157,6 +158,17 @@ const fieldsByLocation = props.fields.reduce((acc, f) => {
                             </div>
                         </div>
                         <p v-if="form.allowed_field_ids.length === 0" class="text-[10px] text-amber-600">No fields selected — this division won't be able to schedule.</p>
+                    </div>
+
+                    <!-- Show fields that block this division (set from field side) -->
+                    <div v-if="blockedFieldIds.length" class="rounded border border-red-100 bg-red-50 p-2">
+                        <p class="text-[10px] font-semibold text-red-700">Blocked by field restrictions:</p>
+                        <div class="mt-1 flex flex-wrap gap-1">
+                            <span v-for="fid in blockedFieldIds" :key="fid" class="rounded border border-red-200 bg-white px-1.5 py-0.5 text-[10px] text-red-600">
+                                {{ fields.find(f => f.id === fid)?.name }} @ {{ fields.find(f => f.id === fid)?.location?.name }}
+                            </span>
+                        </div>
+                        <p class="mt-1 text-[9px] text-red-500">These fields have division restrictions that exclude this division. Edit the field to change.</p>
                     </div>
                 </div>
             </div>

@@ -97,13 +97,20 @@ class DivisionController extends Controller
         $context = app(LeagueContext::class);
 
         $division->load('allowedFields');
+        $allFields = \App\Models\Field::with('location')->where('is_active', true)->orderBy('name')->get();
+
+        // Find fields that have restrictions but DON'T include this division
+        $restrictedFieldIds = \DB::table('division_field')->select('field_id')->distinct()->pluck('field_id');
+        $allowedByField = \DB::table('division_field')->where('division_id', $division->id)->pluck('field_id');
+        $blockedFieldIds = $restrictedFieldIds->diff($allowedByField)->toArray();
 
         return Inertia::render('Leagues/Divisions/Edit', [
             'league' => $context->league(),
             'division' => $division,
             'seasons' => Season::orderByDesc('start_date')->get(),
-            'fields' => \App\Models\Field::with('location')->where('is_active', true)->orderBy('name')->get(),
+            'fields' => $allFields,
             'allowedFieldIds' => $division->allowedFields->pluck('id')->toArray(),
+            'blockedFieldIds' => $blockedFieldIds,
             'userRole' => $context->userRole(),
         ]);
     }
