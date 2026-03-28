@@ -38,17 +38,25 @@ class FieldRulesController extends Controller
     public function update(Request $request, string $league, Field $field)
     {
         $validated = $request->validate([
+            // Division access
             'access_mode' => 'required|in:open,restricted',
             'rules' => 'array',
             'rules.*.division_id' => 'required|exists:divisions,id',
             'rules.*.max_weekly_slots' => 'nullable|integer|min:1',
+            // Availability
+            'available_days' => 'nullable|array',
+            'available_days.*' => 'integer|between:0,6',
+            'available_start_time' => 'nullable|date_format:H:i',
+            'available_end_time' => 'nullable|date_format:H:i',
+            'slot_interval_minutes' => 'nullable|integer|in:15,30,60',
+            'min_event_minutes' => 'nullable|integer|in:15,30,45,60,90,120',
+            'max_event_minutes' => 'nullable|integer|in:30,60,90,120,180,240',
         ]);
 
+        // Division access
         if ($validated['access_mode'] === 'open') {
-            // Remove all restrictions
             $field->allowedDivisions()->detach();
         } else {
-            // Sync the allowed divisions with their limits
             $syncData = [];
             foreach ($validated['rules'] ?? [] as $rule) {
                 $syncData[$rule['division_id']] = [
@@ -57,6 +65,16 @@ class FieldRulesController extends Controller
             }
             $field->allowedDivisions()->sync($syncData);
         }
+
+        // Availability rules
+        $field->update([
+            'available_days' => ! empty($validated['available_days']) ? $validated['available_days'] : null,
+            'available_start_time' => $validated['available_start_time'] ?? null,
+            'available_end_time' => $validated['available_end_time'] ?? null,
+            'slot_interval_minutes' => $validated['slot_interval_minutes'] ?? null,
+            'min_event_minutes' => $validated['min_event_minutes'] ?? null,
+            'max_event_minutes' => $validated['max_event_minutes'] ?? null,
+        ]);
 
         return redirect()->route('leagues.fields.rules', [$league, $field->id])
             ->with('success', 'Field rules updated successfully.');

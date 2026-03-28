@@ -176,6 +176,44 @@ class TeamController extends Controller
             }
         }
 
+        // 2b. Field availability rules (days, hours, slot rules)
+        $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        $allFields = DB::table('fields')
+            ->join('locations', 'locations.id', '=', 'fields.location_id')
+            ->where('fields.league_id', $league->id)
+            ->whereNull('fields.deleted_at')
+            ->where('fields.is_active', true)
+            ->where(function ($q) {
+                $q->whereNotNull('available_days')
+                    ->orWhereNotNull('available_start_time')
+                    ->orWhereNotNull('available_end_time')
+                    ->orWhereNotNull('slot_interval_minutes')
+                    ->orWhereNotNull('min_event_minutes')
+                    ->orWhereNotNull('max_event_minutes');
+            })
+            ->select('fields.*', 'locations.name as location_name')
+            ->get();
+
+        foreach ($allFields as $f) {
+            $parts = [];
+            $days = $f->available_days ? json_decode($f->available_days, true) : null;
+            if ($days) $parts[] = implode(', ', array_map(fn($d) => $dayNames[$d] ?? $d, $days)) . ' only';
+            if ($f->available_start_time) $parts[] = 'opens ' . substr($f->available_start_time, 0, 5);
+            if ($f->available_end_time) $parts[] = 'closes ' . substr($f->available_end_time, 0, 5);
+            if ($f->slot_interval_minutes) $parts[] = "starts every {$f->slot_interval_minutes}m";
+            if ($f->min_event_minutes) $parts[] = "min {$f->min_event_minutes}m";
+            if ($f->max_event_minutes) $parts[] = "max {$f->max_event_minutes}m";
+
+            if (! empty($parts)) {
+                $rules[] = [
+                    'source' => 'Field',
+                    'sourceDetail' => "{$f->name} @ {$f->location_name}",
+                    'rule' => implode(' · ', $parts),
+                    'type' => 'constraint',
+                ];
+            }
+        }
+
         // 3. Blackout rules (league-wide)
         $blackouts = BlackoutRule::where('league_id', $league->id)
             ->where('is_active', true)

@@ -15,6 +15,8 @@ class Field extends Model
     protected $fillable = [
         'location_id', 'league_id', 'name', 'surface_type',
         'capacity', 'is_lighted', 'is_active', 'sort_order', 'notes',
+        'available_days', 'available_start_time', 'available_end_time',
+        'slot_interval_minutes', 'min_event_minutes', 'max_event_minutes',
     ];
 
     protected function casts(): array
@@ -23,6 +25,7 @@ class Field extends Model
             'surface_type' => SurfaceType::class,
             'is_lighted' => 'boolean',
             'is_active' => 'boolean',
+            'available_days' => 'array',
         ];
     }
 

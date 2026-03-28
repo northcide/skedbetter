@@ -13,6 +13,9 @@ class ConstraintValidator
     {
         $result = new ConflictResult();
 
+        // Field availability rules
+        $this->validateFieldAvailability($request, $result);
+
         // Division max event duration
         $this->validateDivisionMaxDuration($request, $result);
 
@@ -215,5 +218,81 @@ class ConstraintValidator
                 "Event duration ({$duration} min) exceeds the {$division->name} division maximum of {$limit}."
             );
         }
+    }
+
+    protected function validateFieldAvailability(ScheduleRequest $request, ConflictResult $result): void
+    {
+        $field = DB::table('fields')->where('id', $request->fieldId)->first();
+        if (! $field) return;
+
+        $date = Carbon::parse($request->date);
+        $dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        // Available days
+        $availableDays = $field->available_days ? json_decode($field->available_days, true) : null;
+        if ($availableDays && ! in_array($date->dayOfWeek, $availableDays)) {
+            $allowed = array_map(fn($d) => $dayNames[$d] ?? $d, $availableDays);
+            $result->addViolation(
+                'field_availability',
+                "This field is not available on {$dayNames[$date->dayOfWeek]}. Available: " . implode(', ', $allowed) . "."
+            );
+        }
+
+        // Available hours — earliest start
+        if ($field->available_start_time && $request->startTime < $field->available_start_time) {
+            $result->addViolation(
+                'field_availability',
+                "Start time ({$request->startTime}) is before this field opens (" . substr($field->available_start_time, 0, 5) . ")."
+            );
+        }
+
+        // Available hours — latest end
+        if ($field->available_end_time && $request->endTime > $field->available_end_time) {
+            $result->addViolation(
+                'field_availability',
+                "End time ({$request->endTime}) is after this field closes (" . substr($field->available_end_time, 0, 5) . ")."
+            );
+        }
+
+        // Slot start interval alignment
+        if ($field->slot_interval_minutes) {
+            $startParts = explode(':', $request->startTime);
+            $totalMinutes = (int)$startParts[0] * 60 + (int)$startParts[1];
+            if ($totalMinutes % $field->slot_interval_minutes !== 0) {
+                $result->addViolation(
+                    'field_availability',
+                    "Start time must align to {$field->slot_interval_minutes}-minute intervals (e.g., " . $this->exampleSlots($field->slot_interval_minutes) . ")."
+                );
+            }
+        }
+
+        // Field min duration
+        $start = Carbon::parse($request->date . ' ' . $request->startTime);
+        $end = Carbon::parse($request->date . ' ' . $request->endTime);
+        $duration = $start->diffInMinutes($end);
+
+        if ($field->min_event_minutes && $duration < $field->min_event_minutes) {
+            $result->addViolation(
+                'field_availability',
+                "Event ({$duration} min) is shorter than this field's minimum of {$field->min_event_minutes} minutes."
+            );
+        }
+
+        // Field max duration
+        if ($field->max_event_minutes && $duration > $field->max_event_minutes) {
+            $result->addViolation(
+                'field_availability',
+                "Event ({$duration} min) exceeds this field's maximum of {$field->max_event_minutes} minutes."
+            );
+        }
+    }
+
+    protected function exampleSlots(int $interval): string
+    {
+        $examples = [];
+        for ($m = 0; $m < 60 && count($examples) < 4; $m += $interval) {
+            $examples[] = sprintf(':d', $m);
+        }
+        return implode(', ', $examples);
     }
 }
