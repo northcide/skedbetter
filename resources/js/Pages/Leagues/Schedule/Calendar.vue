@@ -30,6 +30,7 @@ const errorMessages = ref([]);
 const showModal = ref(false);
 const showConfirmation = ref(false);
 const modalSubmitting = ref(false);
+const editingEntryId = ref(null); // null = new entry, number = editing existing
 const confirmationDetails = ref({});
 const modalFieldName = ref('');
 
@@ -215,18 +216,26 @@ const calendarOptions = ref({
 
 function handleEventDrop(info) {
     const event = info.event;
-    const startTime = event.start.toTimeString().slice(0, 5);
-    const endTime = event.end.toTimeString().slice(0, 5);
-    const date = event.start.toISOString().slice(0, 10);
-    const fieldId = event.getResources()[0]?.id;
+    const ext = event.extendedProps || {};
+    const resource = event.getResources()[0];
+    const fieldId = resource?.id;
 
     if (fieldId && fieldId.startsWith('loc-')) { info.revert(); return; }
 
-    axios.patch(route('leagues.schedule.move', [props.league.slug, event.id]), {
-        date, start_time: startTime, end_time: endTime, field_id: fieldId || undefined,
-    }).catch((error) => {
-        info.revert();
-        showError(error.response?.data?.errors || ['Failed to move event']);
+    // Revert the visual move — we'll refetch after confirm
+    info.revert();
+
+    // Open the modal in edit mode with the NEW position
+    openModal({
+        entryId: event.id,
+        teamId: ext.team_id || '',
+        date: event.start.toISOString().slice(0, 10),
+        startTime: event.start.toTimeString().slice(0, 5),
+        endTime: event.end.toTimeString().slice(0, 5),
+        fieldId: fieldId,
+        fieldName: resource?.title || ext.field_name || '',
+        type: ext.type || 'practice',
+        title: event.title || '',
     });
 }
 
@@ -258,8 +267,9 @@ function handleSelect(info) {
     calendarRef.value?.getApi()?.unselect();
 }
 
-function openModal({ teamId, date, startTime, endTime, fieldId, fieldName }) {
-    // Pre-fill from the interaction (drop target or selection)
+function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldName, type, title }) {
+    editingEntryId.value = entryId || null;
+
     let resolvedFieldId = (fieldId && !fieldId.startsWith('loc-')) ? fieldId : '';
     let resolvedFieldName = fieldName || '';
     let resolvedTeamId = teamId || '';
@@ -283,8 +293,8 @@ function openModal({ teamId, date, startTime, endTime, fieldId, fieldName }) {
     modalForm.end_time = endTime;
     modalForm.field_id = resolvedFieldId;
     modalFieldName.value = resolvedFieldName;
-    modalForm.title = '';
-    modalForm.type = 'practice';
+    modalForm.title = title || '';
+    modalForm.type = type || 'practice';
     modalForm.clearErrors();
     showModal.value = true;
 }
@@ -321,8 +331,24 @@ function cancelEvent() {
 }
 
 function editEvent() {
+    const ev = eventDetail.value;
     showEventDetail.value = false;
-    window.location.href = route('leagues.schedule.edit', [props.league.slug, eventDetail.value.id]);
+    openModal({
+        entryId: ev.id,
+        teamId: props.teams.find(t => t.name === ev.teamName)?.id || '',
+        date: ev.date,
+        startTime: ev.startTime,
+        endTime: ev.endTime,
+        fieldId: '', // will resolve from name
+        fieldName: ev.fieldName,
+        type: ev.type,
+        title: ev.title?.replace(/^.+ - /, '') || '', // strip "Team - Type" prefix if auto-generated
+    });
+    // Try to resolve field_id from name
+    for (const loc of props.locations) {
+        const f = (loc.fields || []).find(f => f.name === ev.fieldName);
+        if (f) { modalForm.field_id = f.id; break; }
+    }
 }
 
 function formatTime12(time24) {
@@ -361,11 +387,11 @@ function submitModal() {
     showConfirmation.value = true;
 }
 
-// Step 2: confirmation -> actually save
+// Step 2: confirmation -> actually save (create or update)
 function confirmSchedule() {
     modalSubmitting.value = true;
 
-    axios.post(route('leagues.schedule.store', props.league.slug), {
+    const payload = {
         season_id: modalForm.season_id,
         field_id: modalForm.field_id,
         team_id: modalForm.team_id,
@@ -374,11 +400,17 @@ function confirmSchedule() {
         end_time: modalForm.end_time,
         type: modalForm.type,
         title: modalForm.title,
-    }).then(() => {
+    };
+
+    const request = editingEntryId.value
+        ? axios.put(route('leagues.schedule.update', [props.league.slug, editingEntryId.value]), { ...payload, status: 'confirmed', notes: '' })
+        : axios.post(route('leagues.schedule.store', props.league.slug), payload);
+
+    request.then(() => {
         showConfirmation.value = false;
+        editingEntryId.value = null;
         calendarRef.value?.getApi()?.refetchEvents();
     }).catch((error) => {
-        // Go back to the form modal with errors
         showConfirmation.value = false;
         showModal.value = true;
         const errs = error.response?.data?.errors || {};
@@ -489,7 +521,7 @@ function showError(messages) {
         <!-- Quick Schedule Modal -->
         <Modal :show="showModal" @close="showModal = false" max-width="md">
             <form @submit.prevent="submitModal" class="p-4">
-                <h3 class="text-sm font-semibold text-gray-900">New Schedule Entry</h3>
+                <h3 class="text-sm font-semibold text-gray-900">{{ editingEntryId ? 'Edit Schedule Entry' : 'New Schedule Entry' }}</h3>
                 <p class="mt-0.5 text-xs text-gray-500">
                     {{ modalForm.date }}
                     <span v-if="modalForm.start_time"> &middot; {{ modalForm.start_time }}-{{ modalForm.end_time }}</span>
@@ -569,7 +601,7 @@ function showError(messages) {
         <!-- Confirm Before Save Modal -->
         <Modal :show="showConfirmation" @close="cancelConfirmation" max-width="sm">
             <div class="p-5">
-                <h3 class="text-sm font-semibold text-gray-900">Confirm Schedule</h3>
+                <h3 class="text-sm font-semibold text-gray-900">{{ editingEntryId ? 'Confirm Changes' : 'Confirm Schedule' }}</h3>
                 <p class="mt-1 text-xs text-gray-500">Please review the details below.</p>
 
                 <div class="mt-4 rounded-lg bg-gray-50 p-4 space-y-2 text-sm text-gray-700">
