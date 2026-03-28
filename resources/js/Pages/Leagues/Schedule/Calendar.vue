@@ -49,7 +49,6 @@ onMounted(() => {
                 extendedProps: { team_id: el.getAttribute('data-team-id') },
                 backgroundColor: el.getAttribute('data-team-color') || '#3B82F6',
                 borderColor: el.getAttribute('data-team-color') || '#3B82F6',
-                create: false,
             }),
         });
     }
