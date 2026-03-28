@@ -96,12 +96,15 @@ class DivisionController extends Controller
     {
         $context = app(LeagueContext::class);
 
-        $seasons = Season::orderByDesc('start_date')->get();
+        $division->load('allowedFields');
 
         return Inertia::render('Leagues/Divisions/Edit', [
             'league' => $context->league(),
             'division' => $division,
-            'seasons' => $seasons,
+            'seasons' => Season::orderByDesc('start_date')->get(),
+            'fields' => \App\Models\Field::with('location')->where('is_active', true)->orderBy('name')->get(),
+            'allowedFieldIds' => $division->allowedFields->pluck('id')->toArray(),
+            'userRole' => $context->userRole(),
         ]);
     }
 
@@ -114,12 +117,28 @@ class DivisionController extends Controller
             'skill_level' => 'nullable|string|max:255',
             'max_event_minutes' => 'nullable|integer|in:30,60,90,120',
             'max_weekly_events_per_team' => 'nullable|integer|min:1|max:20',
+            'field_access' => 'nullable|in:all,specific',
+            'allowed_field_ids' => 'nullable|array',
+            'allowed_field_ids.*' => 'exists:fields,id',
         ]);
+
+        $fieldAccess = $validated['field_access'] ?? null;
+        $allowedFieldIds = $validated['allowed_field_ids'] ?? [];
+        unset($validated['field_access'], $validated['allowed_field_ids']);
 
         $division->update($validated);
 
+        // Sync field access from the division side
+        if ($fieldAccess === 'all') {
+            // Remove this division from all field restrictions
+            $division->allowedFields()->detach();
+        } elseif ($fieldAccess === 'specific') {
+            // Sync: add this division to selected fields, remove from others
+            $division->allowedFields()->sync($allowedFieldIds);
+        }
+
         return redirect()->route('leagues.divisions.index', $league)
-            ->with('success', 'Division updated successfully.');
+            ->with('success', 'Division updated.');
     }
 
     public function destroy(string $league, Division $division)
