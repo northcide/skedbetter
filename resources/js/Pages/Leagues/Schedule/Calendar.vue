@@ -251,18 +251,22 @@ function handleEventDrop(info) {
 
     if (dropFieldId && dropFieldId.startsWith('loc-')) { info.revert(); return; }
 
+    // Capture the NEW position BEFORE reverting
+    const newDate = event.start.toISOString().slice(0, 10);
+    const newStartTime = event.start.toTimeString().slice(0, 5);
+    const newEndTime = event.end.toTimeString().slice(0, 5);
+
     info.revert();
 
-    // Use the drop target's field if available, otherwise keep the original field
     const fieldId = (dropFieldId && !dropFieldId.startsWith('loc-')) ? dropFieldId : (ext.field_id || '');
     const fieldName = (dropFieldId && !dropFieldId.startsWith('loc-')) ? (resource?.title || '') : (ext.field_name || '');
 
     openModal({
         entryId: event.id,
         teamId: ext.team_id || '',
-        date: event.start.toISOString().slice(0, 10),
-        startTime: event.start.toTimeString().slice(0, 5),
-        endTime: event.end.toTimeString().slice(0, 5),
+        date: newDate,
+        startTime: newStartTime,
+        endTime: newEndTime,
         fieldId: fieldId,
         fieldName: fieldName,
         type: ext.type || 'practice',
