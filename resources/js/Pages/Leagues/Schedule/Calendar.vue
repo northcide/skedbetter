@@ -132,7 +132,7 @@ const sidebarTeams = computed(() => {
     if (sidebarDivision.value) {
         return schedulableTeams.value.filter(t => t.division_id == sidebarDivision.value);
     }
-    return props.teams;
+    return schedulableTeams.value;
 });
 
 // Build extra params string for event fetching
