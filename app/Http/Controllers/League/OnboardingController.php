@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\League;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Auth\MagicLinkController;
+use App\Mail\MagicLinkMail;
 use App\Models\Division;
 use App\Models\Field;
 use App\Models\Location;
 use App\Models\Season;
 use App\Models\Team;
+use App\Models\User;
 use App\Services\LeagueContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class OnboardingController extends Controller
@@ -19,9 +23,12 @@ class OnboardingController extends Controller
     {
         $context = app(LeagueContext::class);
 
+        $adminEmail = session("league_{$context->league()->id}_admin_email", $context->league()->contact_email);
+
         return Inertia::render('Leagues/Onboarding/Index', [
             'league' => $context->league(),
             'userRole' => $context->userRole(),
+            'adminEmail' => $adminEmail,
         ]);
     }
 
@@ -47,6 +54,7 @@ class OnboardingController extends Controller
             'divisions.*.age_group' => 'nullable|string|max:255',
             'divisions.*.teams' => 'nullable|array',
             'divisions.*.teams.*.name' => 'required|string|max:255',
+            'send_invite' => 'boolean',
         ]);
 
         DB::transaction(function () use ($validated, $l) {
@@ -101,7 +109,34 @@ class OnboardingController extends Controller
             $settings = $l->settings ?? [];
             $settings['onboarding_completed'] = true;
             $l->update(['settings' => $settings]);
+
+            // Create or find the league admin user and attach to league
+            $adminEmail = session("league_{$l->id}_admin_email", $l->contact_email);
+            if ($adminEmail) {
+                $adminUser = User::firstOrCreate(
+                    ['email' => strtolower(trim($adminEmail))],
+                    ['name' => explode('@', $adminEmail)[0], 'password' => bcrypt(\Str::random(32))]
+                );
+
+                // Attach as league_admin if not already
+                if (! $l->users()->where('users.id', $adminUser->id)->wherePivot('role', 'league_admin')->exists()) {
+                    $l->users()->attach($adminUser->id, ['role' => 'league_admin', 'accepted_at' => now()]);
+                }
+            }
         });
+
+        // Send invite email if requested
+        $adminEmail = session("league_{$l->id}_admin_email", $l->contact_email);
+        if ($validated['send_invite'] ?? false && $adminEmail) {
+            try {
+                $magicLink = MagicLinkController::generateForUser($adminEmail, $request->user()->id);
+                Mail::to($adminEmail)->send(new MagicLinkMail($magicLink));
+            } catch (\Exception $e) {
+                // Don't fail setup if email fails
+            }
+        }
+
+        session()->forget("league_{$l->id}_admin_email");
 
         return redirect()->route('leagues.show', $l->slug)
             ->with('success', 'League setup complete!');

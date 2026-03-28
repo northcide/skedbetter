@@ -8,11 +8,14 @@ import TextInput from '@/Components/TextInput.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
-const props = defineProps({ league: Object, userRole: String });
+import Checkbox from '@/Components/Checkbox.vue';
+
+const props = defineProps({ league: Object, userRole: String, adminEmail: String });
 
 const activeStep = ref(1);
 const saving = ref(false);
 const errors = ref({});
+const sendInvite = ref(true);
 
 // All wizard data lives in memory
 const season = ref({ name: '', start_date: '', end_date: '' });
@@ -108,6 +111,7 @@ function saveAll() {
         season: season.value,
         locations: locations.value,
         divisions: divisions.value,
+        send_invite: sendInvite.value,
     }).then(() => {
         window.location.href = route('leagues.show', props.league.slug);
     }).catch((err) => {
@@ -314,6 +318,17 @@ function saveAll() {
                             <span v-else class="text-xs text-gray-400"> — no teams</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Invite checkbox -->
+                <div v-if="adminEmail" class="mt-4 rounded border border-gray-100 bg-gray-50 p-3">
+                    <label class="flex items-start gap-2">
+                        <Checkbox v-model:checked="sendInvite" class="mt-0.5" />
+                        <div>
+                            <span class="text-sm font-medium text-gray-900">Send invite to League Admin</span>
+                            <p class="text-xs text-gray-500">A login link will be emailed to <strong>{{ adminEmail }}</strong></p>
+                        </div>
+                    </label>
                 </div>
 
                 <div class="mt-5 flex justify-between">

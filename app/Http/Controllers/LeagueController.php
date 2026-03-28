@@ -43,10 +43,17 @@ class LeagueController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'timezone' => 'required|string|timezone',
-            'contact_email' => 'nullable|email',
+            'admin_email' => 'required|email',
         ]);
 
+        $adminEmail = $validated['admin_email'];
+        unset($validated['admin_email']);
+        $validated['contact_email'] = $adminEmail;
+
         $league = League::create($validated);
+
+        // Store admin email in session for the wizard to use
+        session(["league_{$league->id}_admin_email" => $adminEmail]);
 
         return redirect()->route('leagues.onboarding', $league->slug)
             ->with('success', 'League created! Now set it up.');

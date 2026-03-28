@@ -61,10 +61,10 @@ const submit = () => {
                                 v-model="form.timezone"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500"
                             >
-                                <option value="America/New_York">Eastern</option>
-                                <option value="America/Chicago">Central</option>
-                                <option value="America/Denver">Mountain</option>
-                                <option value="America/Los_Angeles">Pacific</option>
+                                <option value="America/New_York">Eastern (America/New_York)</option>
+                                <option value="America/Chicago">Central (America/Chicago)</option>
+                                <option value="America/Denver">Mountain (America/Denver)</option>
+                                <option value="America/Los_Angeles">Pacific (America/Los_Angeles)</option>
                                 <option value="America/Anchorage">Alaska</option>
                                 <option value="Pacific/Honolulu">Hawaii</option>
                             </select>
