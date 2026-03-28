@@ -291,7 +291,75 @@ class ScheduleEntryController extends Controller
                     'notes' => $entry->notes,
                 ],
             ];
-        }));
+        });
+
+        // Append blackout rules as background events
+        $blackouts = \App\Models\BlackoutRule::withoutGlobalScopes()
+            ->where('league_id', $context->league()->id)
+            ->where('is_active', true)
+            ->get();
+
+        $startDate = $request->has('start') ? \Carbon\Carbon::parse($request->start) : now()->startOfMonth();
+        $endDate = $request->has('end') ? \Carbon\Carbon::parse($request->end) : now()->endOfMonth();
+
+        $blackoutEvents = collect();
+        foreach ($blackouts as $bo) {
+            $dates = $this->expandBlackoutDates($bo, $startDate, $endDate);
+            foreach ($dates as $date) {
+                $start = $bo->start_time ? $date . 'T' . $bo->start_time : $date;
+                $end = $bo->end_time ? $date . 'T' . $bo->end_time : $date . 'T23:59:59';
+                $allDay = !$bo->start_time && !$bo->end_time;
+
+                $blackoutEvents->push([
+                    'id' => 'blackout-' . $bo->id . '-' . $date,
+                    'title' => $bo->name,
+                    'start' => $allDay ? $date : $start,
+                    'end' => $allDay ? $date : $end,
+                    'allDay' => $allDay,
+                    'display' => 'background',
+                    'backgroundColor' => '#f3f4f6',
+                    'borderColor' => '#d1d5db',
+                    'editable' => false,
+                    'extendedProps' => ['is_blackout' => true, 'reason' => $bo->reason],
+                ]);
+            }
+        }
+
+        return response()->json($events->concat($blackoutEvents)->values());
+    }
+
+    protected function expandBlackoutDates(\App\Models\BlackoutRule $bo, $rangeStart, $rangeEnd): array
+    {
+        $dates = [];
+        $recurrence = $bo->recurrence->value ?? $bo->recurrence ?? 'none';
+
+        if ($recurrence === 'none') {
+            $current = $bo->start_date->copy();
+            while ($current->lte($bo->end_date) && $current->lte($rangeEnd)) {
+                if ($current->gte($rangeStart)) {
+                    $dates[] = $current->toDateString();
+                }
+                $current->addDay();
+            }
+        } elseif ($recurrence === 'weekly') {
+            $current = $rangeStart->copy();
+            while ($current->lte($rangeEnd)) {
+                if ($current->dayOfWeek === $bo->day_of_week && $current->between($bo->start_date, $bo->end_date)) {
+                    $dates[] = $current->toDateString();
+                }
+                $current->addDay();
+            }
+        } elseif ($recurrence === 'yearly') {
+            $current = $rangeStart->copy();
+            while ($current->lte($rangeEnd)) {
+                if ($current->month === $bo->start_date->month && $current->day >= $bo->start_date->day && $current->day <= $bo->end_date->day) {
+                    $dates[] = $current->toDateString();
+                }
+                $current->addDay();
+            }
+        }
+
+        return $dates;
     }
 
     // API endpoint for FullCalendar resources (fields)
