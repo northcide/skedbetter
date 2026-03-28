@@ -352,7 +352,13 @@ const calendarOptions = ref({
         const baseUrl = route('leagues.schedule.events', props.league.slug);
         const params = { start: info.startStr.slice(0, 10), end: info.endStr.slice(0, 10), ...filterParams.value };
         const qs = new URLSearchParams(params).toString();
-        axios.get(`${baseUrl}?${qs}`).then(res => successCallback(res.data)).catch(failureCallback);
+        axios.get(`${baseUrl}?${qs}`).then(res => {
+            console.log('Events loaded:', res.data.length, 'for', params.start, '-', params.end);
+            successCallback(res.data);
+        }).catch(err => {
+            console.error('Events fetch error:', err);
+            failureCallback(err);
+        });
     },
     datesSet: (info) => {
         saveState({ view: info.view.type, date: info.start.toISOString().slice(0, 10) });
