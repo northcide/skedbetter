@@ -31,7 +31,7 @@ const submit = () => {
 <div class="mt-4">
             <div class="">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <form @submit.prevent="submit" class="space-y-6 p-6">
+                    <form @submit.prevent="submit" class="space-y-3 p-3">
                         <div>
                             <InputLabel for="division_id" value="Import into Division" />
                             <select id="division_id" v-model="form.division_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500" required>

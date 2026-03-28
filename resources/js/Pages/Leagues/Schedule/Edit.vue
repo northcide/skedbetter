@@ -63,7 +63,7 @@ const cancelEntry = () => {
                 </div>
 
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <form @submit.prevent="submit" class="space-y-6 p-6">
+                    <form @submit.prevent="submit" class="space-y-3 p-3">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <InputLabel for="season_id" value="Season" />

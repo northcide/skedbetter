@@ -42,10 +42,10 @@ const deleteField = (field) => {
 <FlashMessage />
 
         <div class="mt-4">
-            <div class=" space-y-8">
+            <div class=" space-y-4">
                 <!-- Location Form -->
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <form @submit.prevent="submit" class="space-y-6 p-6">
+                    <form @submit.prevent="submit" class="space-y-3 p-3">
                         <div>
                             <InputLabel for="name" value="Location Name" />
                             <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" required />
@@ -98,7 +98,7 @@ const deleteField = (field) => {
                     </div>
 
                     <ul v-else class="divide-y">
-                        <li v-for="field in location.fields" :key="field.id" class="flex items-center justify-between px-6 py-4">
+                        <li v-for="field in location.fields" :key="field.id" class="flex items-center justify-between px-3 py-2">
                             <div>
                                 <span class="font-medium text-gray-900">{{ field.name }}</span>
                                 <span v-if="field.surface_type" class="ml-2 text-sm text-gray-500">{{ field.surface_type }}</span>

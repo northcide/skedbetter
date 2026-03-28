@@ -15,12 +15,12 @@ const showingNavigationDropdown = ref(false);
         <div class="min-h-screen bg-gray-50">
             <nav class="border-b border-gray-200 bg-white">
                 <div class="mx-auto max-w-screen-2xl px-3 sm:px-4 lg:px-6">
-                    <div class="flex h-12 justify-between">
+                    <div class="flex h-10 justify-between">
                         <div class="flex">
-                            <div class="flex shrink-0 items-center gap-2">
-                                <Link :href="route('dashboard')" class="flex items-center gap-2">
-                                    <ApplicationLogo class="block h-7 w-7 text-brand-600" />
-                                    <span class="hidden text-base font-bold tracking-tight text-brand-950 sm:block">SkedBetter</span>
+                            <div class="flex shrink-0 items-center gap-1.5">
+                                <Link :href="route('dashboard')" class="flex items-center gap-1.5">
+                                    <ApplicationLogo class="block h-6 w-6 text-brand-600" />
+                                    <span class="hidden text-sm font-bold tracking-tight text-brand-950 sm:block">SkedBetter</span>
                                 </Link>
                             </div>
                             <div class="hidden space-x-4 sm:-my-px sm:ms-6 sm:flex">
@@ -33,11 +33,11 @@ const showingNavigationDropdown = ref(false);
                             <div class="relative">
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
-                                        <button type="button" class="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-sm font-medium text-gray-600 transition hover:text-gray-900 focus:outline-none">
-                                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
+                                        <button type="button" class="inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-gray-600 transition hover:text-gray-900 focus:outline-none">
+                                            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-700">
                                                 {{ $page.props.auth.user.name.charAt(0).toUpperCase() }}
                                             </span>
-                                            <span class="max-w-[120px] truncate">{{ $page.props.auth.user.name }}</span>
+                                            <span class="max-w-[100px] truncate">{{ $page.props.auth.user.name }}</span>
                                             <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                             </svg>
@@ -82,7 +82,7 @@ const showingNavigationDropdown = ref(false);
             </nav>
 
             <header class="border-b border-gray-100 bg-white" v-if="$slots.header">
-                <div class="mx-auto max-w-screen-2xl px-3 py-3 sm:px-4 lg:px-6">
+                <div class="mx-auto max-w-screen-2xl px-3 py-1.5 sm:px-4 lg:px-5">
                     <slot name="header" />
                 </div>
             </header>

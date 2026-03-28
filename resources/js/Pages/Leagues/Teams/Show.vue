@@ -71,7 +71,7 @@ const typeLabel = (type) => ({
             <Link v-if="isManager" :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-sm text-brand-600 hover:text-brand-700">Edit</Link>
         </div>
 
-        <div class="mt-6 space-y-6">
+        <div class="mt-6 space-y-3">
             <!-- Info Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div class="rounded-xl border border-gray-100 bg-white px-4 py-4">
@@ -91,7 +91,7 @@ const typeLabel = (type) => ({
 
             <!-- Applicable Rules -->
             <div v-if="applicableRules.length > 0" class="rounded-xl border border-gray-200 bg-white">
-                <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                <div class="flex items-center justify-between border-b border-gray-100 px-3 py-2">
                     <div>
                         <h3 class="text-sm font-semibold text-gray-900">Scheduling Rules</h3>
                         <p class="text-xs text-gray-500">Rules from field restrictions, blackouts, and league constraints that affect this team</p>
@@ -103,7 +103,7 @@ const typeLabel = (type) => ({
 
                 <div class="divide-y divide-gray-50">
                     <!-- Field Access -->
-                    <div v-if="hasFieldRules" class="px-5 py-4">
+                    <div v-if="hasFieldRules" class="px-3 py-2">
                         <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Field Access</h4>
                         <div class="space-y-2">
                             <div v-for="rule in [...(rulesByType.field_blocked || []), ...(rulesByType.field_weekly_limit || []), ...(rulesByType.field_allowed || [])]" :key="rule.sourceDetail + rule.type" class="flex items-start gap-3">
@@ -119,7 +119,7 @@ const typeLabel = (type) => ({
                     </div>
 
                     <!-- Scheduling Limits -->
-                    <div v-if="hasLimits" class="px-5 py-4">
+                    <div v-if="hasLimits" class="px-3 py-2">
                         <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Scheduling Limits</h4>
                         <div class="space-y-2">
                             <div v-for="rule in [...(rulesByType.weekly_limit || []), ...(rulesByType.constraint || [])]" :key="rule.rule" class="flex items-start gap-3">
@@ -135,7 +135,7 @@ const typeLabel = (type) => ({
                     </div>
 
                     <!-- Blackouts -->
-                    <div v-if="rulesByType.blackout?.length" class="px-5 py-4">
+                    <div v-if="rulesByType.blackout?.length" class="px-3 py-2">
                         <h4 class="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Blackout Periods</h4>
                         <div class="space-y-2">
                             <div v-for="rule in rulesByType.blackout" :key="rule.rule" class="flex items-start gap-3">
@@ -164,12 +164,12 @@ const typeLabel = (type) => ({
 
             <!-- Schedule -->
             <div class="rounded-xl border border-gray-200 bg-white">
-                <div class="border-b border-gray-100 px-5 py-4">
+                <div class="border-b border-gray-100 px-3 py-2">
                     <h3 class="text-sm font-semibold text-gray-900">Upcoming Schedule</h3>
                 </div>
                 <div v-if="!team.schedule_entries?.length" class="px-5 py-8 text-center text-sm text-gray-400">No scheduled entries yet.</div>
                 <ul v-else class="divide-y divide-gray-50">
-                    <li v-for="entry in team.schedule_entries" :key="entry.id" class="flex items-center justify-between px-5 py-3">
+                    <li v-for="entry in team.schedule_entries" :key="entry.id" class="flex items-center justify-between px-3 py-2">
                         <div>
                             <span class="text-sm font-medium text-gray-900">{{ new Date(entry.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) }}</span>
                             <span class="ml-2 text-sm text-gray-500">{{ entry.start_time?.slice(0, 5) }} - {{ entry.end_time?.slice(0, 5) }}</span>
@@ -181,12 +181,12 @@ const typeLabel = (type) => ({
 
             <!-- Members -->
             <div class="rounded-xl border border-gray-200 bg-white">
-                <div class="border-b border-gray-100 px-5 py-4">
+                <div class="border-b border-gray-100 px-3 py-2">
                     <h3 class="text-sm font-semibold text-gray-900">Team Members</h3>
                 </div>
                 <div v-if="!team.users?.length" class="px-5 py-8 text-center text-sm text-gray-400">No team members assigned yet.</div>
                 <ul v-else class="divide-y divide-gray-50">
-                    <li v-for="user in team.users" :key="user.id" class="flex items-center justify-between px-5 py-3">
+                    <li v-for="user in team.users" :key="user.id" class="flex items-center justify-between px-3 py-2">
                         <div>
                             <span class="text-sm font-medium text-gray-900">{{ user.name }}</span>
                             <span class="ml-2 text-xs text-gray-500">{{ user.email }}</span>

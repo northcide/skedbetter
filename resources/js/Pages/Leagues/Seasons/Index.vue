@@ -42,24 +42,24 @@ const deleteSeason = (season) => {
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Dates</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Divisions</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-                                <th v-if="isManager" class="px-6 py-3"></th>
+                                <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Dates</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Divisions</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                                <th v-if="isManager" class="px-3 py-2"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
                             <tr v-for="season in seasons" :key="season.id">
-                                <td class="whitespace-nowrap px-6 py-4 font-medium text-gray-900">{{ season.name }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                                <td class="whitespace-nowrap px-3 py-2 font-medium text-gray-900">{{ season.name }}</td>
+                                <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                                     {{ new Date(season.start_date).toLocaleDateString() }} &ndash; {{ new Date(season.end_date).toLocaleDateString() }}
                                 </td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ season.divisions_count }}</td>
-                                <td class="whitespace-nowrap px-6 py-4">
+                                <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">{{ season.divisions_count }}</td>
+                                <td class="whitespace-nowrap px-3 py-2">
                                     <span v-if="season.is_current" class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">Current</span>
                                 </td>
-                                <td v-if="isManager" class="whitespace-nowrap px-6 py-4 text-right text-sm">
+                                <td v-if="isManager" class="whitespace-nowrap px-3 py-2 text-right text-sm">
                                     <Link :href="route('leagues.seasons.edit', [league.slug, season.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>
                                     <button @click="deleteSeason(season)" class="ml-3 text-red-600 hover:text-red-900">Delete</button>
                                 </td>

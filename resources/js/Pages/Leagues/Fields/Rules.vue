@@ -71,7 +71,7 @@ const submit = () => {
 
         <FlashMessage />
 
-        <form @submit.prevent="submit" class="mt-4 space-y-5">
+        <form @submit.prevent="submit" class="mt-4 space-y-3">
             <!-- Availability: Days & Hours -->
             <div class="rounded-lg border border-gray-200 bg-white p-4">
                 <h3 class="text-sm font-semibold text-gray-900">Availability</h3>

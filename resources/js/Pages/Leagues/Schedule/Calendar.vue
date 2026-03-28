@@ -657,7 +657,7 @@ function showError(messages) {
 
         <!-- Confirm Before Save Modal -->
         <Modal :show="showConfirmation" @close="cancelConfirmation" max-width="sm">
-            <div class="p-5">
+            <div class="p-3">
                 <h3 class="text-sm font-semibold text-gray-900">{{ editingEntryId ? 'Confirm Changes' : 'Confirm Schedule' }}</h3>
                 <p class="mt-1 text-xs text-gray-500">Please review the details below.</p>
 

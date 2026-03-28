@@ -35,7 +35,7 @@ const submit = () => {
 <div class="mt-4">
             <div class="">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <form @submit.prevent="submit" class="space-y-6 p-6">
+                    <form @submit.prevent="submit" class="space-y-3 p-3">
                         <div>
                             <InputLabel for="name" value="Team Name" />
                             <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" required />

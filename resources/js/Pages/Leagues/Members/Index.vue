@@ -74,7 +74,7 @@ const roleBadge = (role) => ({
 
         <FlashMessage />
 
-        <div class="mt-4 space-y-5">
+        <div class="mt-4 space-y-3">
             <!-- Invite Form -->
             <div v-if="isManager" class="rounded-lg border border-gray-200 bg-white p-4">
                 <h3 class="text-sm font-semibold text-gray-900">Invite Member</h3>

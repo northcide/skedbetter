@@ -39,7 +39,7 @@ const submit = () => {
                 </div>
 
                 <div v-else class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <form @submit.prevent="submit" class="space-y-6 p-6">
+                    <form @submit.prevent="submit" class="space-y-3 p-3">
                         <div>
                             <InputLabel for="name" value="Division Name" />
                             <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" required autofocus placeholder="e.g. U10 Boys" />

@@ -58,7 +58,7 @@ const deleteField = (field) => {
         <div v-else class="mt-6 space-y-4">
             <div v-for="location in locations" :key="location.id" class="rounded-xl border border-gray-200 bg-white">
                 <!-- Location Header -->
-                <div class="flex items-center justify-between px-5 py-4">
+                <div class="flex items-center justify-between px-3 py-2">
                     <button @click="toggle(location.id)" class="flex items-center gap-3 text-left">
                         <svg
                             class="h-4 w-4 text-gray-400 transition-transform"
@@ -96,7 +96,7 @@ const deleteField = (field) => {
                         <div
                             v-for="field in location.fields"
                             :key="field.id"
-                            class="flex items-center justify-between border-t border-gray-50 px-5 py-3 first:border-t-0"
+                            class="flex items-center justify-between border-t border-gray-50 px-3 py-2 first:border-t-0"
                         >
                             <div class="flex items-center gap-3 pl-7">
                                 <!-- Field icon -->
@@ -140,7 +140,7 @@ const deleteField = (field) => {
                     </div>
 
                     <!-- Add Field button -->
-                    <div v-if="isManager" class="border-t border-gray-100 px-5 py-3">
+                    <div v-if="isManager" class="border-t border-gray-100 px-3 py-2">
                         <Link :href="route('leagues.locations.fields.create', [league.slug, location.id])" class="flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700">
                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
