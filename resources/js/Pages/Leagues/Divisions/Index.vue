@@ -32,8 +32,8 @@ const deleteDivision = (division) => {
                     </div>
 <FlashMessage />
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="mt-4">
+            <div class="">
                 <div v-if="divisions.length === 0" class="rounded-lg bg-white p-12 text-center shadow-sm">
                     <p class="text-gray-500">No divisions yet. Create a season first, then add divisions.</p>
                 </div>

@@ -27,7 +27,7 @@ const markRead = (id) => {
             </div>
         </template>
 
-        <div class="py-12">
+        <div class="py-6">
             <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
                 <div v-if="notifications.length === 0" class="rounded-lg bg-white p-12 text-center shadow-sm">
                     <p class="text-gray-500">No notifications yet.</p>

@@ -73,8 +73,8 @@ const roleBadge = (role) => {
                     </div>
 <FlashMessage />
 
-        <div class="py-12">
-            <div class="mx-auto max-w-4xl sm:px-6 lg:px-8 space-y-8">
+        <div class="mt-4">
+            <div class=" space-y-8">
                 <!-- Invite Form -->
                 <div v-if="isManager" class="overflow-hidden rounded-lg bg-white shadow-sm">
                     <div class="border-b p-6">

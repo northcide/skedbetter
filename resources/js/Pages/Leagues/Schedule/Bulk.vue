@@ -41,8 +41,8 @@ const submit = () => {
         <!-- Page Header -->
         <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Bulk Schedule</h2>
                     <p class="mt-1 text-sm text-gray-500">Create a recurring schedule entry for a team on a specific field.</p>
-<div class="py-12">
-            <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
+<div class="mt-4">
+            <div class="">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <form @submit.prevent="submit" class="space-y-6 p-6">
                         <div class="grid grid-cols-2 gap-4">

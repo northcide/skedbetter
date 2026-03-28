@@ -33,8 +33,8 @@ const submit = () => {
         <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         Edit {{ league.name }}
                     </h2>
-<div class="py-12">
-            <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
+<div class="mt-4">
+            <div class="">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <form @submit.prevent="submit" class="space-y-6 p-6">
                         <div>

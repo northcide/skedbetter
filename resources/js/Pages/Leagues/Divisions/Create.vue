@@ -29,8 +29,8 @@ const submit = () => {
         
         <!-- Page Header -->
         <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Add Division</h2>
-<div class="py-12">
-            <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
+<div class="mt-4">
+            <div class="">
                 <div v-if="seasons.length === 0" class="rounded-lg bg-white p-12 text-center shadow-sm">
                     <p class="text-gray-500">You need to create a season before adding divisions.</p>
                     <Link :href="route('leagues.seasons.create', league.slug)" class="mt-4 inline-block text-brand-600 hover:text-brand-700">Create a Season</Link>

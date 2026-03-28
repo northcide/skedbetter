@@ -47,8 +47,8 @@ const submit = () => {
         
         <!-- Page Header -->
         <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">New Schedule Entry</h2>
-<div class="py-12">
-            <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
+<div class="mt-4">
+            <div class="">
                 <!-- Conflict Errors -->
                 <div v-if="conflictErrors.length" class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
                     <h3 class="text-sm font-medium text-red-800">Scheduling conflicts detected:</h3>

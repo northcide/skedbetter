@@ -75,8 +75,8 @@ const statusBadge = (status) => {
                     </div>
 <FlashMessage />
 
-        <div class="py-6">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="mt-3">
+            <div class="">
                 <!-- Filters -->
                 <div class="mb-6 overflow-hidden rounded-lg bg-white p-4 shadow-sm">
                     <div class="grid grid-cols-2 gap-4 md:grid-cols-5">

@@ -28,6 +28,8 @@ class ScheduleEntryController extends Controller
         return Inertia::render('Leagues/Schedule/Calendar', [
             'league' => $context->league(),
             'userRole' => $context->userRole(),
+            'teams' => Team::with('division')->orderBy('name')->get(),
+            'seasons' => Season::orderByDesc('start_date')->get(),
         ]);
     }
 
