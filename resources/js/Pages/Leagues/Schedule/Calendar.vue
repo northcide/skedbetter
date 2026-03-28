@@ -403,17 +403,35 @@ function showError(messages) {
                     <span v-if="modalFieldName"> &middot; {{ modalFieldName }}</span>
                 </p>
 
-                <div v-if="modalForm.errors.conflicts" class="mt-2 rounded bg-red-50 p-2 text-xs text-red-700">
-                    <ul class="list-disc pl-4"><li v-for="e in modalForm.errors.conflicts" :key="e">{{ e }}</li></ul>
+                <div v-if="Object.keys(modalForm.errors).length" class="mt-2 rounded bg-red-50 p-2 text-xs text-red-700">
+                    <ul class="list-disc pl-4">
+                        <template v-if="modalForm.errors.conflicts">
+                            <li v-for="e in modalForm.errors.conflicts" :key="e">{{ e }}</li>
+                        </template>
+                        <template v-else>
+                            <li v-for="(msg, key) in modalForm.errors" :key="key">{{ msg }}</li>
+                        </template>
+                    </ul>
                 </div>
 
                 <div class="mt-3 space-y-2.5">
-                    <div>
-                        <InputLabel for="m_team" value="Team" class="text-xs" />
-                        <select id="m_team" v-model="modalForm.team_id" class="mt-1 block w-full" required>
-                            <option value="">-- Select --</option>
-                            <option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}</option>
-                        </select>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <InputLabel for="m_team" value="Team" class="text-xs" />
+                            <select id="m_team" v-model="modalForm.team_id" class="mt-1 block w-full" required>
+                                <option value="">-- Select --</option>
+                                <option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <InputLabel for="m_field" value="Field" class="text-xs" />
+                            <select id="m_field" v-model="modalForm.field_id" class="mt-1 block w-full" required>
+                                <option value="">-- Select --</option>
+                                <template v-for="loc in locations" :key="loc.id">
+                                    <option v-for="f in (loc.fields || [])" :key="f.id" :value="f.id">{{ f.name }} @ {{ loc.name }}</option>
+                                </template>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-3 gap-2">
