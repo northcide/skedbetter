@@ -86,6 +86,8 @@ Route::middleware('auth')->group(function () {
             // Calendar API endpoints
             Route::get('schedule/calendar/events', [ScheduleEntryController::class, 'events'])
                 ->name('schedule.events');
+            Route::post('schedule/validate', [ScheduleEntryController::class, 'validateEntry'])
+                ->name('schedule.validate');
             Route::get('schedule/calendar/resources', [ScheduleEntryController::class, 'resources'])
                 ->name('schedule.resources');
             Route::patch('schedule/{scheduleEntry}/move', [ScheduleEntryController::class, 'move'])

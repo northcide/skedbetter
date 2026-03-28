@@ -33,6 +33,35 @@ const modalSubmitting = ref(false);
 const editingEntryId = ref(null); // null = new entry, number = editing existing
 const confirmationDetails = ref({});
 const modalFieldName = ref('');
+const liveErrors = ref([]);
+const validating = ref(false);
+let validateTimeout = null;
+
+function liveValidate() {
+    clearTimeout(validateTimeout);
+    liveErrors.value = [];
+
+    if (!modalForm.team_id || !modalForm.field_id || !modalForm.date || !modalForm.start_time || !modalForm.end_time) return;
+    if (modalForm.start_time >= modalForm.end_time) return;
+
+    validateTimeout = setTimeout(() => {
+        validating.value = true;
+        axios.post(route('leagues.schedule.validate', props.league.slug), {
+            field_id: modalForm.field_id,
+            team_id: modalForm.team_id,
+            date: modalForm.date,
+            start_time: modalForm.start_time,
+            end_time: modalForm.end_time,
+            exclude_entry_id: editingEntryId.value || null,
+        }).then(res => {
+            liveErrors.value = res.data.valid ? [] : (res.data.errors || []);
+        }).catch(() => {
+            liveErrors.value = [];
+        }).finally(() => {
+            validating.value = false;
+        });
+    }, 400);
+}
 
 // Persist state in localStorage keyed by league
 const storeKey = `skedbetter-cal-${props.league.id}`;
@@ -218,14 +247,16 @@ function handleEventDrop(info) {
     const event = info.event;
     const ext = event.extendedProps || {};
     const resource = event.getResources()[0];
-    const fieldId = resource?.id;
+    let dropFieldId = resource?.id;
 
-    if (fieldId && fieldId.startsWith('loc-')) { info.revert(); return; }
+    if (dropFieldId && dropFieldId.startsWith('loc-')) { info.revert(); return; }
 
-    // Revert the visual move — we'll refetch after confirm
     info.revert();
 
-    // Open the modal in edit mode with the NEW position
+    // Use the drop target's field if available, otherwise keep the original field
+    const fieldId = (dropFieldId && !dropFieldId.startsWith('loc-')) ? dropFieldId : (ext.field_id || '');
+    const fieldName = (dropFieldId && !dropFieldId.startsWith('loc-')) ? (resource?.title || '') : (ext.field_name || '');
+
     openModal({
         entryId: event.id,
         teamId: ext.team_id || '',
@@ -233,7 +264,7 @@ function handleEventDrop(info) {
         startTime: event.start.toTimeString().slice(0, 5),
         endTime: event.end.toTimeString().slice(0, 5),
         fieldId: fieldId,
-        fieldName: resource?.title || ext.field_name || '',
+        fieldName: fieldName,
         type: ext.type || 'practice',
         title: event.title || '',
     });
@@ -296,8 +327,16 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
     modalForm.title = title || '';
     modalForm.type = type || 'practice';
     modalForm.clearErrors();
+    liveErrors.value = [];
     showModal.value = true;
+    liveValidate();
 }
+
+// Re-validate when key scheduling fields change in the modal
+watch(
+    () => [modalForm.date, modalForm.start_time, modalForm.end_time],
+    () => { if (showModal.value) liveValidate(); },
+);
 
 // Event detail popover
 const showEventDetail = ref(false);
@@ -528,6 +567,7 @@ function showError(messages) {
                     <span v-if="modalFieldName"> &middot; {{ modalFieldName }}</span>
                 </p>
 
+                <!-- Server validation errors (from save attempt) -->
                 <div v-if="Object.keys(modalForm.errors).length" class="mt-2 rounded bg-red-50 p-2 text-xs text-red-700">
                     <ul class="list-disc pl-4">
                         <template v-if="modalForm.errors.conflicts">
@@ -539,18 +579,33 @@ function showError(messages) {
                     </ul>
                 </div>
 
+                <!-- Live conflict warnings -->
+                <div v-if="liveErrors.length && !Object.keys(modalForm.errors).length" class="mt-2 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+                    <p class="font-semibold">Conflicts detected:</p>
+                    <ul class="mt-1 list-disc pl-4">
+                        <li v-for="e in liveErrors" :key="e">{{ e }}</li>
+                    </ul>
+                </div>
+
                 <div class="mt-3 space-y-2.5">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <InputLabel for="m_team" value="Team" class="text-xs" />
-                            <select id="m_team" v-model="modalForm.team_id" class="mt-1 block w-full" required>
+                            <select id="m_team" v-model="modalForm.team_id" @change="liveValidate" class="mt-1 block w-full" required>
                                 <option value="">-- Select --</option>
                                 <option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}</option>
                             </select>
                         </div>
                         <div>
                             <InputLabel for="m_field" value="Field" class="text-xs" />
-                            <select id="m_field" v-model="modalForm.field_id" class="mt-1 block w-full" required>
+                            <select
+                                id="m_field"
+                                v-model="modalForm.field_id"
+                                @change="liveValidate"
+                                class="mt-1 block w-full"
+                                :class="liveErrors.length ? 'border-red-400 ring-1 ring-red-400' : ''"
+                                required
+                            >
                                 <option value="">-- Select --</option>
                                 <template v-for="loc in locations" :key="loc.id">
                                     <option v-for="f in (loc.fields || [])" :key="f.id" :value="f.id">{{ f.name }} @ {{ loc.name }}</option>
@@ -593,7 +648,7 @@ function showError(messages) {
 
                 <div class="mt-4 flex justify-end gap-2">
                     <button type="button" @click="showModal = false" class="rounded px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900">Cancel</button>
-                    <PrimaryButton :disabled="modalSubmitting || !modalForm.team_id || !modalForm.field_id">Schedule</PrimaryButton>
+                    <PrimaryButton :disabled="modalSubmitting || !modalForm.team_id || !modalForm.field_id || liveErrors.length > 0">Schedule</PrimaryButton>
                 </div>
             </form>
         </Modal>

@@ -168,6 +168,40 @@ class ScheduleEntryController extends Controller
             ->with('success', 'Schedule entry updated successfully.');
     }
 
+    public function validateEntry(Request $request, string $league)
+    {
+        $context = app(LeagueContext::class);
+
+        $validated = $request->validate([
+            'field_id' => 'required|exists:fields,id',
+            'team_id' => 'required|exists:teams,id',
+            'date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'exclude_entry_id' => 'nullable|integer',
+        ]);
+
+        $season = Season::where('is_current', true)->first();
+
+        $scheduleRequest = \App\Services\Scheduling\DTO\ScheduleRequest::fromArray([
+            'league_id' => $context->league()->id,
+            'season_id' => $season?->id ?? 0,
+            'field_id' => $validated['field_id'],
+            'team_id' => $validated['team_id'],
+            'date' => $validated['date'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'exclude_entry_id' => $validated['exclude_entry_id'] ?? null,
+        ]);
+
+        $result = $this->schedulingService->validate($scheduleRequest);
+
+        return response()->json([
+            'valid' => ! $result->hasConflicts(),
+            'errors' => $result->getAllMessages(),
+        ]);
+    }
+
     public function destroy(string $league, ScheduleEntry $scheduleEntry)
     {
         $this->schedulingService->cancel($scheduleEntry, request()->user()->id);
@@ -226,6 +260,7 @@ class ScheduleEntryController extends Controller
                 'borderColor' => $entry->team->color_code ?? '#3B82F6',
                 'extendedProps' => [
                     'team_id' => $entry->team_id,
+                    'field_id' => $entry->field_id,
                     'team_name' => $entry->team->name,
                     'field_name' => $entry->field->name,
                     'location_name' => $entry->field->location->name,
