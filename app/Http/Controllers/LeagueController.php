@@ -55,7 +55,7 @@ class LeagueController extends Controller
         ]);
 
         return redirect()->route('leagues.onboarding', $league->slug)
-            ->with('success', 'League created! Let\'s set it up.');
+            ->with('success', 'League created! Now set it up.');
     }
 
     public function show(Request $request, string $league)

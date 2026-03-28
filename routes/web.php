@@ -111,17 +111,7 @@ Route::middleware('auth')->group(function () {
 
             // Onboarding wizard
             Route::get('setup', [OnboardingController::class, 'index'])->name('onboarding');
-            Route::post('setup/season', [OnboardingController::class, 'storeSeason'])->name('onboarding.season');
-            Route::post('setup/location', [OnboardingController::class, 'storeLocation'])->name('onboarding.location');
-            Route::post('setup/division', [OnboardingController::class, 'storeDivision'])->name('onboarding.division');
-            Route::post('setup/teams', [OnboardingController::class, 'storeTeams'])->name('onboarding.teams');
-            Route::post('setup/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
-            Route::delete('setup/location/{location}', [OnboardingController::class, 'deleteLocation'])->name('onboarding.delete-location');
-            Route::put('setup/location/{location}', [OnboardingController::class, 'updateLocation'])->name('onboarding.update-location');
-            Route::delete('setup/division/{division}', [OnboardingController::class, 'deleteDivision'])->name('onboarding.delete-division');
-            Route::put('setup/division/{division}', [OnboardingController::class, 'updateDivision'])->name('onboarding.update-division');
-            Route::delete('setup/team/{team}', [OnboardingController::class, 'deleteTeam'])->name('onboarding.delete-team');
-            Route::put('setup/team/{team}', [OnboardingController::class, 'updateTeam'])->name('onboarding.update-team');
+            Route::post('setup/save', [OnboardingController::class, 'save'])->name('onboarding.save');
 
             // Members & invitations
             Route::get('members', [InvitationController::class, 'index'])->name('members.index');
