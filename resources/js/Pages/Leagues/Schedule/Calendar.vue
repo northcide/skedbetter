@@ -258,12 +258,30 @@ function handleSelect(info) {
 }
 
 function openModal({ teamId, date, startTime, endTime, fieldId, fieldName }) {
-    modalForm.team_id = teamId || '';
+    // Pre-fill from the interaction (drop target or selection)
+    let resolvedFieldId = (fieldId && !fieldId.startsWith('loc-')) ? fieldId : '';
+    let resolvedFieldName = fieldName || '';
+    let resolvedTeamId = teamId || '';
+
+    // Fall back to active calendar filters if not set by the interaction
+    if (!resolvedFieldId && filters.value.field_id) {
+        resolvedFieldId = filters.value.field_id;
+        const f = availableFields.value.find(f => f.id == resolvedFieldId);
+        if (f) {
+            const loc = props.locations.find(l => (l.fields || []).some(fl => fl.id == f.id));
+            resolvedFieldName = f.name + (loc ? ` @ ${loc.name}` : '');
+        }
+    }
+    if (!resolvedTeamId && filters.value.team_id) {
+        resolvedTeamId = filters.value.team_id;
+    }
+
+    modalForm.team_id = resolvedTeamId;
     modalForm.date = date;
     modalForm.start_time = startTime;
     modalForm.end_time = endTime;
-    modalForm.field_id = (fieldId && !fieldId.startsWith('loc-')) ? fieldId : '';
-    modalFieldName.value = fieldName || '';
+    modalForm.field_id = resolvedFieldId;
+    modalFieldName.value = resolvedFieldName;
     modalForm.title = '';
     modalForm.type = 'practice';
     modalForm.clearErrors();
