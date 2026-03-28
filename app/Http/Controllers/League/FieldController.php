@@ -53,6 +53,10 @@ class FieldController extends Controller
         $fieldRules = $field->allowedDivisions->map(fn($d) => [
             'division_id' => $d->id,
             'max_weekly_slots' => $d->pivot->max_weekly_slots,
+            'priority' => $d->pivot->priority,
+            'booking_window_type' => $d->pivot->booking_window_type,
+            'booking_opens_date' => $d->pivot->booking_opens_date,
+            'booking_opens_days' => $d->pivot->booking_opens_days,
         ]);
 
         return Inertia::render('Leagues/Fields/Edit', [
@@ -88,6 +92,10 @@ class FieldController extends Controller
             'rules' => 'nullable|array',
             'rules.*.division_id' => 'required|exists:divisions,id',
             'rules.*.max_weekly_slots' => 'nullable|integer|min:1',
+            'rules.*.priority' => 'nullable|integer|min:1|max:5',
+            'rules.*.booking_window_type' => 'nullable|in:calendar,rolling',
+            'rules.*.booking_opens_date' => 'nullable|date',
+            'rules.*.booking_opens_days' => 'nullable|integer|min:1',
         ]);
 
         // Field details + availability
@@ -113,7 +121,13 @@ class FieldController extends Controller
             } else {
                 $syncData = [];
                 foreach ($validated['rules'] ?? [] as $rule) {
-                    $syncData[$rule['division_id']] = ['max_weekly_slots' => $rule['max_weekly_slots'] ?? null];
+                    $syncData[$rule['division_id']] = [
+                        'max_weekly_slots' => $rule['max_weekly_slots'] ?? null,
+                        'priority' => $rule['priority'] ?? null,
+                        'booking_window_type' => $rule['booking_window_type'] ?? null,
+                        'booking_opens_date' => $rule['booking_window_type'] === 'calendar' ? ($rule['booking_opens_date'] ?? null) : null,
+                        'booking_opens_days' => $rule['booking_window_type'] === 'rolling' ? ($rule['booking_opens_days'] ?? null) : null,
+                    ];
                 }
                 $field->allowedDivisions()->sync($syncData);
             }

@@ -167,7 +167,9 @@ class TeamController extends Controller
             ->join('fields', 'fields.id', '=', 'division_field.field_id')
             ->join('locations', 'locations.id', '=', 'fields.location_id')
             ->where('division_field.division_id', $divisionId)
-            ->select('fields.id', 'fields.name as field_name', 'locations.name as location_name', 'division_field.max_weekly_slots')
+            ->select('fields.id', 'fields.name as field_name', 'locations.name as location_name',
+                'division_field.max_weekly_slots', 'division_field.priority',
+                'division_field.booking_window_type', 'division_field.booking_opens_date', 'division_field.booking_opens_days')
             ->get();
 
         // Check if ANY fields have restrictions (meaning some fields exclude this division)
@@ -201,23 +203,27 @@ class TeamController extends Controller
             }
         }
 
-        // Fields where this division IS allowed with weekly limits
+        // Fields where this division IS allowed
         foreach ($restrictedFields as $rf) {
-            if ($rf->max_weekly_slots) {
-                $rules[] = [
-                    'source' => 'Field',
-                    'sourceDetail' => "{$rf->field_name} @ {$rf->location_name}",
-                    'rule' => "Division limited to {$rf->max_weekly_slots} slot(s)/week on this field",
-                    'type' => 'field_weekly_limit',
-                ];
-            } else {
-                $rules[] = [
-                    'source' => 'Field',
-                    'sourceDetail' => "{$rf->field_name} @ {$rf->location_name}",
-                    'rule' => 'Allowed (no weekly limit)',
-                    'type' => 'field_allowed',
-                ];
+            $parts = [];
+            if ($rf->priority) $parts[] = "Priority {$rf->priority}";
+            if ($rf->booking_window_type === 'calendar' && $rf->booking_opens_date) {
+                $opens = \Carbon\Carbon::parse($rf->booking_opens_date);
+                $parts[] = $opens->isPast() ? 'booking open' : "opens {$opens->format('M j')}";
+            } elseif ($rf->booking_window_type === 'rolling' && $rf->booking_opens_days) {
+                $parts[] = "books {$rf->booking_opens_days}d ahead";
             }
+            if ($rf->max_weekly_slots) $parts[] = "max {$rf->max_weekly_slots}/wk";
+
+            $rule = ! empty($parts) ? implode(', ', $parts) : 'Allowed';
+
+            $rules[] = [
+                'source' => 'Field',
+                'sourceDetail' => "{$rf->field_name} @ {$rf->location_name}",
+                'rule' => $rule,
+                'type' => $rf->max_weekly_slots ? 'field_weekly_limit' : 'field_allowed',
+            ];
+
         }
 
         // 2b. Field availability rules (days, hours, slot rules)

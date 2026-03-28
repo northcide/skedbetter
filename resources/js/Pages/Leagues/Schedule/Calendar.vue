@@ -192,17 +192,44 @@ const modalForm = useForm({
 });
 
 // Check if a field is blocked for the currently selected team's division
-function isFieldBlocked(field) {
-    if (!modalForm.team_id) return false;
+function getFieldBlockReason(field) {
+    if (!modalForm.team_id) return null;
     const team = props.teams.find(t => t.id == modalForm.team_id);
-    if (!team) return false;
+    if (!team) return null;
 
-    // If the field has no allowed_divisions, it's open to all
     const allowed = field.allowed_divisions;
-    if (!allowed || allowed.length === 0) return false;
+    if (!allowed || allowed.length === 0) return null;
 
-    // If the field has restrictions, check if this team's division is in the list
-    return !allowed.some(d => d.id === team.division_id);
+    const divEntry = allowed.find(d => d.id === team.division_id);
+    if (!divEntry) return 'restricted';
+
+    // Check booking window from pivot
+    const pivot = divEntry.pivot;
+    if (!pivot || !pivot.booking_window_type) return null;
+
+    if (pivot.booking_window_type === 'calendar' && pivot.booking_opens_date) {
+        const opens = new Date(pivot.booking_opens_date);
+        if (new Date() < opens) {
+            return `opens ${opens.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        }
+    } else if (pivot.booking_window_type === 'rolling' && pivot.booking_opens_days) {
+        // For rolling, we'd need to check against the selected date
+        // but we can show the general limit
+        if (modalForm.date) {
+            const eventDate = new Date(modalForm.date + 'T00:00');
+            const today = new Date(); today.setHours(0,0,0,0);
+            const daysAhead = Math.ceil((eventDate - today) / 86400000);
+            if (daysAhead > pivot.booking_opens_days) {
+                return `${pivot.booking_opens_days}d ahead only`;
+            }
+        }
+    }
+
+    return null;
+}
+
+function isFieldBlocked(field) {
+    return getFieldBlockReason(field) !== null;
 }
 
 // Time slot generation (6:00 AM to 10:00 PM in 15-min increments)
@@ -733,7 +760,7 @@ function showError(messages) {
                                         :value="f.id"
                                         :disabled="isFieldBlocked(f)"
                                         :class="isFieldBlocked(f) ? 'text-gray-400' : ''"
-                                    >{{ f.name }} @ {{ loc.name }}{{ isFieldBlocked(f) ? ' (restricted)' : '' }}</option>
+                                    >{{ f.name }} @ {{ loc.name }}{{ getFieldBlockReason(f) ? ` (${getFieldBlockReason(f)})` : '' }}</option>
                                 </template>
                             </select>
                         </div>

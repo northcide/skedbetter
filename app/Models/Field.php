@@ -42,7 +42,7 @@ class Field extends Model
     public function allowedDivisions()
     {
         return $this->belongsToMany(Division::class, 'division_field')
-            ->withPivot('max_weekly_slots')
+            ->withPivot('max_weekly_slots', 'priority', 'booking_window_type', 'booking_opens_date', 'booking_opens_days')
             ->withTimestamps();
     }
 
