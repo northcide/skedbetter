@@ -29,14 +29,28 @@ const teamListRef = ref(null);
 const errorMessages = ref([]);
 const showModal = ref(false);
 const modalFieldName = ref('');
-const sidebarDivision = ref('');
 
-// Filters
+// Persist state in localStorage keyed by league
+const storeKey = `skedbetter-cal-${props.league.id}`;
+
+function loadState() {
+    try { return JSON.parse(localStorage.getItem(storeKey)) || {}; } catch { return {}; }
+}
+
+function saveState(patch) {
+    const current = loadState();
+    localStorage.setItem(storeKey, JSON.stringify({ ...current, ...patch }));
+}
+
+const saved = loadState();
+const sidebarDivision = ref(saved.sidebarDivision || '');
+
+// Filters — restore from localStorage
 const filters = ref({
-    division_id: '',
-    team_id: '',
-    location_id: '',
-    field_id: '',
+    division_id: saved.division_id || '',
+    team_id: saved.team_id || '',
+    location_id: saved.location_id || '',
+    field_id: saved.field_id || '',
 });
 
 // Derived: fields for the selected location (or all)
@@ -74,12 +88,13 @@ const filterParams = computed(() => {
     return params;
 });
 
-// Refetch events when filters change
-watch(filters, () => {
+// Refetch events when filters change + persist
+watch(filters, (val) => {
+    saveState({ division_id: val.division_id, team_id: val.team_id, location_id: val.location_id, field_id: val.field_id });
+
     const api = calendarRef.value?.getApi();
     if (!api) return;
 
-    // Update the event source URL with filter params
     const sources = api.getEventSources();
     sources.forEach(s => s.remove());
 
@@ -89,6 +104,9 @@ watch(filters, () => {
 
     api.addEventSource({ url, method: 'GET' });
 }, { deep: true });
+
+// Persist sidebar division
+watch(sidebarDivision, (val) => saveState({ sidebarDivision: val }));
 
 // Reset dependent filters
 watch(() => filters.value.division_id, () => {
@@ -144,7 +162,8 @@ onMounted(() => {
 
 const calendarOptions = ref({
     plugins: [dayGridPlugin, timeGridPlugin, listPlugin, resourceTimelinePlugin, interactionPlugin],
-    initialView: 'timeGridWeek',
+    initialView: saved.view || 'timeGridWeek',
+    initialDate: saved.date || undefined,
     headerToolbar: {
         left: 'prev,next today',
         center: 'title',
@@ -178,6 +197,9 @@ const calendarOptions = ref({
     events: {
         url: route('leagues.schedule.events', props.league.slug),
         method: 'GET',
+    },
+    datesSet: (info) => {
+        saveState({ view: info.view.type, date: info.start.toISOString().slice(0, 10) });
     },
     eventDrop: handleEventDrop,
     eventResize: handleEventResize,
