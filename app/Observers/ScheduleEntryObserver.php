@@ -77,7 +77,11 @@ class ScheduleEntryObserver
 
         if ($notification) {
             foreach ($users as $user) {
-                $user->notify($notification);
+                try {
+                    $user->notify($notification);
+                } catch (\Exception $e) {
+                    // Don't let email failures break scheduling
+                }
             }
         }
     }
