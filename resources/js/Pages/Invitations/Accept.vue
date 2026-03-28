@@ -12,9 +12,7 @@ const props = defineProps({
 
 const roleLabel = (role) => {
     const map = {
-        league_manager: 'League Manager',
         division_manager: 'Division Manager',
-        team_manager: 'Team Manager',
         coach: 'Coach',
     };
     return map[role] || role;

@@ -11,7 +11,7 @@ const props = defineProps({
     userRole: String,
 });
 
-const isManager = ['superadmin', 'league_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'division_manager'].includes(props.userRole);
 const expanded = ref({});
 
 const toggle = (id) => {

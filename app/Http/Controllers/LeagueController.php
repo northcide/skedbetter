@@ -48,12 +48,6 @@ class LeagueController extends Controller
 
         $league = League::create($validated);
 
-        // Make the creating user a league manager
-        $league->users()->attach($request->user()->id, [
-            'role' => 'league_manager',
-            'accepted_at' => now(),
-        ]);
-
         return redirect()->route('leagues.onboarding', $league->slug)
             ->with('success', 'League created! Now set it up.');
     }
@@ -142,7 +136,7 @@ class LeagueController extends Controller
 
         $membership = $user->leagues()
             ->where('leagues.id', $league->id)
-            ->wherePivot('role', 'league_manager')
+            ->wherePivot('role', 'division_manager')
             ->exists();
 
         if (! $membership) {

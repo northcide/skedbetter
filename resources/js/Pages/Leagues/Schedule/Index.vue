@@ -15,7 +15,7 @@ const props = defineProps({
     userRole: String,
 });
 
-const isManager = ['superadmin', 'league_manager', 'division_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'division_manager', 'division_manager'].includes(props.userRole);
 
 const filters = ref({
     season_id: props.filters.season_id || '',
