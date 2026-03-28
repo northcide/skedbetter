@@ -117,8 +117,11 @@ Route::middleware('auth')->group(function () {
             Route::post('setup/teams', [OnboardingController::class, 'storeTeams'])->name('onboarding.teams');
             Route::post('setup/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
             Route::delete('setup/location/{location}', [OnboardingController::class, 'deleteLocation'])->name('onboarding.delete-location');
+            Route::put('setup/location/{location}', [OnboardingController::class, 'updateLocation'])->name('onboarding.update-location');
             Route::delete('setup/division/{division}', [OnboardingController::class, 'deleteDivision'])->name('onboarding.delete-division');
+            Route::put('setup/division/{division}', [OnboardingController::class, 'updateDivision'])->name('onboarding.update-division');
             Route::delete('setup/team/{team}', [OnboardingController::class, 'deleteTeam'])->name('onboarding.delete-team');
+            Route::put('setup/team/{team}', [OnboardingController::class, 'updateTeam'])->name('onboarding.update-team');
 
             // Members & invitations
             Route::get('members', [InvitationController::class, 'index'])->name('members.index');

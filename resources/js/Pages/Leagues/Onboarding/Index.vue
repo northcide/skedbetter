@@ -10,26 +10,41 @@ import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
-    league: Object,
-    currentStep: Number,
-    seasons: Array,
-    locations: Array,
-    divisions: Array,
-    teams: Array,
-    userRole: String,
+    league: Object, currentStep: Number, seasons: Array,
+    locations: Array, divisions: Array, teams: Array, userRole: String,
 });
 
 const activeStep = ref(props.currentStep);
-
 const steps = [
-    { num: 1, label: 'Season' },
-    { num: 2, label: 'Locations' },
-    { num: 3, label: 'Divisions' },
-    { num: 4, label: 'Teams' },
-    { num: 5, label: 'Done' },
+    { num: 1, label: 'Season' }, { num: 2, label: 'Locations' },
+    { num: 3, label: 'Divisions' }, { num: 4, label: 'Teams' }, { num: 5, label: 'Done' },
 ];
 
 const currentSeasonId = computed(() => props.seasons[0]?.id || '');
+
+// Editing state
+const editingId = ref(null);
+const editForm = ref({});
+
+function startEdit(type, item) {
+    editingId.value = `${type}-${item.id}`;
+    if (type === 'location') editForm.value = { name: item.name, address: item.address || '', city: item.city || '', state: item.state || '' };
+    else if (type === 'division') editForm.value = { name: item.name, age_group: item.age_group || '' };
+    else if (type === 'team') editForm.value = { name: item.name };
+}
+
+function cancelEdit() { editingId.value = null; editForm.value = {}; }
+
+function saveEdit(type, item) {
+    const routeMap = {
+        location: 'leagues.onboarding.update-location',
+        division: 'leagues.onboarding.update-division',
+        team: 'leagues.onboarding.update-team',
+    };
+    router.put(route(routeMap[type], [props.league.slug, item.id]), editForm.value, {
+        onSuccess: () => cancelEdit(),
+    });
+}
 
 // Season form
 const seasonForm = useForm({ name: '', start_date: '', end_date: '' });
@@ -66,18 +81,9 @@ const submitTeams = () => teamsForm.post(route('leagues.onboarding.teams', props
 
 const completeSetup = () => router.post(route('leagues.onboarding.complete', props.league.slug));
 
-const deleteLocation = (loc) => {
-    if (confirm(`Delete "${loc.name}" and all its fields?`))
-        router.delete(route('leagues.onboarding.delete-location', [props.league.slug, loc.id]));
-};
-const deleteDivision = (div) => {
-    if (confirm(`Delete "${div.name}" and all its teams?`))
-        router.delete(route('leagues.onboarding.delete-division', [props.league.slug, div.id]));
-};
-const deleteTeam = (team) => {
-    if (confirm(`Delete "${team.name}"?`))
-        router.delete(route('leagues.onboarding.delete-team', [props.league.slug, team.id]));
-};
+const deleteLocation = (loc) => { if (confirm(`Delete "${loc.name}"?`)) router.delete(route('leagues.onboarding.delete-location', [props.league.slug, loc.id])); };
+const deleteDivision = (div) => { if (confirm(`Delete "${div.name}"?`)) router.delete(route('leagues.onboarding.delete-division', [props.league.slug, div.id])); };
+const deleteTeam = (team) => { if (confirm(`Delete "${team.name}"?`)) router.delete(route('leagues.onboarding.delete-team', [props.league.slug, team.id])); };
 
 const stepComplete = (num) => {
     if (num === 1) return props.seasons.length > 0;
@@ -93,7 +99,6 @@ const stepComplete = (num) => {
 
     <LeagueLayout :league="league" :userRole="userRole || ''">
         <h2 class="text-lg font-semibold text-gray-900">Setup {{ league.name }}</h2>
-
         <FlashMessage />
 
         <div class="mt-4">
@@ -138,9 +143,27 @@ const stepComplete = (num) => {
                 <div v-if="locations.length" class="rounded-lg border border-gray-200 bg-white">
                     <div class="border-b border-gray-100 px-4 py-2"><h4 class="text-xs font-semibold text-gray-500">Locations</h4></div>
                     <ul class="divide-y divide-gray-50">
-                        <li v-for="loc in locations" :key="loc.id" class="flex items-center justify-between px-4 py-2">
-                            <div><span class="text-sm font-medium text-gray-900">{{ loc.name }}</span> <span class="text-xs text-gray-400">{{ loc.fields_count }} field(s)</span></div>
-                            <button @click="deleteLocation(loc)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
+                        <li v-for="loc in locations" :key="loc.id" class="px-4 py-2">
+                            <!-- View mode -->
+                            <div v-if="editingId !== `location-${loc.id}`" class="flex items-center justify-between">
+                                <div><span class="text-sm font-medium text-gray-900">{{ loc.name }}</span> <span class="text-xs text-gray-400">{{ loc.fields_count }} field(s)</span></div>
+                                <div class="flex gap-2">
+                                    <button @click="startEdit('location', loc)" class="text-[10px] text-brand-600 hover:text-brand-700">Edit</button>
+                                    <button @click="deleteLocation(loc)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
+                                </div>
+                            </div>
+                            <!-- Edit mode -->
+                            <div v-else class="space-y-2">
+                                <div class="grid grid-cols-4 gap-2">
+                                    <TextInput v-model="editForm.name" class="col-span-2" placeholder="Name" />
+                                    <TextInput v-model="editForm.city" placeholder="City" />
+                                    <TextInput v-model="editForm.state" placeholder="ST" maxlength="2" />
+                                </div>
+                                <div class="flex gap-2">
+                                    <button @click="saveEdit('location', loc)" class="rounded bg-brand-600 px-2 py-1 text-[10px] font-semibold text-white">Save</button>
+                                    <button @click="cancelEdit" class="text-[10px] text-gray-500">Cancel</button>
+                                </div>
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -177,9 +200,24 @@ const stepComplete = (num) => {
                 <div v-if="divisions.length" class="rounded-lg border border-gray-200 bg-white">
                     <div class="border-b border-gray-100 px-4 py-2"><h4 class="text-xs font-semibold text-gray-500">Divisions</h4></div>
                     <ul class="divide-y divide-gray-50">
-                        <li v-for="div in divisions" :key="div.id" class="flex items-center justify-between px-4 py-2">
-                            <div><span class="text-sm font-medium text-gray-900">{{ div.name }}</span> <span v-if="div.age_group" class="text-xs text-gray-400">({{ div.age_group }})</span> <span class="text-xs text-gray-400">{{ div.teams_count }} team(s)</span></div>
-                            <button @click="deleteDivision(div)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
+                        <li v-for="div in divisions" :key="div.id" class="px-4 py-2">
+                            <div v-if="editingId !== `division-${div.id}`" class="flex items-center justify-between">
+                                <div><span class="text-sm font-medium text-gray-900">{{ div.name }}</span> <span v-if="div.age_group" class="text-xs text-gray-400">({{ div.age_group }})</span> <span class="text-xs text-gray-400">{{ div.teams_count }} team(s)</span></div>
+                                <div class="flex gap-2">
+                                    <button @click="startEdit('division', div)" class="text-[10px] text-brand-600 hover:text-brand-700">Edit</button>
+                                    <button @click="deleteDivision(div)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
+                                </div>
+                            </div>
+                            <div v-else class="space-y-2">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <TextInput v-model="editForm.name" placeholder="Division Name" />
+                                    <TextInput v-model="editForm.age_group" placeholder="Age Group" />
+                                </div>
+                                <div class="flex gap-2">
+                                    <button @click="saveEdit('division', div)" class="rounded bg-brand-600 px-2 py-1 text-[10px] font-semibold text-white">Save</button>
+                                    <button @click="cancelEdit" class="text-[10px] text-gray-500">Cancel</button>
+                                </div>
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -214,10 +252,20 @@ const stepComplete = (num) => {
             <div v-if="activeStep === 4" class="space-y-4">
                 <div v-if="teams.length" class="rounded-lg border border-gray-200 bg-white">
                     <div class="border-b border-gray-100 px-4 py-2"><h4 class="text-xs font-semibold text-gray-500">Teams ({{ teams.length }})</h4></div>
-                    <ul class="divide-y divide-gray-50 max-h-48 overflow-y-auto">
-                        <li v-for="team in teams" :key="team.id" class="flex items-center justify-between px-4 py-2">
-                            <div><span class="text-sm font-medium text-gray-900">{{ team.name }}</span> <span class="text-xs text-gray-400">{{ team.division?.name }}</span></div>
-                            <button @click="deleteTeam(team)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
+                    <ul class="divide-y divide-gray-50 max-h-56 overflow-y-auto">
+                        <li v-for="team in teams" :key="team.id" class="px-4 py-2">
+                            <div v-if="editingId !== `team-${team.id}`" class="flex items-center justify-between">
+                                <div><span class="text-sm font-medium text-gray-900">{{ team.name }}</span> <span class="text-xs text-gray-400">{{ team.division?.name }}</span></div>
+                                <div class="flex gap-2">
+                                    <button @click="startEdit('team', team)" class="text-[10px] text-brand-600 hover:text-brand-700">Edit</button>
+                                    <button @click="deleteTeam(team)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
+                                </div>
+                            </div>
+                            <div v-else class="flex items-center gap-2">
+                                <TextInput v-model="editForm.name" class="flex-1" placeholder="Team Name" />
+                                <button @click="saveEdit('team', team)" class="rounded bg-brand-600 px-2 py-1 text-[10px] font-semibold text-white">Save</button>
+                                <button @click="cancelEdit" class="text-[10px] text-gray-500">Cancel</button>
+                            </div>
                         </li>
                     </ul>
                 </div>

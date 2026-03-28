@@ -147,6 +147,37 @@ class OnboardingController extends Controller
         return back()->with('success', "Team \"{$team->name}\" deleted.");
     }
 
+    public function updateLocation(Request $request, string $league, Location $location)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'state' => 'nullable|string|max:2',
+        ]);
+        $location->update($validated);
+        return back()->with('success', "Location updated.");
+    }
+
+    public function updateDivision(Request $request, string $league, Division $division)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'age_group' => 'nullable|string|max:255',
+        ]);
+        $division->update($validated);
+        return back()->with('success', "Division updated.");
+    }
+
+    public function updateTeam(Request $request, string $league, Team $team)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+        $team->update($validated);
+        return back()->with('success', "Team updated.");
+    }
+
     protected function determineStep($league): int
     {
         if (Season::count() === 0) return 1;
