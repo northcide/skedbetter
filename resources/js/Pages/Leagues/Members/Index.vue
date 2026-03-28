@@ -12,13 +12,14 @@ const props = defineProps({
     league: Object,
     members: Array,
     invitations: Array,
+    teams: { type: Array, default: () => [] },
     userRole: String,
 });
 
 const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 const copiedMemberId = ref(null);
 
-const form = useForm({ email: '', role: 'coach' });
+const form = useForm({ email: '', name: '', role: 'coach', team_id: '' });
 
 const submit = () => {
     form.post(route('leagues.invitations.store', props.league.slug), {
@@ -76,23 +77,41 @@ const roleBadge = (role) => ({
 
         <div class="mt-4 space-y-3">
             <!-- Invite Form -->
-            <div v-if="isManager" class="rounded-lg border border-gray-200 bg-white p-4">
-                <h3 class="text-sm font-semibold text-gray-900">Invite Member</h3>
-                <form @submit.prevent="submit" class="mt-3 flex items-end gap-3">
-                    <div class="flex-1">
-                        <InputLabel for="email" value="Email" class="text-xs" />
-                        <TextInput id="email" v-model="form.email" type="email" class="mt-1 block w-full" required placeholder="coach@example.com" />
-                        <InputError :message="form.errors.email" class="mt-1" />
+            <div v-if="isManager" class="rounded-lg border border-gray-200 bg-white p-3">
+                <h3 class="text-xs font-semibold text-gray-900">Add Member</h3>
+                <form @submit.prevent="submit" class="mt-2 space-y-2">
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <InputLabel for="name" value="Name" />
+                            <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" placeholder="Full name" />
+                        </div>
+                        <div>
+                            <InputLabel for="email" value="Email" />
+                            <TextInput id="email" v-model="form.email" type="email" class="mt-1 block w-full" required placeholder="email@example.com" />
+                            <InputError :message="form.errors.email" class="mt-1" />
+                        </div>
+                        <div>
+                            <InputLabel for="role" value="Role" />
+                            <select id="role" v-model="form.role" class="mt-1 block w-full">
+                                <option value="league_admin">League Admin</option>
+                                <option value="division_manager">Division Manager</option>
+                                <option value="coach">Coach</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="w-40">
-                        <InputLabel for="role" value="Role" class="text-xs" />
-                        <select id="role" v-model="form.role" class="mt-1 block w-full">
-                            <option value="league_admin">League Admin</option>
-                            <option value="division_manager">Division Manager</option>
-                            <option value="coach">Coach</option>
-                        </select>
+                    <div v-if="form.role === 'coach'" class="flex items-end gap-2">
+                        <div class="flex-1">
+                            <InputLabel for="team_id" value="Assign to Team" />
+                            <select id="team_id" v-model="form.team_id" class="mt-1 block w-full" required>
+                                <option value="">-- Select Team --</option>
+                                <option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}{{ t.division ? ` (${t.division.name})` : '' }}</option>
+                            </select>
+                            <InputError :message="form.errors.team_id" class="mt-1" />
+                        </div>
                     </div>
-                    <PrimaryButton :disabled="form.processing">Invite</PrimaryButton>
+                    <div class="flex justify-end">
+                        <PrimaryButton :disabled="form.processing">Add Member</PrimaryButton>
+                    </div>
                 </form>
             </div>
 

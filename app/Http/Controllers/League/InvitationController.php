@@ -41,6 +41,7 @@ class InvitationController extends Controller
             'league' => $context->league(),
             'members' => $members,
             'invitations' => $invitations,
+            'teams' => \App\Models\Team::with('division')->orderBy('name')->get(),
             'userRole' => $context->userRole(),
         ]);
     }
@@ -49,43 +50,55 @@ class InvitationController extends Controller
     {
         $context = app(LeagueContext::class);
 
-        $validated = $request->validate([
+        $rules = [
             'email' => 'required|email',
+            'name' => 'nullable|string|max:255',
             'role' => 'required|in:league_admin,division_manager,coach',
-        ]);
+        ];
 
-        // Check if already a member
-        $existing = $context->league()->users()
-            ->where('email', $validated['email'])
-            ->exists();
-
-        if ($existing) {
-            return back()->withErrors(['email' => 'This user is already a member of this league.']);
+        // Coaches must be assigned to a team
+        if ($request->role === 'coach') {
+            $rules['team_id'] = 'required|exists:teams,id';
         }
 
-        // Check for pending invitation
-        $pendingInvite = LeagueInvitation::where('league_id', $context->league()->id)
-            ->where('email', $validated['email'])
-            ->whereNull('accepted_at')
-            ->where('expires_at', '>', now())
+        $validated = $request->validate($rules);
+
+        $email = strtolower(trim($validated['email']));
+
+        // Check if already a member with this role
+        $existingRole = $context->league()->users()
+            ->where('email', $email)
+            ->wherePivot('role', $validated['role'])
             ->exists();
 
-        if ($pendingInvite) {
-            return back()->withErrors(['email' => 'A pending invitation already exists for this email.']);
+        if ($existingRole) {
+            return back()->withErrors(['email' => 'This user already has this role in the league.']);
         }
 
-        $invitation = LeagueInvitation::create([
-            'league_id' => $context->league()->id,
-            'email' => $validated['email'],
-            'role' => $validated['role'],
-            'invited_by' => $request->user()->id,
+        // Create or find user
+        $user = User::firstOrCreate(
+            ['email' => $email],
+            ['name' => $validated['name'] ?: explode('@', $email)[0], 'password' => bcrypt(\Str::random(32))]
+        );
+
+        if (! empty($validated['name']) && $user->wasRecentlyCreated === false && $user->name === explode('@', $email)[0]) {
+            $user->update(['name' => $validated['name']]);
+        }
+
+        // Add to league immediately (no invite acceptance needed)
+        $context->league()->users()->syncWithoutDetaching([
+            $user->id => ['role' => $validated['role'], 'accepted_at' => now()],
         ]);
 
-        // Send email
-        Notification::route('mail', $validated['email'])
-            ->notify(new LeagueInvitationNotification($invitation));
+        // If coach, also add to the specified team
+        if ($validated['role'] === 'coach' && ! empty($validated['team_id'])) {
+            $team = \App\Models\Team::find($validated['team_id']);
+            if ($team && ! $team->users()->where('users.id', $user->id)->exists()) {
+                $team->users()->attach($user->id, ['role' => 'coach']);
+            }
+        }
 
-        return back()->with('success', "Invitation sent to {$validated['email']}.");
+        return back()->with('success', "{$user->name} added as " . str_replace('_', ' ', $validated['role']) . ".");
     }
 
     public function destroy(string $league, LeagueInvitation $invitation)

@@ -62,6 +62,10 @@ class TeamController extends Controller
 
         $team = Team::create($validated);
 
+        if (! empty($validated['contact_email'])) {
+            $this->associateCoach($team, $validated['contact_email'], $validated['contact_name'] ?? null);
+        }
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'team' => $team]);
         }
@@ -85,13 +89,16 @@ class TeamController extends Controller
         $count = 0;
         foreach ($validated['teams'] as $t) {
             if (empty($t['name'])) continue;
-            Team::create([
+            $team = Team::create([
                 'division_id' => $validated['division_id'],
                 'league_id' => $context->league()->id,
                 'name' => $t['name'],
                 'contact_name' => $t['contact_name'] ?? null,
                 'contact_email' => $t['contact_email'] ?? null,
             ]);
+            if (! empty($t['contact_email'])) {
+                $this->associateCoach($team, $t['contact_email'], $t['contact_name'] ?? null);
+            }
             $count++;
         }
 
@@ -372,6 +379,11 @@ class TeamController extends Controller
 
         $team->update($validated);
 
+        // Auto-create/associate coach if email provided
+        if (! empty($validated['contact_email'])) {
+            $this->associateCoach($team, $validated['contact_email'], $validated['contact_name'] ?? null);
+        }
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true]);
         }
@@ -390,5 +402,32 @@ class TeamController extends Controller
 
         return redirect()->route('leagues.divisions.index', $league)
             ->with('success', 'Team deleted successfully.');
+    }
+
+    protected function associateCoach(Team $team, string $email, ?string $name = null): void
+    {
+        $email = strtolower(trim($email));
+
+        // Create or find user
+        $user = User::firstOrCreate(
+            ['email' => $email],
+            ['name' => $name ?: explode('@', $email)[0], 'password' => bcrypt(\Str::random(32))]
+        );
+
+        // Update name if provided and user had a generated name
+        if ($name && $user->name === explode('@', $email)[0]) {
+            $user->update(['name' => $name]);
+        }
+
+        // Add to team as coach if not already
+        if (! $team->users()->where('users.id', $user->id)->exists()) {
+            $team->users()->attach($user->id, ['role' => 'coach']);
+        }
+
+        // Add to league as coach if not already a member
+        $league = $team->league;
+        if ($league && ! $league->users()->where('users.id', $user->id)->exists()) {
+            $league->users()->attach($user->id, ['role' => 'coach', 'accepted_at' => now()]);
+        }
     }
 }
