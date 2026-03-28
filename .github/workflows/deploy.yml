@@ -1,0 +1,101 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_mysql, xml, curl, bcmath
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Prepare deploy package
+        run: |
+          # Create the app directory structure
+          mkdir -p deploy/skedbetter
+          mkdir -p deploy/public_html
+
+          # Copy app files (exclude dev stuff)
+          rsync -a \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='tests' \
+            --exclude='.env' \
+            --exclude='storage/logs/*.log' \
+            --exclude='storage/framework/cache/data/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='hosting' \
+            ./ deploy/skedbetter/
+
+          # Copy public_html shim files
+          cp hosting/cpanel/index.php deploy/public_html/
+          cp hosting/cpanel/.htaccess deploy/public_html/
+          cp hosting/cpanel/setup.php deploy/public_html/
+
+          # Copy static assets to public_html
+          cp -r public/build deploy/public_html/build
+          cp public/favicon.ico deploy/public_html/ 2>/dev/null || true
+          cp public/robots.txt deploy/public_html/ 2>/dev/null || true
+
+      - name: Deploy app via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          server: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: ${{ secrets.SFTP_PORT || 22 }}
+          local_path: './deploy/skedbetter/'
+          remote_path: ${{ secrets.REMOTE_APP_PATH || '/home/skedbetter/skedbetter/' }}
+          sftp_only: true
+
+      - name: Deploy public_html via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          server: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: ${{ secrets.SFTP_PORT || 22 }}
+          local_path: './deploy/public_html/'
+          remote_path: ${{ secrets.REMOTE_PUBLIC_PATH || '/home/skedbetter/public_html/' }}
+          sftp_only: true
+
+      - name: Run migrations via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: ${{ secrets.SFTP_PORT || 22 }}
+          script: |
+            cd ${{ secrets.REMOTE_APP_PATH || '/home/skedbetter/skedbetter' }}
+            php artisan migrate --force 2>&1 || true
+            php artisan config:cache 2>&1 || true
+            php artisan route:cache 2>&1 || true
+            php artisan view:cache 2>&1 || true
