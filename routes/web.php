@@ -1,13 +1,16 @@
 <?php
 
+use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\League\BlackoutRuleController;
+use App\Http\Controllers\League\InvitationController;
 use App\Http\Controllers\League\DivisionController;
 use App\Http\Controllers\League\FieldController;
 use App\Http\Controllers\League\LocationController;
 use App\Http\Controllers\League\ScheduleEntryController;
 use App\Http\Controllers\League\SeasonController;
 use App\Http\Controllers\League\TeamController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -22,11 +25,21 @@ Route::get('/', function () {
     ]);
 });
 
+// Invitation accept (public)
+Route::get('/invitations/{token}', [AcceptInvitationController::class, 'show'])->name('invitations.show');
+Route::post('/invitations/{token}/accept', [AcceptInvitationController::class, 'accept'])->name('invitations.accept');
+
 Route::get('/dashboard', function () {
     return redirect()->route('leagues.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -66,6 +79,18 @@ Route::middleware('auth')->group(function () {
                 ->name('schedule.resources');
             Route::patch('schedule/{scheduleEntry}/move', [ScheduleEntryController::class, 'move'])
                 ->name('schedule.move');
+            Route::get('schedule/bulk', [ScheduleEntryController::class, 'bulk'])
+                ->name('schedule.bulk');
+            Route::post('schedule/bulk', [ScheduleEntryController::class, 'bulkStore'])
+                ->name('schedule.bulk.store');
+            Route::post('schedule/{scheduleEntry}/cancel-series', [ScheduleEntryController::class, 'cancelSeries'])
+                ->name('schedule.cancel-series');
+
+            // Members & invitations
+            Route::get('members', [InvitationController::class, 'index'])->name('members.index');
+            Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
+            Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
+            Route::delete('members/{user}', [InvitationController::class, 'removeMember'])->name('members.destroy');
 
             // Blackout rules
             Route::resource('blackouts', BlackoutRuleController::class)

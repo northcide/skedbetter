@@ -59,9 +59,12 @@ const statusBadge = (status) => {
                     <Link :href="route('leagues.show', league.slug)" class="text-sm text-indigo-600 hover:text-indigo-900">&larr; {{ league.name }}</Link>
                     <h2 class="mt-1 text-xl font-semibold leading-tight text-gray-800">Schedule</h2>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex items-center gap-3">
                     <Link :href="route('leagues.schedule.calendar', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
                         Calendar View
+                    </Link>
+                    <Link v-if="isManager" :href="route('leagues.schedule.bulk', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">
+                        Bulk Schedule
                     </Link>
                     <Link v-if="isManager" :href="route('leagues.schedule.create', league.slug)">
                         <PrimaryButton>New Entry</PrimaryButton>

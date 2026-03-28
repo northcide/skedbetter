@@ -19,6 +19,7 @@ const navItems = [
     { label: 'Teams', route: 'leagues.teams.index' },
     { label: 'Locations & Fields', route: 'leagues.locations.index' },
     { label: 'Blackout Rules', route: 'leagues.blackouts.index' },
+    { label: 'Members', route: 'leagues.members.index' },
 ];
 </script>
 

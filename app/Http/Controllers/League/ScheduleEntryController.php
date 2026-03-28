@@ -8,6 +8,7 @@ use App\Models\ScheduleEntry;
 use App\Models\Season;
 use App\Models\Team;
 use App\Services\LeagueContext;
+use App\Services\Scheduling\BulkScheduler;
 use App\Services\Scheduling\DTO\ConflictResult;
 use App\Services\Scheduling\SchedulingService;
 use Illuminate\Http\Request;
@@ -15,7 +16,10 @@ use Inertia\Inertia;
 
 class ScheduleEntryController extends Controller
 {
-    public function __construct(protected SchedulingService $schedulingService) {}
+    public function __construct(
+        protected SchedulingService $schedulingService,
+        protected BulkScheduler $bulkScheduler,
+    ) {}
 
     public function calendar(string $league)
     {
@@ -250,5 +254,79 @@ class ScheduleEntryController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    public function bulk(string $league)
+    {
+        $context = app(LeagueContext::class);
+
+        return Inertia::render('Leagues/Schedule/Bulk', [
+            'league' => $context->league(),
+            'seasons' => Season::orderByDesc('start_date')->get(),
+            'teams' => Team::with('division')->orderBy('name')->get(),
+            'fields' => Field::with('location')->where('is_active', true)->orderBy('name')->get(),
+        ]);
+    }
+
+    public function bulkStore(Request $request, string $league)
+    {
+        $context = app(LeagueContext::class);
+
+        $validated = $request->validate([
+            'season_id' => 'required|exists:seasons,id',
+            'field_id' => 'required|exists:fields,id',
+            'team_id' => 'required|exists:teams,id',
+            'date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'type' => 'required|in:practice,game,scrimmage,tournament,other',
+            'title' => 'nullable|string|max:255',
+            'frequency' => 'required|in:weekly,biweekly',
+            'until' => 'required|date|after:date',
+        ]);
+
+        $baseData = [
+            'league_id' => $context->league()->id,
+            'season_id' => $validated['season_id'],
+            'field_id' => $validated['field_id'],
+            'team_id' => $validated['team_id'],
+            'date' => $validated['date'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'type' => $validated['type'],
+            'title' => $validated['title'] ?? null,
+        ];
+
+        $pattern = [
+            'frequency' => $validated['frequency'],
+            'until' => $validated['until'],
+        ];
+
+        $result = $this->bulkScheduler->createRecurring($baseData, $pattern, $request->user()->id);
+
+        $message = "Created {$result['created']} of {$result['total']} entries.";
+        if (count($result['skipped']) > 0) {
+            $message .= ' ' . count($result['skipped']) . ' skipped due to conflicts.';
+        }
+
+        return redirect()->route('leagues.schedule.index', $league)
+            ->with('success', $message)
+            ->with('bulk_result', $result);
+    }
+
+    public function cancelSeries(Request $request, string $league, ScheduleEntry $scheduleEntry)
+    {
+        if (! $scheduleEntry->recurrence_group_id) {
+            return back()->with('error', 'This entry is not part of a series.');
+        }
+
+        $cancelled = $this->bulkScheduler->deleteFutureInGroup(
+            $scheduleEntry->recurrence_group_id,
+            $scheduleEntry->date->toDateString(),
+            $request->user()->id
+        );
+
+        return redirect()->route('leagues.schedule.index', $league)
+            ->with('success', "Cancelled {$cancelled} entries in this series.");
     }
 }

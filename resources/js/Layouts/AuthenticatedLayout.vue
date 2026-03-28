@@ -39,6 +39,12 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Leagues
                                 </NavLink>
+                                <NavLink
+                                    :href="route('notifications.index')"
+                                    :active="route().current('notifications.*')"
+                                >
+                                    Notifications
+                                </NavLink>
                             </div>
                         </div>
 
