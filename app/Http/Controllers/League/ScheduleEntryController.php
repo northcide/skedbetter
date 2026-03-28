@@ -256,6 +256,7 @@ class ScheduleEntryController extends Controller
                 'start' => $entry->date->format('Y-m-d') . 'T' . $entry->start_time,
                 'end' => $entry->date->format('Y-m-d') . 'T' . $entry->end_time,
                 'resourceId' => $entry->field_id,
+                'editable' => true,
                 'backgroundColor' => $entry->team->color_code ?? '#3B82F6',
                 'borderColor' => $entry->team->color_code ?? '#3B82F6',
                 'extendedProps' => [

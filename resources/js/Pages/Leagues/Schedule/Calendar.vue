@@ -234,11 +234,11 @@ const calendarOptions = ref({
     datesSet: (info) => {
         saveState({ view: info.view.type, date: info.start.toISOString().slice(0, 10) });
     },
-    eventDrop: handleEventDrop,
-    eventResize: handleEventResize,
-    eventReceive: handleExternalDrop,
-    select: handleSelect,
-    eventClick: handleEventClick,
+    eventDrop: (info) => handleEventDrop(info),
+    eventResize: (info) => handleEventDrop(info),
+    eventReceive: (info) => handleExternalDrop(info),
+    select: (info) => handleSelect(info),
+    eventClick: (info) => handleEventClick(info),
     resourceGroupField: 'parentId',
     schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
 });
@@ -273,8 +273,6 @@ function handleEventDrop(info) {
         title: event.title || '',
     });
 }
-
-function handleEventResize(info) { handleEventDrop(info); }
 
 function handleExternalDrop(info) {
     const event = info.event;
