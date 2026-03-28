@@ -29,17 +29,23 @@ class SetLeagueContext
                 return $next($request);
             }
 
-            // Check league membership
+            // Check league membership — pick highest-level role
             if ($user) {
-                $membership = $user->leagues()
+                $roles = $user->leagues()
                     ->where('leagues.id', $league->id)
-                    ->first();
+                    ->get()
+                    ->pluck('pivot.role')
+                    ->toArray();
 
-                if (! $membership) {
+                if (empty($roles)) {
                     abort(403, 'You do not have access to this league.');
                 }
 
-                $this->context->set($league, $membership->pivot->role);
+                // Priority: league_admin > division_manager > coach
+                $rolePriority = ['league_admin' => 1, 'division_manager' => 2, 'coach' => 3];
+                usort($roles, fn($a, $b) => ($rolePriority[$a] ?? 99) - ($rolePriority[$b] ?? 99));
+
+                $this->context->set($league, $roles[0]);
             } else {
                 $this->context->set($league);
             }

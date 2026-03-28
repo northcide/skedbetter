@@ -11,7 +11,7 @@ const props = defineProps({
 const page = usePage();
 const currentRoute = computed(() => page.url);
 const mobileMenuOpen = ref(false);
-const isManager = computed(() => ['superadmin', 'division_manager'].includes(props.userRole));
+const isManager = computed(() => ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole));
 
 const navSections = computed(() => {
     const sections = [

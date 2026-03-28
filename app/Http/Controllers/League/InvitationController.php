@@ -51,7 +51,7 @@ class InvitationController extends Controller
 
         $validated = $request->validate([
             'email' => 'required|email',
-            'role' => 'required|in:division_manager,coach',
+            'role' => 'required|in:league_admin,division_manager,coach',
         ]);
 
         // Check if already a member

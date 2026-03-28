@@ -52,8 +52,8 @@ class DatabaseSeeder extends Seeder
             'settings' => ['onboarding_completed' => true],
         ]);
 
-        // Superadmin doesn't appear in league members — accesses via is_superadmin flag
-        $league->users()->attach($manager->id, ['role' => 'division_manager', 'accepted_at' => now()]);
+        // Superadmin accesses via is_superadmin flag — not in league members
+        $league->users()->attach($manager->id, ['role' => 'league_admin', 'accepted_at' => now()]);
 
         // Season
         $season = Season::create([

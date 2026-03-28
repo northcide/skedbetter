@@ -11,7 +11,7 @@ const props = defineProps({
     applicableRules: { type: Array, default: () => [] },
 });
 
-const isManager = ['superadmin', 'division_manager', 'division_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'league_admin', 'division_manager', 'division_manager'].includes(props.userRole);
 
 const rulesByType = computed(() => {
     const groups = {};

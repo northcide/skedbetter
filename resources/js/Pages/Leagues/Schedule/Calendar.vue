@@ -23,7 +23,7 @@ const props = defineProps({
     locations: { type: Array, default: () => [] },
 });
 
-const isManager = ['superadmin', 'division_manager', 'division_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'league_admin', 'division_manager', 'division_manager'].includes(props.userRole);
 const calendarRef = ref(null);
 const teamListRef = ref(null);
 const errorMessages = ref([]);

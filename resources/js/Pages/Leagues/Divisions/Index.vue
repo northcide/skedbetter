@@ -5,7 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
 const props = defineProps({ league: Object, divisions: Array, userRole: String });
-const isManager = ['superadmin', 'division_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 
 const deleteDivision = (division) => {
     if (confirm(`Delete division "${division.name}"? This will delete all teams in this division.`)) {

@@ -5,7 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
 const props = defineProps({ league: Object, rules: Array, userRole: String });
-const isManager = ['superadmin', 'division_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 
 const deleteRule = (rule) => {
     if (confirm(`Delete blackout rule "${rule.name}"?`)) {

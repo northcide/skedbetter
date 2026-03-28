@@ -12,6 +12,7 @@ const props = defineProps({
 
 const roleLabel = (role) => {
     const map = {
+        league_admin: 'League Admin',
         division_manager: 'Division Manager',
         coach: 'Coach',
     };

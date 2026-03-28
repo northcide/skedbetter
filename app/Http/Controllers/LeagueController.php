@@ -136,7 +136,7 @@ class LeagueController extends Controller
 
         $membership = $user->leagues()
             ->where('leagues.id', $league->id)
-            ->wherePivot('role', 'division_manager')
+            ->wherePivotIn('role', ['league_admin', 'division_manager'])
             ->exists();
 
         if (! $membership) {

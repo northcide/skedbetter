@@ -15,7 +15,7 @@ const props = defineProps({
     userRole: String,
 });
 
-const isManager = ['superadmin', 'division_manager'].includes(props.userRole);
+const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 const copiedMemberId = ref(null);
 
 const form = useForm({ email: '', role: 'coach' });
@@ -54,11 +54,13 @@ const copyMagicLink = async (member) => {
 };
 
 const roleLabel = (role) => ({
+    league_admin: 'League Admin',
     division_manager: 'Division Manager',
     coach: 'Coach',
 }[role] || role);
 
 const roleBadge = (role) => ({
+    league_admin: 'bg-purple-100 text-purple-800',
     division_manager: 'bg-blue-100 text-blue-800',
     coach: 'bg-gray-100 text-gray-800',
 }[role] || 'bg-gray-100 text-gray-800');
@@ -85,6 +87,7 @@ const roleBadge = (role) => ({
                     <div class="w-40">
                         <InputLabel for="role" value="Role" class="text-xs" />
                         <select id="role" v-model="form.role" class="mt-1 block w-full">
+                            <option value="league_admin">League Admin</option>
                             <option value="division_manager">Division Manager</option>
                             <option value="coach">Coach</option>
                         </select>
