@@ -386,12 +386,13 @@ function handleEventClick(info) {
 }
 
 function cancelEvent() {
+    showEventDetail.value = false;
     if (!confirm('Delete this schedule entry?')) return;
-    axios.delete(route('leagues.schedule.destroy', [props.league.slug, eventDetail.value.id]))
-        .then(() => {
-            showEventDetail.value = false;
-            calendarRef.value?.getApi()?.refetchEvents();
-        });
+    axios.delete(route('leagues.schedule.destroy', [props.league.slug, eventDetail.value.id]), {
+        headers: { Accept: 'application/json' },
+    }).then(() => {
+        calendarRef.value?.getApi()?.refetchEvents();
+    });
 }
 
 function editEvent() {
