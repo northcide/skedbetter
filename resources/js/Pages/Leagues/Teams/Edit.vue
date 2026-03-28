@@ -82,7 +82,7 @@ const submit = () => {
                         </div>
 
                         <div class="flex items-center justify-end gap-4">
-                            <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">Cancel</Link>
+                            <Link :href="route('leagues.divisions.index', league.slug)" class="text-xs text-gray-500 hover:text-gray-700">Cancel</Link>
                             <PrimaryButton :disabled="form.processing">Save Changes</PrimaryButton>
                         </div>
                     </form>

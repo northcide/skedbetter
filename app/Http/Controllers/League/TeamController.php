@@ -66,7 +66,7 @@ class TeamController extends Controller
             return response()->json(['success' => true, 'team' => $team]);
         }
 
-        return redirect()->route('leagues.teams.index', $league)
+        return redirect()->route('leagues.divisions.index', $league)
             ->with('success', 'Team created successfully.');
     }
 
@@ -343,7 +343,7 @@ class TeamController extends Controller
             return response()->json(['success' => true]);
         }
 
-        return redirect()->route('leagues.teams.index', $league)
+        return redirect()->route('leagues.divisions.index', $league)
             ->with('success', 'Team updated successfully.');
     }
 
@@ -355,7 +355,7 @@ class TeamController extends Controller
             return response()->json(['success' => true]);
         }
 
-        return redirect()->route('leagues.teams.index', $league)
+        return redirect()->route('leagues.divisions.index', $league)
             ->with('success', 'Team deleted successfully.');
     }
 }

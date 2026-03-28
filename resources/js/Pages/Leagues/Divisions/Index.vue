@@ -100,9 +100,10 @@ const deleteDivision = (div) => {
                                     <Link :href="route('leagues.teams.show', [league.slug, team.id])" class="text-xs text-gray-700 hover:text-brand-600">{{ team.name }}</Link>
                                     <span v-if="team.contact_name" class="text-[10px] text-gray-400">{{ team.contact_name }}</span>
                                 </div>
-                                <div v-if="isManager" class="flex items-center gap-1.5">
-                                    <button @click.stop="startEditTeam(team)" class="text-[10px] text-brand-600">Edit</button>
-                                    <button @click.stop="deleteTeam(team)" class="text-[10px] text-red-500">Del</button>
+                                <div v-if="isManager" class="flex items-center gap-1.5" @click.stop>
+                                    <Link :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-[10px] text-brand-600 hover:text-brand-700">Edit</Link>
+                                    <button @click="startEditTeam(team)" class="text-[10px] text-gray-500 hover:text-gray-700">Rename</button>
+                                    <button @click="deleteTeam(team)" class="text-[10px] text-red-500 hover:text-red-700">Del</button>
                                 </div>
                             </template>
                             <template v-else>

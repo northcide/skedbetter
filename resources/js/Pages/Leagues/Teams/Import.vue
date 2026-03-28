@@ -64,7 +64,7 @@ Hawks,Jane Doe,jane@example.com</pre>
                         </div>
 
                         <div class="flex items-center justify-end gap-4">
-                            <Link :href="route('leagues.teams.index', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">Cancel</Link>
+                            <Link :href="route('leagues.divisions.index', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">Cancel</Link>
                             <PrimaryButton :disabled="form.processing || !form.csv_file">Import Teams</PrimaryButton>
                         </div>
                     </form>
