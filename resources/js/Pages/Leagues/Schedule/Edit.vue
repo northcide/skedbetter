@@ -38,7 +38,7 @@ const submit = () => {
 };
 
 const cancelEntry = () => {
-    if (confirm('Cancel this schedule entry?')) {
+    if (confirm('Delete this schedule entry?')) {
         router.delete(route('leagues.schedule.destroy', [props.league.slug, props.entry.id]));
     }
 };
@@ -136,7 +136,7 @@ const cancelEntry = () => {
 
                         <div class="flex items-center justify-between">
                             <DangerButton v-if="entry.status !== 'cancelled'" type="button" @click="cancelEntry">
-                                Cancel Entry
+                                Delete Entry
                             </DangerButton>
                             <div class="flex items-center gap-4">
                                 <Link :href="route('leagues.schedule.index', league.slug)" class="text-sm text-gray-600 hover:text-gray-900">Back</Link>

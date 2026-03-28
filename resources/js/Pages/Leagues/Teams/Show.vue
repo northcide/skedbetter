@@ -75,7 +75,7 @@ const typeLabel = (type) => ({
             <!-- Info Cards -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div class="rounded-xl border border-gray-100 bg-white px-4 py-4">
-                    <p class="text-xs font-medium text-gray-400">Contact</p>
+                    <p class="text-xs font-medium text-gray-400">Coach</p>
                     <p class="mt-1 text-sm font-medium text-gray-900">{{ team.contact_name || 'Not set' }}</p>
                     <p v-if="team.contact_email" class="text-xs text-gray-500">{{ team.contact_email }}</p>
                 </div>

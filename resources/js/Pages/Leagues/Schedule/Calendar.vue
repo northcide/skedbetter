@@ -363,7 +363,7 @@ function handleEventClick(info) {
 }
 
 function cancelEvent() {
-    if (!confirm('Cancel this schedule entry?')) return;
+    if (!confirm('Delete this schedule entry?')) return;
     axios.delete(route('leagues.schedule.destroy', [props.league.slug, eventDetail.value.id]))
         .then(() => {
             showEventDetail.value = false;
@@ -712,7 +712,7 @@ function showError(messages) {
                 </div>
                 <div v-if="isManager" class="mt-4 flex justify-end gap-2">
                     <button v-if="eventDetail.status !== 'cancelled'" @click="cancelEvent" class="rounded-md px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
-                        Cancel Entry
+                        Delete Entry
                     </button>
                     <button @click="editEvent" class="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">
                         Edit

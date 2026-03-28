@@ -34,7 +34,7 @@ const applyFilters = () => {
 };
 
 const cancelEntry = (entry) => {
-    if (confirm('Cancel this schedule entry?')) {
+    if (confirm('Delete this schedule entry?')) {
         router.delete(route('leagues.schedule.destroy', [props.league.slug, entry.id]));
     }
 };

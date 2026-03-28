@@ -61,17 +61,17 @@ const submit = () => {
                         </div>
 
                         <div>
-                            <InputLabel for="contact_name" value="Contact Name" />
+                            <InputLabel for="contact_name" value="Coach Name" />
                             <TextInput id="contact_name" v-model="form.contact_name" type="text" class="mt-1 block w-full" />
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <InputLabel for="contact_email" value="Contact Email" />
+                                <InputLabel for="contact_email" value="Coach Email" />
                                 <TextInput id="contact_email" v-model="form.contact_email" type="email" class="mt-1 block w-full" />
                             </div>
                             <div>
-                                <InputLabel for="contact_phone" value="Contact Phone" />
+                                <InputLabel for="contact_phone" value="Coach Phone" />
                                 <TextInput id="contact_phone" v-model="form.contact_phone" type="text" class="mt-1 block w-full" />
                             </div>
                         </div>

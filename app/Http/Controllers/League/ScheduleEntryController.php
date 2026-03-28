@@ -211,7 +211,7 @@ class ScheduleEntryController extends Controller
         }
 
         return redirect()->route('leagues.schedule.index', $league)
-            ->with('success', 'Schedule entry cancelled.');
+            ->with('success', 'Schedule entry deleted.');
     }
 
     // API endpoint for FullCalendar
