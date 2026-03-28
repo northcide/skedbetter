@@ -12,10 +12,13 @@ const props = defineProps({
 const isManager = ['superadmin', 'league_manager'].includes(props.userRole);
 
 const navItems = [
-    { label: 'Seasons', route: 'leagues.seasons.index', icon: 'calendar' },
-    { label: 'Divisions', route: 'leagues.divisions.index', icon: 'layers' },
-    { label: 'Teams', route: 'leagues.teams.index', icon: 'users' },
-    { label: 'Locations & Fields', route: 'leagues.locations.index', icon: 'map-pin' },
+    { label: 'Schedule Calendar', route: 'leagues.schedule.calendar' },
+    { label: 'Schedule List', route: 'leagues.schedule.index' },
+    { label: 'Seasons', route: 'leagues.seasons.index' },
+    { label: 'Divisions', route: 'leagues.divisions.index' },
+    { label: 'Teams', route: 'leagues.teams.index' },
+    { label: 'Locations & Fields', route: 'leagues.locations.index' },
+    { label: 'Blackout Rules', route: 'leagues.blackouts.index' },
 ];
 </script>
 

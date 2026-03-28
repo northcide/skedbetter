@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\LeagueController;
+use App\Http\Controllers\League\BlackoutRuleController;
 use App\Http\Controllers\League\DivisionController;
 use App\Http\Controllers\League\FieldController;
 use App\Http\Controllers\League\LocationController;
+use App\Http\Controllers\League\ScheduleEntryController;
 use App\Http\Controllers\League\SeasonController;
 use App\Http\Controllers\League\TeamController;
 use App\Http\Controllers\ProfileController;
@@ -49,6 +51,26 @@ Route::middleware('auth')->group(function () {
                 ->name('locations.fields.create');
             Route::post('locations/{location}/fields', [FieldController::class, 'store'])
                 ->name('locations.fields.store');
+
+            // Schedule entries
+            Route::get('schedule/calendar', [ScheduleEntryController::class, 'calendar'])
+                ->name('schedule.calendar');
+            Route::resource('schedule', ScheduleEntryController::class)
+                ->except(['show'])
+                ->parameters(['schedule' => 'scheduleEntry']);
+
+            // Calendar API endpoints
+            Route::get('schedule/calendar/events', [ScheduleEntryController::class, 'events'])
+                ->name('schedule.events');
+            Route::get('schedule/calendar/resources', [ScheduleEntryController::class, 'resources'])
+                ->name('schedule.resources');
+            Route::patch('schedule/{scheduleEntry}/move', [ScheduleEntryController::class, 'move'])
+                ->name('schedule.move');
+
+            // Blackout rules
+            Route::resource('blackouts', BlackoutRuleController::class)
+                ->except(['show'])
+                ->parameters(['blackouts' => 'blackout']);
         });
 });
 
