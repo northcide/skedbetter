@@ -111,11 +111,12 @@ const submitBulkTeams = (rows, done) => {
                         <svg class="h-3 w-3 shrink-0 text-gray-400 transition-transform" :class="{ 'rotate-90': expanded[div.id] }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
-                        <span class="text-sm font-medium text-gray-900">{{ div.name }}</span>
+                        <span class="text-xs font-medium text-gray-900">{{ div.name }}</span>
                         <span v-if="div.age_group" class="text-[10px] text-gray-400">{{ div.age_group }}</span>
                         <span class="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">{{ div.teams_count }}</span>
                         <span v-if="div.max_event_minutes" class="text-[10px] text-gray-400">{{ div.max_event_minutes }}min</span>
                         <span v-if="div.max_weekly_events_per_team" class="text-[10px] text-gray-400">{{ div.max_weekly_events_per_team }}/wk</span>
+                        <span v-if="div.managers && div.managers.length" class="text-[10px] text-purple-500">Mgr: {{ div.managers.map(m => m.name).join(', ') }}</span>
                     </div>
                     <div v-if="isManager" class="flex items-center gap-2" @click.stop>
                         <Link :href="route('leagues.divisions.edit', [league.slug, div.id])" class="text-[10px] text-brand-600 hover:text-brand-700">Settings</Link>
@@ -131,7 +132,8 @@ const submitBulkTeams = (rows, done) => {
                                 <div class="flex items-center gap-1.5 pl-5">
                                     <span v-if="team.color_code" class="inline-block h-2 w-2 rounded-full" :style="{ backgroundColor: team.color_code }"></span>
                                     <Link :href="route('leagues.teams.show', [league.slug, team.id])" class="text-xs text-gray-700 hover:text-brand-600">{{ team.name }}</Link>
-                                    <span v-if="team.contact_name" class="text-[10px] text-gray-400">{{ team.contact_name }}</span>
+                                    <span v-if="team.users && team.users.length" class="text-[10px] text-gray-400">{{ team.users.map(u => u.name).join(', ') }}</span>
+                                    <span v-else-if="team.contact_name" class="text-[10px] text-gray-400">{{ team.contact_name }}</span>
                                 </div>
                                 <div v-if="isManager" class="flex items-center gap-1.5" @click.stop>
                                     <Link :href="route('leagues.teams.edit', [league.slug, team.id])" class="text-[10px] text-brand-600 hover:text-brand-700">Edit</Link>
