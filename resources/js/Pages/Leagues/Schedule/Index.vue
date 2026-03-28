@@ -18,6 +18,22 @@ const props = defineProps({
 const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 const canSchedule = isManager || props.userRole === 'coach';
 
+function fmt12(time24) {
+    if (!time24) return '';
+    const [h, m] = time24.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+function fmtDate(dateStr) {
+    if (!dateStr) return '';
+    // Parse as local date to avoid timezone shift
+    const [y, m, d] = dateStr.split('T')[0].split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
 const filters = ref({
     season_id: props.filters.season_id || '',
     team_id: props.filters.team_id || '',
@@ -119,10 +135,10 @@ const statusBadge = (status) => {
                         <tbody class="divide-y divide-gray-200">
                             <tr v-for="entry in entries.data" :key="entry.id">
                                 <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                                    {{ new Date(entry.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) }}
+                                    {{ fmtDate(entry.date) }}
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                                    {{ entry.start_time?.slice(0, 5) }} - {{ entry.end_time?.slice(0, 5) }}
+                                    {{ fmt12(entry.start_time) }} - {{ fmt12(entry.end_time) }}
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-sm">
                                     <div class="flex items-center gap-1">

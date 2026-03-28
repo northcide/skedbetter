@@ -3,6 +3,9 @@ import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+function fmt12(t) { if(!t)return''; const[h,m]=t.split(':').map(Number); return `${h===0?12:h>12?h-12:h}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`; }
+function fmtDate(d) { if(!d)return''; const[y,mo,dy]=d.split('T')[0].split('-').map(Number); return new Date(y,mo-1,dy).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}); }
+
 const props = defineProps({
     league: Object,
     team: Object,
@@ -171,8 +174,8 @@ const typeLabel = (type) => ({
                 <ul v-else class="divide-y divide-gray-50">
                     <li v-for="entry in team.schedule_entries" :key="entry.id" class="flex items-center justify-between px-3 py-2">
                         <div>
-                            <span class="text-sm font-medium text-gray-900">{{ new Date(entry.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) }}</span>
-                            <span class="ml-2 text-sm text-gray-500">{{ entry.start_time?.slice(0, 5) }} - {{ entry.end_time?.slice(0, 5) }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ fmtDate(entry.date) }}</span>
+                            <span class="ml-2 text-sm text-gray-500">{{ fmt12(entry.start_time) }} - {{ fmt12(entry.end_time) }}</span>
                         </div>
                         <span class="text-xs text-gray-500">{{ entry.field?.name }} @ {{ entry.field?.location?.name }}</span>
                     </li>
