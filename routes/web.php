@@ -9,6 +9,7 @@ use App\Http\Controllers\League\OnboardingController;
 use App\Http\Controllers\League\TeamImportController;
 use App\Http\Controllers\League\DivisionController;
 use App\Http\Controllers\League\FieldController;
+use App\Http\Controllers\League\FieldRulesController;
 use App\Http\Controllers\League\LocationController;
 use App\Http\Controllers\League\ScheduleEntryController;
 use App\Http\Controllers\League\SeasonController;
@@ -66,6 +67,8 @@ Route::middleware('auth')->group(function () {
             Route::post('teams-import', [TeamImportController::class, 'store'])->name('teams.import.store');
             Route::resource('locations', LocationController::class)->except(['show']);
             Route::resource('fields', FieldController::class)->except(['index', 'show']);
+            Route::get('fields/{field}/rules', [FieldRulesController::class, 'edit'])->name('fields.rules');
+            Route::put('fields/{field}/rules', [FieldRulesController::class, 'update'])->name('fields.rules.update');
 
             // Nested: fields under locations
             Route::get('locations/{location}/fields/create', [FieldController::class, 'create'])

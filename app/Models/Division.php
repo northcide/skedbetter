@@ -29,4 +29,11 @@ class Division extends Model
     {
         return $this->belongsToMany(User::class, 'division_manager_assignments');
     }
+
+    public function allowedFields()
+    {
+        return $this->belongsToMany(Field::class, 'division_field')
+            ->withPivot('max_weekly_slots')
+            ->withTimestamps();
+    }
 }

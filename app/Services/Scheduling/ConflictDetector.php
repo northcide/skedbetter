@@ -3,6 +3,7 @@
 namespace App\Services\Scheduling;
 
 use App\Models\BlackoutRule;
+use App\Models\Field;
 use App\Models\ScheduleEntry;
 use App\Models\Team;
 use App\Services\Scheduling\DTO\ConflictResult;
@@ -16,10 +17,12 @@ class ConflictDetector
     {
         $result = new ConflictResult();
 
+        $this->checkFieldDivisionAccess($request, $result);
         $this->checkFieldOverlap($request, $result);
         $this->checkTeamOverlap($request, $result);
         $this->checkBlackoutViolation($request, $result);
         $this->checkWeeklySlotLimit($request, $result);
+        $this->checkDivisionFieldWeeklyLimit($request, $result);
 
         return $result;
     }
@@ -200,5 +203,85 @@ class ConflictDetector
 
         $value = json_decode($constraint->value, true);
         return $value['max'] ?? $value['value'] ?? null;
+    }
+
+    protected function checkFieldDivisionAccess(ScheduleRequest $request, ConflictResult $result): void
+    {
+        $field = Field::withoutGlobalScopes()->find($request->fieldId);
+        if (! $field) {
+            return;
+        }
+
+        // If the field has no division restrictions, it's open to all
+        $restrictedDivisionIds = DB::table('division_field')
+            ->where('field_id', $request->fieldId)
+            ->pluck('division_id')
+            ->toArray();
+
+        if (empty($restrictedDivisionIds)) {
+            return; // Open access
+        }
+
+        // Get the team's division
+        $team = Team::withoutGlobalScopes()->find($request->teamId);
+        if (! $team) {
+            return;
+        }
+
+        if (! in_array($team->division_id, $restrictedDivisionIds)) {
+            $divisionName = DB::table('divisions')->where('id', $team->division_id)->value('name') ?? 'Unknown';
+            $result->addViolation(
+                'field_access',
+                "Field \"{$field->name}\" is not available to the \"{$divisionName}\" division."
+            );
+        }
+    }
+
+    protected function checkDivisionFieldWeeklyLimit(ScheduleRequest $request, ConflictResult $result): void
+    {
+        $team = Team::withoutGlobalScopes()->find($request->teamId);
+        if (! $team) {
+            return;
+        }
+
+        // Check if there's a weekly limit for this division on this field
+        $pivot = DB::table('division_field')
+            ->where('division_id', $team->division_id)
+            ->where('field_id', $request->fieldId)
+            ->first();
+
+        if (! $pivot || is_null($pivot->max_weekly_slots)) {
+            return; // No per-field weekly limit
+        }
+
+        $date = Carbon::parse($request->date);
+        $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
+        $weekEnd = $date->copy()->endOfWeek(Carbon::SUNDAY);
+
+        // Count all entries for teams in this division on this field this week
+        $divisionTeamIds = DB::table('teams')
+            ->where('division_id', $team->division_id)
+            ->pluck('id')
+            ->toArray();
+
+        $query = ScheduleEntry::withoutGlobalScopes()
+            ->where('field_id', $request->fieldId)
+            ->whereIn('team_id', $divisionTeamIds)
+            ->where('status', '!=', 'cancelled')
+            ->whereBetween('date', [$weekStart->toDateString(), $weekEnd->toDateString()]);
+
+        if ($request->excludeEntryId) {
+            $query->where('id', '!=', $request->excludeEntryId);
+        }
+
+        $count = $query->count();
+
+        if ($count >= $pivot->max_weekly_slots) {
+            $divisionName = DB::table('divisions')->where('id', $team->division_id)->value('name') ?? 'Unknown';
+            $result->addViolation(
+                'division_field_limit',
+                "Division \"{$divisionName}\" has reached the weekly limit of {$pivot->max_weekly_slots} slots on this field (currently {$count} this week)."
+            );
+        }
     }
 }

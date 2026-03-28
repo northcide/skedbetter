@@ -35,4 +35,25 @@ class Field extends Model
     {
         return $this->hasMany(ScheduleEntry::class);
     }
+
+    public function allowedDivisions()
+    {
+        return $this->belongsToMany(Division::class, 'division_field')
+            ->withPivot('max_weekly_slots')
+            ->withTimestamps();
+    }
+
+    public function hasRestrictions(): bool
+    {
+        return $this->allowedDivisions()->count() > 0;
+    }
+
+    public function isDivisionAllowed(int $divisionId): bool
+    {
+        if (! $this->hasRestrictions()) {
+            return true; // No restrictions = open to all
+        }
+
+        return $this->allowedDivisions()->where('divisions.id', $divisionId)->exists();
+    }
 }

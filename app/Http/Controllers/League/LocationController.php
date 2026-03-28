@@ -15,7 +15,10 @@ class LocationController extends Controller
     {
         $context = app(LeagueContext::class);
 
-        $locations = Location::withCount('fields')
+        $locations = Location::with(['fields' => function ($q) {
+                $q->orderBy('sort_order')->with('allowedDivisions');
+            }])
+            ->withCount('fields')
             ->orderBy('name')
             ->get();
 
