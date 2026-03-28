@@ -273,7 +273,7 @@ class ScheduleEntryController extends Controller
             $canEdit = $isManager || in_array($entry->team_id, $coachTeamIds);
             return [
                 'id' => $entry->id,
-                'title' => $entry->title ?: $entry->team->name . ' - ' . ucfirst($entry->type->value ?? $entry->type),
+                'title' => $entry->team->name . ' - ' . ucfirst($entry->type->value ?? $entry->type) . ($entry->title ? ': ' . $entry->title : ''),
                 'start' => $entry->date->format('Y-m-d') . 'T' . $entry->start_time,
                 'end' => $entry->date->format('Y-m-d') . 'T' . $entry->end_time,
                 'resourceId' => $entry->field_id,

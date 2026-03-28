@@ -874,7 +874,7 @@ function showError(messages) {
         <!-- Event Detail Modal -->
         <Modal :show="showEventDetail" @close="showEventDetail = false" max-width="sm">
             <div class="p-4">
-                <h3 class="text-sm font-semibold text-gray-900">{{ eventDetail.title }}</h3>
+                <h3 class="text-sm font-semibold text-gray-900">{{ eventDetail.teamName || eventDetail.title }}</h3>
                 <div class="mt-3 space-y-1.5 text-sm text-gray-700">
                     <p>
                         {{ new Date(eventDetail.date + 'T00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) }}
