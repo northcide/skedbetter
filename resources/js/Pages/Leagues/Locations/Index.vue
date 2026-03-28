@@ -34,12 +34,6 @@ const toggle = (id) => {
     expanded.value[id] = !expanded.value[id];
 };
 
-// Auto-expand locations that have fields
-props.locations.forEach(loc => {
-    if (loc.fields && loc.fields.length > 0) {
-        expanded.value[loc.id] = true;
-    }
-});
 
 const deleteLocation = (location) => {
     if (confirm(`Delete "${location.name}"? This will also delete all fields at this location.`)) {
