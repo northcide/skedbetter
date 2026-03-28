@@ -28,6 +28,7 @@ class OnboardingController extends Controller
             'locations' => Location::withCount('fields')->orderBy('name')->get(),
             'divisions' => Division::with('season')->withCount('teams')->orderBy('name')->get(),
             'teams' => Team::with('division')->orderBy('name')->get(),
+            'userRole' => $context->userRole(),
         ]);
     }
 
@@ -126,6 +127,24 @@ class OnboardingController extends Controller
 
         return redirect()->route('leagues.show', $l->slug)
             ->with('success', 'Setup complete! Your league is ready to start scheduling.');
+    }
+
+    public function deleteLocation(string $league, Location $location)
+    {
+        $location->delete();
+        return back()->with('success', "Location \"{$location->name}\" deleted.");
+    }
+
+    public function deleteDivision(string $league, Division $division)
+    {
+        $division->delete();
+        return back()->with('success', "Division \"{$division->name}\" deleted.");
+    }
+
+    public function deleteTeam(string $league, Team $team)
+    {
+        $team->delete();
+        return back()->with('success', "Team \"{$team->name}\" deleted.");
     }
 
     protected function determineStep($league): int
