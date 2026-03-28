@@ -388,15 +388,24 @@ function handleEventClick(info) {
 function cancelEvent() {
     const entryId = eventDetail.value.id;
     showEventDetail.value = false;
+
+    // Remove from calendar immediately (try both string and number ID)
+    const api = calendarRef.value?.getApi();
+    if (api) {
+        const ev = api.getEventById(entryId) || api.getEventById(String(entryId));
+        if (ev) {
+            ev.remove();
+        } else {
+            // Fallback: remove all events with this ID and refetch
+            api.getEvents().forEach(e => {
+                if (String(e.id) === String(entryId)) e.remove();
+            });
+        }
+    }
+
+    // Then delete on server
     axios.delete(route('leagues.schedule.destroy', [props.league.slug, entryId]), {
         headers: { Accept: 'application/json' },
-    }).then(() => {
-        // Remove the event from the calendar immediately
-        const api = calendarRef.value?.getApi();
-        if (api) {
-            const ev = api.getEventById(entryId);
-            if (ev) ev.remove();
-        }
     });
 }
 
