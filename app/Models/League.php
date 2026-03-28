@@ -28,7 +28,14 @@ class League extends Model
     {
         static::creating(function (League $league) {
             if (empty($league->slug)) {
-                $league->slug = Str::slug($league->name);
+                $base = Str::slug($league->name);
+                $slug = $base;
+                $i = 1;
+                while (static::withTrashed()->where('slug', $slug)->exists()) {
+                    $slug = "{$base}-{$i}";
+                    $i++;
+                }
+                $league->slug = $slug;
             }
         });
     }
