@@ -372,30 +372,35 @@ class ScheduleEntryController extends Controller
     {
         $fields = Field::with('location')
             ->where('is_active', true)
+            ->whereNotNull('location_id')
             ->orderBy('location_id')
             ->orderBy('sort_order')
-            ->get();
+            ->get()
+            ->filter(fn($f) => $f->location !== null);
 
-        return response()->json($fields->map(function ($field) {
+        $locations = $fields->pluck('location')->filter()->unique('id');
+
+        $resources = $locations->map(function ($location) {
+            return [
+                'id' => 'loc-' . $location->id,
+                'title' => $location->name,
+            ];
+        })->values();
+
+        $fieldResources = $fields->map(function ($field) {
             return [
                 'id' => $field->id,
                 'title' => $field->name,
                 'parentId' => 'loc-' . $field->location_id,
                 'extendedProps' => [
-                    'location' => $field->location->name,
+                    'location' => $field->location?->name ?? '',
                     'surface_type' => $field->surface_type?->value,
                     'is_lighted' => $field->is_lighted,
                 ],
             ];
-        })->prepend(
-            // Add location groups as parent resources
-            ...$fields->pluck('location')->unique('id')->map(function ($location) {
-                return [
-                    'id' => 'loc-' . $location->id,
-                    'title' => $location->name,
-                ];
-            })->values()
-        ));
+        });
+
+        return response()->json($resources->concat($fieldResources)->values());
     }
 
     // API endpoint for drag-drop updates
