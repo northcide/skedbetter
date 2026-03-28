@@ -21,7 +21,7 @@ class ScheduleEntryController extends Controller
         protected BulkScheduler $bulkScheduler,
     ) {}
 
-    public function calendar(string $league)
+    public function calendar(Request $request, string $league)
     {
         $context = app(LeagueContext::class);
 
