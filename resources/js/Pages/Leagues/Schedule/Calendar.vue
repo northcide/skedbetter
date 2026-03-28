@@ -372,6 +372,7 @@ function handleEventClick(info) {
     eventDetail.value = {
         id: ev.id,
         title: ev.title,
+        teamId: ext.team_id || null,
         teamName: ext.team_name || '',
         fieldName: ext.field_name || '',
         locationName: ext.location_name || '',
@@ -738,7 +739,7 @@ function showError(messages) {
                         </span>
                     </p>
                 </div>
-                <div v-if="isManager" class="mt-4 flex justify-end gap-2">
+                <div v-if="isManager || (isCoach && props.coachTeamIds.includes(eventDetail.teamId))" class="mt-4 flex justify-end gap-2">
                     <button v-if="eventDetail.status !== 'cancelled'" @click="cancelEvent" class="rounded-md px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
                         Delete Entry
                     </button>
