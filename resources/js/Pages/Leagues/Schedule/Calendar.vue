@@ -241,7 +241,7 @@ function handleEventDrop(info) {
         const event = info.event;
         const ext = event.extendedProps || {};
         const resource = event.getResources()[0];
-        let dropFieldId = resource?.id;
+        let dropFieldId = resource?.id != null ? String(resource.id) : null;
 
         if (dropFieldId && dropFieldId.startsWith('loc-')) { info.revert(); return; }
 
@@ -281,7 +281,7 @@ function handleExternalDrop(info) {
     const end = event.end || new Date(event.start.getTime() + 3600000);
     const endTime = end.toTimeString().slice(0, 5);
     const resource = event.getResources()[0];
-    const fieldId = resource?.id;
+    const fieldId = resource?.id != null ? String(resource.id) : null;
 
     event.remove();
     openModal({ teamId, date, startTime, endTime, fieldId, fieldName: resource?.title });
@@ -290,7 +290,7 @@ function handleExternalDrop(info) {
 function handleSelect(info) {
     if (!isManager) return;
     const resource = info.resource;
-    const fieldId = resource?.id;
+    const fieldId = resource?.id != null ? String(resource.id) : null;
     const date = info.start.toISOString().slice(0, 10);
     const startTime = info.start.toTimeString().slice(0, 5);
     const endTime = info.end.toTimeString().slice(0, 5);
@@ -302,7 +302,8 @@ function handleSelect(info) {
 function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldName, type, title }) {
     editingEntryId.value = entryId || null;
 
-    let resolvedFieldId = (fieldId && !fieldId.startsWith('loc-')) ? fieldId : '';
+    const fid = fieldId != null ? String(fieldId) : '';
+    let resolvedFieldId = (fid && !fid.startsWith('loc-')) ? fid : '';
     let resolvedFieldName = fieldName || '';
     let resolvedTeamId = teamId || '';
 
