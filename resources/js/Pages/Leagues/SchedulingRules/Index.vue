@@ -113,8 +113,12 @@ function save() {
                     {{ d.name }} ({{ d.teams_count ?? 0 }} teams)
                 </option>
             </select>
+            <span v-if="selectedDivision?.scheduling_priority" class="rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
+                Default Priority: {{ selectedDivision.scheduling_priority }}
+            </span>
+            <span v-else class="text-[10px] text-gray-400">No default priority</span>
             <span class="text-xs text-gray-500">
-                {{ enabledCount }} of {{ fields.length }} fields enabled
+                &middot; {{ enabledCount }} of {{ fields.length }} fields enabled
             </span>
             <div class="ml-auto flex gap-2">
                 <button @click="enableAll" class="text-[10px] text-brand-600 hover:text-brand-700 font-medium">Enable all</button>
@@ -153,10 +157,13 @@ function save() {
                             <!-- Row 1: Priority + Weekly limit -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-[10px] font-medium text-gray-500 mb-0.5">Priority</label>
+                                    <label class="block text-[10px] font-medium text-gray-500 mb-0.5">
+                                        Priority Override
+                                        <span v-if="selectedDivision?.scheduling_priority && !r(field.id).priority" class="text-gray-400 font-normal">(using {{ selectedDivision.scheduling_priority }})</span>
+                                    </label>
                                     <select v-model="r(field.id).priority"
                                         class="w-full rounded-md border-gray-200 text-xs py-1 px-2 focus:border-brand-500 focus:ring-brand-500">
-                                        <option value="">None</option>
+                                        <option value="">{{ selectedDivision?.scheduling_priority ? 'Use default (' + selectedDivision.scheduling_priority + ')' : 'None' }}</option>
                                         <option value="1">1 (Highest)</option>
                                         <option value="2">2</option>
                                         <option value="3">3</option>
@@ -205,7 +212,7 @@ function save() {
         <!-- Legend -->
         <div class="mt-4 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-500">
-                <span><strong>Priority:</strong> 1 = highest, books first when windows overlap</span>
+                <span><strong>Priority:</strong> 1 = highest, books first when windows overlap. Set default on division, override per-field here</span>
                 <span><strong>Max/week:</strong> Slots this division can book per week on this field</span>
                 <span><strong>Booking Window:</strong> When this division can start booking this field</span>
             </div>

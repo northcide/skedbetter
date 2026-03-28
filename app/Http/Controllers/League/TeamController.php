@@ -165,6 +165,14 @@ class TeamController extends Controller
                 'type' => 'weekly_limit',
             ];
         }
+        if ($division && $division->scheduling_priority) {
+            $rules[] = [
+                'source' => 'Division',
+                'sourceDetail' => $division->name,
+                'rule' => "Default scheduling priority: {$division->scheduling_priority} (1=highest)",
+                'type' => 'constraint',
+            ];
+        }
 
         // 2. Field access restrictions — which fields this team's division can/cannot use
         $restrictedFields = DB::table('division_field')
@@ -208,9 +216,19 @@ class TeamController extends Controller
         }
 
         // Fields where this division IS allowed
+        $divPriority = $division?->scheduling_priority;
         foreach ($restrictedFields as $rf) {
             $parts = [];
-            if ($rf->priority) $parts[] = "Priority {$rf->priority}";
+            $effectivePriority = $rf->priority ?: $divPriority;
+            if ($effectivePriority) {
+                $label = "Priority {$effectivePriority}";
+                if ($rf->priority && $divPriority && $rf->priority != $divPriority) {
+                    $label .= " (override)";
+                } elseif (!$rf->priority && $divPriority) {
+                    $label .= " (division default)";
+                }
+                $parts[] = $label;
+            }
             if ($rf->booking_window_type === 'calendar' && $rf->booking_opens_date) {
                 $opens = \Carbon\Carbon::parse($rf->booking_opens_date);
                 $parts[] = $opens->isPast() ? 'booking open' : "opens {$opens->format('M j')}";

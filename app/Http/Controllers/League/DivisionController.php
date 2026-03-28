@@ -53,6 +53,7 @@ class DivisionController extends Controller
             'skill_level' => 'nullable|string|max:255',
             'max_event_minutes' => 'nullable|integer|in:30,60,90,120',
             'max_weekly_events_per_team' => 'nullable|integer|min:1|max:20',
+            'scheduling_priority' => 'nullable|integer|min:1|max:5',
         ]);
 
         Division::create($validated);
@@ -124,6 +125,7 @@ class DivisionController extends Controller
             'skill_level' => 'nullable|string|max:255',
             'max_event_minutes' => 'nullable|integer|in:30,60,90,120',
             'max_weekly_events_per_team' => 'nullable|integer|min:1|max:20',
+            'scheduling_priority' => 'nullable|integer|min:1|max:5',
             'field_access' => 'nullable|in:all,specific',
             'allowed_field_ids' => 'nullable|array',
             'allowed_field_ids.*' => 'exists:fields,id',

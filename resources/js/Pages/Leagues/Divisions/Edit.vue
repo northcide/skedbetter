@@ -26,6 +26,7 @@ const form = useForm({
     skill_level: props.division.skill_level || '',
     max_event_minutes: props.division.max_event_minutes || '',
     max_weekly_events_per_team: props.division.max_weekly_events_per_team || '',
+    scheduling_priority: props.division.scheduling_priority ? String(props.division.scheduling_priority) : '',
     field_access: props.allowedFieldIds.length > 0 ? 'specific' : 'all',
     allowed_field_ids: [...props.allowedFieldIds],
 });
@@ -101,7 +102,18 @@ const fieldsByLocation = props.fields.reduce((acc, f) => {
                     <svg class="h-3 w-3 text-gray-400 transition-transform" :class="{ 'rotate-90': open.rules }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </button>
                 <div v-if="open.rules" class="border-t border-gray-100 px-3 py-2">
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <InputLabel for="scheduling_priority" value="Scheduling Priority" />
+                            <select id="scheduling_priority" v-model="form.scheduling_priority" class="mt-1 block w-full">
+                                <option value="">None</option>
+                                <option value="1">1 (Highest)</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5 (Lowest)</option>
+                            </select>
+                        </div>
                         <div>
                             <InputLabel for="max_event_minutes" value="Max Event Duration" />
                             <select id="max_event_minutes" v-model="form.max_event_minutes" class="mt-1 block w-full">
@@ -120,7 +132,7 @@ const fieldsByLocation = props.fields.reduce((acc, f) => {
                             </select>
                         </div>
                     </div>
-                    <p class="mt-1 text-[10px] text-gray-400">Team-level limits override these.</p>
+                    <p class="mt-1 text-[10px] text-gray-400">Priority applies to all fields by default. Override per-field on the Scheduling Rules page.</p>
                 </div>
             </div>
 
