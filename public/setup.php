@@ -1,4 +1,8 @@
 <?php
+// Show errors during setup
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
 /**
  * SkedBetter Web Setup Wizard
  *
@@ -156,10 +160,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($step === 'migrate') {
-        // Run migrations via artisan
-        $output = shell_exec("cd $basePath && php artisan migrate --force 2>&1");
-        if (strpos($output ?? '', 'ERROR') !== false || strpos($output ?? '', 'error') !== false) {
-            $errors[] = "Migration failed. Output:\n$output";
+        // Try artisan first, fall back to bootstrapping Laravel
+        $migrated = false;
+        $output = '';
+
+        // Method 1: shell_exec (works on most hosts)
+        if (function_exists('shell_exec')) {
+            $phpBin = PHP_BINARY ?: 'php';
+            $output = @shell_exec("cd " . escapeshellarg($basePath) . " && $phpBin artisan migrate --force 2>&1");
+            if ($output !== null && strpos($output, 'DONE') !== false) {
+                $migrated = true;
+            }
+        }
+
+        // Method 2: Bootstrap Laravel and run migrate programmatically
+        if (!$migrated) {
+            try {
+                // Require composer autoloader and bootstrap the app
+                require $basePath . '/vendor/autoload.php';
+                $app = require_once $basePath . '/bootstrap/app.php';
+                $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+                $kernel->bootstrap();
+
+                $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                $output = \Illuminate\Support\Facades\Artisan::output();
+                $migrated = ($exitCode === 0);
+            } catch (Exception $e) {
+                $output = $e->getMessage();
+            }
+        }
+
+        if (!$migrated) {
+            $errors[] = "Migration failed: " . ($output ?: 'Unknown error. Check file permissions and PHP version.');
             $step = 'database';
         } else {
             $success = 'Migrations complete';
