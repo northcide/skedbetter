@@ -45,6 +45,7 @@ const showingNavigationDropdown = ref(false);
                                     </template>
                                     <template #content>
                                         <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
+                                        <DropdownLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.settings')">Platform Settings</DropdownLink>
                                         <DropdownLink :href="route('logout')" method="post" as="button">Sign Out</DropdownLink>
                                     </template>
                                 </Dropdown>

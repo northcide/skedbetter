@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcceptInvitationController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\IcalController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\League\BlackoutRuleController;
@@ -29,6 +30,10 @@ Route::get('/', function () {
     ]);
 });
 
+// Magic link auth (no auth required)
+Route::post('/auth/magic-link', [\App\Http\Controllers\Auth\MagicLinkController::class, 'request'])->name('auth.magic-link.request');
+Route::get('/auth/magic/{token}', [\App\Http\Controllers\Auth\MagicLinkController::class, 'verify'])->name('auth.magic-link.verify');
+
 // iCal feed (signed URL, no auth required)
 Route::get('/ical/teams/{teamId}', [IcalController::class, 'team'])->name('ical.team');
 
@@ -46,6 +51,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
+
+    // Admin settings (superadmin)
+    Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
+    Route::post('/admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+    Route::post('/admin/settings/test-email', [SettingsController::class, 'testEmail'])->name('admin.settings.test-email');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -112,6 +122,8 @@ Route::middleware('auth')->group(function () {
             Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
             Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
             Route::delete('members/{user}', [InvitationController::class, 'removeMember'])->name('members.destroy');
+            Route::post('members/{user}/send-magic-link', [InvitationController::class, 'sendMagicLink'])->name('members.send-magic-link');
+            Route::post('members/{user}/generate-magic-link', [InvitationController::class, 'generateMagicLink'])->name('members.generate-magic-link');
 
             // Blackout rules
             Route::resource('blackouts', BlackoutRuleController::class)

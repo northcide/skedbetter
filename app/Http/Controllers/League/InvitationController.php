@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\League;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Auth\MagicLinkController;
+use App\Mail\MagicLinkMail;
 use App\Models\LeagueInvitation;
+use App\Models\MagicLink;
 use App\Models\User;
 use App\Notifications\LeagueInvitation as LeagueInvitationNotification;
 use App\Services\LeagueContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 
@@ -103,5 +107,24 @@ class InvitationController extends Controller
         $context->league()->users()->detach($user->id);
 
         return back()->with('success', "{$user->name} removed from the league.");
+    }
+
+    public function sendMagicLink(Request $request, string $league, User $user)
+    {
+        $magicLink = MagicLinkController::generateForUser($user->email, $request->user()->id);
+
+        try {
+            Mail::to($user->email)->send(new MagicLinkMail($magicLink));
+            return back()->with('success', "Login link sent to {$user->email}.");
+        } catch (\Exception $e) {
+            return back()->with('error', "Failed to send email: {$e->getMessage()}");
+        }
+    }
+
+    public function generateMagicLink(Request $request, string $league, User $user)
+    {
+        $magicLink = MagicLinkController::generateForUser($user->email, $request->user()->id);
+
+        return response()->json(['url' => $magicLink->getUrl()]);
     }
 }
