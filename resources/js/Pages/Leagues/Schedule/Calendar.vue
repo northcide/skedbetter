@@ -203,7 +203,7 @@ function fmt12(time24) {
 const timeSlots = computed(() => {
     const slots = [];
     for (let h = 6; h <= 21; h++) {
-        for (let m = 0; m < 60; m += 30) {
+        for (let m = 0; m < 60; m += 15) {
             const val = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             slots.push({ value: val, label: fmt12(val) });
         }
@@ -212,9 +212,12 @@ const timeSlots = computed(() => {
 });
 
 const durationOptions = [
+    { value: 15, label: '15 min' },
     { value: 30, label: '30 min' },
+    { value: 45, label: '45 min' },
     { value: 60, label: '1 hour' },
-    { value: 90, label: '1.5 hours' },
+    { value: 75, label: '1h 15m' },
+    { value: 90, label: '1h 30m' },
     { value: 120, label: '2 hours' },
 ];
 
@@ -407,7 +410,7 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
     let snappedStart = startTime || '';
     if (snappedStart) {
         const [sh, sm] = snappedStart.split(':').map(Number);
-        const snappedMin = Math.round(sm / 30) * 30;
+        const snappedMin = Math.round(sm / 15) * 15;
         const adjH = snappedMin >= 60 ? sh + 1 : sh;
         const adjM = snappedMin >= 60 ? 0 : snappedMin;
         snappedStart = `${String(adjH).padStart(2, '0')}:${String(adjM).padStart(2, '0')}`;
