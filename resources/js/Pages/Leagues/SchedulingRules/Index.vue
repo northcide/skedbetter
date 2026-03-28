@@ -23,7 +23,7 @@ props.fields.forEach(f => {
         rules.value[f.id][d.id] = {
             enabled: !!existing,
             max_weekly_slots: existing?.max_weekly_slots || '',
-            priority: existing?.priority || '',
+            priority: existing?.priority ? String(existing.priority) : '',
             booking_window_type: existing?.booking_window_type || '',
             booking_opens_date: existing?.booking_opens_date || '',
             booking_opens_days: existing?.booking_opens_days || '',
@@ -103,11 +103,11 @@ function save() {
                 <!-- Expanded: division rules grid -->
                 <div v-if="expandedField === field.id" class="bg-gray-50 px-3 py-2">
                     <!-- Header -->
-                    <div class="grid grid-cols-[1fr_40px_40px_45px_70px_90px] gap-1 text-[9px] font-semibold text-gray-400 mb-1 pl-5">
+                    <div class="grid grid-cols-[1fr_35px_50px_50px_70px_95px] gap-1 text-[9px] font-semibold text-gray-400 mb-1 pl-5">
                         <span>Division</span><span>On</span><span>Pri</span><span>/wk</span><span>Window</span><span>Opens</span>
                     </div>
 
-                    <div v-for="div in divisions" :key="div.id" class="grid grid-cols-[1fr_40px_40px_45px_70px_90px] gap-1 items-center py-0.5 pl-5">
+                    <div v-for="div in divisions" :key="div.id" class="grid grid-cols-[1fr_35px_50px_50px_70px_95px] gap-1 items-center py-0.5 pl-5">
                         <span class="text-[11px] text-gray-700 truncate">{{ div.name }}</span>
 
                         <!-- Enabled toggle -->
@@ -116,9 +116,13 @@ function save() {
                         </label>
 
                         <!-- Priority -->
-                        <select v-model="rules[field.id][div.id].priority" :disabled="!rules[field.id][div.id].enabled" class="text-center disabled:opacity-30">
+                        <select v-model="rules[field.id][div.id].priority" :disabled="!rules[field.id][div.id].enabled" class="disabled:opacity-30">
                             <option value="">-</option>
-                            <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
                         </select>
 
                         <!-- Weekly -->
