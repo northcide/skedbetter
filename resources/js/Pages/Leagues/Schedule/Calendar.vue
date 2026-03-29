@@ -440,6 +440,9 @@ const calendarOptions = ref({
         const ev = info.event;
 
         let tooltip = null;
+        info.el.addEventListener('mousedown', () => {
+            if (tooltip) { tooltip.remove(); tooltip = null; }
+        });
         info.el.addEventListener('mouseenter', () => {
             if (window.innerWidth < 1024) return;
             const ext = ev.extendedProps || {};
@@ -474,6 +477,7 @@ const calendarOptions = ref({
 });
 
 function handleEventDrop(info) {
+    clearTooltips();
     try {
         const event = info.event;
         const ext = event.extendedProps || {};
@@ -510,7 +514,13 @@ function handleEventDrop(info) {
     }
 }
 
+// Remove any lingering tooltips
+function clearTooltips() {
+    document.querySelectorAll('.fc-hover-tooltip').forEach(el => el.remove());
+}
+
 function handleEventResize(info) {
+    clearTooltips();
     const event = info.event;
     const ext = event.extendedProps || {};
     const date = event.start.toISOString().slice(0, 10);
