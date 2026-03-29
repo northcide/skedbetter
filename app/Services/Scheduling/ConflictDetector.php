@@ -104,6 +104,7 @@ class ConflictDetector
         $rules = BlackoutRule::withoutGlobalScopes()
             ->where('league_id', $request->leagueId)
             ->where('is_active', true)
+            ->whereNull('deleted_at')
             ->get();
 
         foreach ($rules as $rule) {

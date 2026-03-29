@@ -334,6 +334,7 @@ class ScheduleEntryController extends Controller
             $blackouts = \App\Models\BlackoutRule::withoutGlobalScopes()
                 ->where('league_id', $context->league()->id)
                 ->where('is_active', true)
+                ->whereNull('deleted_at')
                 ->get();
 
             $startDate = $request->has('start') ? \Carbon\Carbon::parse($request->start) : now()->startOfMonth();
