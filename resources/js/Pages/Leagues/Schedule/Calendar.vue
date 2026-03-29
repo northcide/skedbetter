@@ -929,9 +929,10 @@ function showError(messages) {
                     </ul>
                 </div>
 
-                <!-- Booking window warnings (admin override) -->
-                <div v-if="liveWarnings.length && !liveErrors.length && !Object.keys(modalForm.errors).length" class="mt-2 rounded border border-amber-200 bg-amber-50 p-2 text-xs text-red-600">
-                    <ul class="list-disc pl-4">
+                <!-- Admin override warnings -->
+                <div v-if="liveWarnings.length && !Object.keys(modalForm.errors).length" class="mt-2 rounded border border-amber-300 bg-amber-50 p-2 text-xs text-amber-700">
+                    <p class="font-semibold">Admin override:</p>
+                    <ul class="mt-1 list-disc pl-4">
                         <li v-for="w in liveWarnings" :key="w">{{ w }}</li>
                     </ul>
                 </div>
