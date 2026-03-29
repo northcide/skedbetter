@@ -516,9 +516,6 @@ function clearTooltips() {
     document.querySelectorAll('.fc-hover-tooltip').forEach(el => el.remove());
 }
 
-// Clear tooltips whenever modals open/close
-watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
-
 function handleEventResize(info) {
     clearTooltips();
     const event = info.event;
@@ -671,6 +668,9 @@ watch(() => modalForm.team_id, () => {
 // Event detail popover
 const showEventDetail = ref(false);
 const eventDetail = ref({});
+
+// Clear tooltips whenever modals open/close
+watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
 
 function handleEventClick(info) {
     const ev = info.event;
