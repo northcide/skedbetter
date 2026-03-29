@@ -346,7 +346,7 @@ const calendarOptions = ref({
     initialView: saved.view || mobileDefault,
     initialDate: saved.date || undefined,
     headerToolbar: isMobile.value
-        ? { left: 'prev,next', center: 'title', right: 'listWeek,timeGridDay' }
+        ? { left: 'prev,next', center: 'title', right: 'listWeek,dayGridMonth,timeGridDay' }
         : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,resourceTimelineDay' },
     views: {
         resourceTimelineDay: { buttonText: 'Fields' },
@@ -719,8 +719,8 @@ function showError(messages) {
     <Head :title="`${league.name} - Calendar`" />
 
     <LeagueLayout :league="league" :userRole="userRole || ''">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">Calendar</h2>
+        <div class="flex items-center justify-between sm:mb-1">
+            <h2 class="text-base sm:text-lg font-semibold text-gray-900">Calendar</h2>
             <div class="flex items-center gap-2">
                 <Link :href="route('leagues.schedule.index', league.slug)" class="text-xs text-gray-500 hover:text-gray-700">List</Link>
                 <Link v-if="isManager" :href="route('leagues.schedule.bulk', league.slug)" class="text-xs text-gray-500 hover:text-gray-700">Bulk</Link>
@@ -730,7 +730,7 @@ function showError(messages) {
         <FlashMessage />
 
         <!-- Filter Bar -->
-        <div class="mt-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+        <div class="mt-1 sm:mt-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 sm:px-3 sm:py-2">
             <!-- Mobile: collapsible toggle -->
             <button @click="filtersOpen = !filtersOpen" class="flex w-full items-center justify-between lg:hidden">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Filters</span>
@@ -773,7 +773,7 @@ function showError(messages) {
             <ul class="mt-1 list-disc pl-4"><li v-for="msg in errorMessages" :key="msg">{{ msg }}</li></ul>
         </div>
 
-        <div class="mt-2 flex gap-3">
+        <div class="mt-1 sm:mt-2 flex gap-3">
             <!-- Team drag sidebar -->
             <div v-if="canSchedule && teams.length" class="hidden w-44 shrink-0 lg:block">
                 <div class="sticky top-3 rounded-lg border border-gray-200 bg-white">
@@ -802,7 +802,7 @@ function showError(messages) {
             </div>
 
             <!-- Calendar -->
-            <div class="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-2">
+            <div class="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-1 sm:p-2">
                 <FullCalendar ref="calendarRef" :options="calendarOptions" />
             </div>
         </div>
