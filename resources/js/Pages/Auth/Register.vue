@@ -89,7 +89,7 @@ const submit = () => {
             </div>
 
             <!-- Cloudflare Turnstile -->
-            <div v-if="turnstileSiteKey">
+            <div v-if="turnstileSiteKey" class="flex flex-col items-center">
                 <div ref="turnstileRef"></div>
                 <InputError class="mt-1.5" :message="form.errors.captcha" />
             </div>
