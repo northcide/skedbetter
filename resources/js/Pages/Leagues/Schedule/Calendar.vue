@@ -518,7 +518,6 @@ function clearTooltips() {
 
 // Clear tooltips whenever modals open/close
 watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
-}
 
 function handleEventResize(info) {
     clearTooltips();
