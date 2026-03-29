@@ -30,8 +30,12 @@ const form = useForm({
 
 function openCreate() {
     editing.value = null;
-    form.reset();
+    form.name = '';
+    form.window_type = 'calendar';
+    form.opens_date = '';
+    form.rolling_days = '';
     form.division_ids = [];
+    form.clearErrors();
     showModal.value = true;
 }
 
