@@ -59,15 +59,23 @@ function fmtDate(d) {
                 <div v-for="league in pendingLeagues" :key="league.id" class="flex items-center justify-between px-4 py-3">
                     <div>
                         <p class="text-sm font-medium text-gray-900">{{ league.name }}</p>
-                        <p v-if="league.requester" class="text-xs text-gray-500">Requested by {{ league.requester.name }} ({{ league.requester.email }})</p>
-                        <p class="text-[10px] text-gray-400">{{ fmtDate(league.created_at) }}</p>
+                        <p v-if="league.requester" class="text-xs text-gray-500">
+                            Requested by {{ league.requester.name }} ({{ league.requester.email }})
+                        </p>
+                        <div class="mt-0.5 flex items-center gap-2">
+                            <span v-if="league.requester?.email_verified_at" class="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-semibold text-green-700">Email Verified</span>
+                            <span v-else class="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-semibold text-amber-700">Email Not Verified</span>
+                            <span class="text-[10px] text-gray-400">{{ fmtDate(league.created_at) }}</span>
+                        </div>
                     </div>
                     <div class="flex items-center gap-2">
                         <button @click="reject(league)" :disabled="processing[league.id]"
                             class="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
                             Reject
                         </button>
-                        <PrimaryButton @click="approve(league)" :disabled="processing[league.id]" size="sm">
+                        <PrimaryButton @click="approve(league)"
+                            :disabled="processing[league.id] || !league.requester?.email_verified_at" size="sm"
+                            :title="!league.requester?.email_verified_at ? 'User must verify their email first' : ''">
                             {{ processing[league.id] === 'approving' ? '...' : 'Approve' }}
                         </PrimaryButton>
                     </div>

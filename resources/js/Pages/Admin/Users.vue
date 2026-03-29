@@ -64,8 +64,11 @@ function fmtDate(d) {
                             <span v-else class="text-[10px] text-gray-400">None</span>
                         </td>
                         <td class="px-3 py-2">
-                            <span v-if="user.approved_at" class="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-semibold text-green-700">Active</span>
-                            <span v-else class="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-semibold text-amber-700">Pending</span>
+                            <div class="flex flex-wrap gap-1">
+                                <span v-if="user.approved_at" class="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-semibold text-green-700">Active</span>
+                                <span v-else class="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-semibold text-amber-700">Pending</span>
+                                <span v-if="!user.email_verified_at" class="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-semibold text-gray-500">Unverified</span>
+                            </div>
                         </td>
                         <td class="px-3 py-2 text-[10px] text-gray-500">{{ fmtDate(user.last_login_at) }}</td>
                         <td class="px-3 py-2 text-right">
@@ -86,8 +89,11 @@ function fmtDate(d) {
                             <p class="text-sm font-medium text-gray-900">{{ user.name }}</p>
                             <p class="text-xs text-gray-500">{{ user.email }}</p>
                         </div>
-                        <span v-if="user.approved_at" class="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-semibold text-green-700">Active</span>
-                        <span v-else class="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-semibold text-amber-700">Pending</span>
+                        <div class="flex flex-wrap gap-1">
+                            <span v-if="user.approved_at" class="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-semibold text-green-700">Active</span>
+                            <span v-else class="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-semibold text-amber-700">Pending</span>
+                            <span v-if="!user.email_verified_at" class="rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-semibold text-gray-500">Unverified</span>
+                        </div>
                     </div>
                     <div v-if="user.leagues.length" class="mt-1 flex flex-wrap gap-1">
                         <span v-for="l in user.leagues" :key="l.id" class="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] text-gray-600">{{ l.name }}</span>

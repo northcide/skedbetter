@@ -18,7 +18,7 @@ class AdminLeagueController extends Controller
         }
 
         $leagues = League::withCount(['teams', 'locations', 'divisions', 'users'])
-            ->with('requester:id,name,email')
+            ->with('requester:id,name,email,email_verified_at,approved_at')
             ->orderByRaw('approved_at IS NOT NULL, approved_at DESC')
             ->orderByDesc('created_at')
             ->get();

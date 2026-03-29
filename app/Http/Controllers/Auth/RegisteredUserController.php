@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\MagicLinkMail;
 use App\Models\AuditLog;
+use App\Models\MagicLink;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -23,19 +26,57 @@ class RegisteredUserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $email = strtolower(trim($request->email));
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // Check if user already exists (e.g. created by a league admin via associateCoach)
+        $existingUser = User::where('email', $email)->first();
 
-        event(new Registered($user));
+        if ($existingUser) {
+            // Let them claim the account by setting their password
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|lowercase|email|max:255',
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ]);
+
+            $existingUser->update([
+                'name' => $request->name,
+                'password' => Hash::make($request->password),
+            ]);
+
+            $user = $existingUser;
+        } else {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ]);
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $email,
+                'password' => Hash::make($request->password),
+            ]);
+        }
+
+        // If already a league admin, auto-approve
+        $isLeagueAdmin = $user->leagues()
+            ->wherePivot('role', 'league_admin')
+            ->exists();
+
+        if ($isLeagueAdmin && !$user->approved_at) {
+            $user->update(['approved_at' => now(), 'email_verified_at' => now()]);
+        }
+
+        // Send verification magic link
+        if (!$user->email_verified_at) {
+            try {
+                $magicLink = MagicLink::generate($email);
+                Mail::to($email)->send(new MagicLinkMail($magicLink));
+            } catch (\Exception $e) {
+                // Don't fail registration if email can't be sent
+            }
+        }
 
         AuditLog::withoutGlobalScopes()->create([
             'league_id' => null,
@@ -43,10 +84,14 @@ class RegisteredUserController extends Controller
             'action' => 'registration',
             'auditable_type' => null,
             'auditable_id' => null,
-            'new_values' => ['name' => $user->name, 'email' => $user->email],
+            'new_values' => ['name' => $user->name, 'email' => $user->email, 'auto_approved' => $isLeagueAdmin],
             'ip_address' => $request->ip(),
         ]);
 
-        return redirect()->route('login')->with('status', 'Your account has been created and is pending approval. You will be notified when it is approved.');
+        if ($isLeagueAdmin) {
+            return redirect()->route('login')->with('status', 'Your account is ready. Sign in to get started.');
+        }
+
+        return redirect()->route('login')->with('status', 'Please check your email to verify your address. Once verified, an administrator will activate your account.');
     }
 }

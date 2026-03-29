@@ -23,6 +23,7 @@ class AdminUserController extends Controller
                 'id' => $u->id,
                 'name' => $u->name,
                 'email' => $u->email,
+                'email_verified_at' => $u->email_verified_at,
                 'approved_at' => $u->approved_at,
                 'last_login_at' => $u->last_login_at,
                 'created_at' => $u->created_at,
