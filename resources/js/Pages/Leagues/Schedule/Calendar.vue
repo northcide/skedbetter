@@ -697,6 +697,24 @@ watch(
     () => { if (showModal.value) liveValidate(); },
 );
 
+// When field or date changes, auto-select first slot if field has fixed slots
+watch([() => modalForm.field_id, () => modalForm.date], () => {
+    if (!showModal.value) return;
+    if (fieldHasFixedSlots.value && fixedSlots.value.length) {
+        // Check if current start/end matches a slot
+        const currentMatch = fixedSlots.value.find(s => s.start === modalForm.start_time && s.end === modalForm.end_time);
+        if (currentMatch) {
+            selectedSlotValue.value = currentMatch.value;
+        } else {
+            // Auto-select first slot
+            const first = fixedSlots.value[0];
+            selectedSlotValue.value = first.value;
+            modalForm.start_time = first.start;
+            modalForm.end_time = first.end;
+        }
+    }
+});
+
 // When team changes, clear field if it's now blocked
 watch(() => modalForm.team_id, () => {
     if (!showModal.value) return;
