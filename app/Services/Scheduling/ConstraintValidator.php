@@ -254,7 +254,7 @@ class ConstraintValidator
 
             if (! $matchesSlot) {
                 $available = $daySlots->map(fn($s) => $this->fmt(substr($s->start_time, 0, 5)) . ' – ' . $this->fmt(substr($s->end_time, 0, 5))
-                    . ($s->label ? " ({$s->label})" : ''))->join(', ');
+                    . ($s->label ? " ({$s->label})" : ''))->unique()->join(', ');
                 $result->addViolation(
                     'field_availability',
                     "This field has fixed time slots on {$dayNames[$date->dayOfWeek]}. Available slots: {$available}."

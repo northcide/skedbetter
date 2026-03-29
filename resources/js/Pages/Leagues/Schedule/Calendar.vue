@@ -341,8 +341,15 @@ const fixedSlots = computed(() => {
     for (const loc of props.locations) {
         const field = (loc.fields || []).find(f => f.id == modalForm.field_id);
         if (field?.time_slots?.length) {
+            const seen = new Set();
             return field.time_slots
                 .filter(s => s.day_of_week === dow)
+                .filter(s => {
+                    const key = `${s.start_time}|${s.end_time}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                })
                 .map(s => ({
                     start: s.start_time.slice(0, 5),
                     end: s.end_time.slice(0, 5),
