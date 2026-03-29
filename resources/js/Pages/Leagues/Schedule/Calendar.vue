@@ -486,27 +486,22 @@ function handleEventDrop(info) {
 
         if (dropFieldId && dropFieldId.startsWith('loc-')) { info.revert(); return; }
 
-        // Capture the NEW position BEFORE reverting
         const newDate = event.start.toISOString().slice(0, 10);
         const newStartTime = event.start.toTimeString().slice(0, 5);
         const end = event.end || new Date(event.start.getTime() + 3600000);
         const newEndTime = end.toTimeString().slice(0, 5);
-
-        info.revert();
-
         const fieldId = (dropFieldId && !dropFieldId.startsWith('loc-')) ? dropFieldId : (ext.field_id || '');
-        const fieldName = (dropFieldId && !dropFieldId.startsWith('loc-')) ? (resource?.title || '') : (ext.field_name || '');
 
-        openModal({
-            entryId: event.id,
-            teamId: ext.team_id || '',
-            date: newDate,
-            startTime: newStartTime,
-            endTime: newEndTime,
-            fieldId: fieldId,
-            fieldName: fieldName,
-            type: ext.type || 'practice',
-            title: event.title || '',
+        // Save directly via move endpoint — no modal
+        axios.patch(route('leagues.schedule.move', [props.league.slug, event.id]), {
+            date: newDate, start_time: newStartTime, end_time: newEndTime, field_id: fieldId,
+        }, { headers: { Accept: 'application/json' } }).then(() => {
+            // Success — FullCalendar already moved the event visually
+        }).catch((error) => {
+            console.error('Move error:', error.response?.data);
+            info.revert();
+            const msgs = error.response?.data?.errors || ['Move failed'];
+            showError(Array.isArray(msgs) ? msgs : [msgs]);
         });
     } catch (e) {
         console.error('handleEventDrop error:', e);
