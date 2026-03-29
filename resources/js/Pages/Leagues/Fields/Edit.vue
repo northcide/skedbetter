@@ -329,62 +329,20 @@ const submit = () => {
 
                     <div v-if="accessMode === 'restricted'">
                         <!-- Header -->
-                        <div class="grid grid-cols-[1fr_50px_60px_80px_100px_24px] gap-1 text-[9px] font-semibold text-gray-400 px-0.5 mb-1">
-                            <span>Division</span><span>Pri</span><span>/wk</span><span>Window</span><span>Opens</span><span></span>
+                        <div class="grid grid-cols-[1fr_60px_24px] gap-1 text-[9px] font-semibold text-gray-400 px-0.5 mb-1">
+                            <span>Division</span><span>Max/wk</span><span></span>
                         </div>
 
-                        <div v-for="(rule, i) in form.rules" :key="i" class="grid grid-cols-[1fr_50px_60px_80px_100px_24px] gap-1 items-center mt-1">
+                        <div v-for="(rule, i) in form.rules" :key="i" class="grid grid-cols-[1fr_60px_24px] gap-1 items-center mt-1">
                             <select v-model="rule.division_id">
                                 <option v-for="d in divisions" :key="d.id" :value="d.id" :disabled="form.rules.some((r, j) => j !== i && r.division_id === d.id)">{{ d.name }}</option>
                             </select>
-                            <select v-model="rule.priority">
-                                <option value="">-</option>
-                                <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
-                            </select>
                             <TextInput v-model="rule.max_weekly_slots" type="number" min="1" placeholder="∞" />
-                            <select v-model="rule.booking_window_type">
-                                <option value="">None</option>
-                                <option value="calendar">Date</option>
-                                <option value="rolling">Days</option>
-                            </select>
-                            <div>
-                                <TextInput v-if="rule.booking_window_type === 'calendar'" v-model="rule.booking_opens_date" type="date" />
-                                <select v-else-if="rule.booking_window_type === 'rolling'" v-model="rule.booking_opens_days">
-                                    <option value="">-</option>
-                                    <option v-for="d in [7,14,21,28,45,60,90]" :key="d" :value="d">{{ d }}d</option>
-                                </select>
-                                <span v-else class="text-[9px] text-gray-300">-</span>
-                            </div>
                             <button type="button" @click="removeRule(i)" class="text-red-400 hover:text-red-600"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                         </div>
 
                         <button type="button" @click="addRule" class="mt-1.5 text-[10px] text-brand-600 hover:text-brand-700">+ Add division</button>
                         <div v-if="form.rules.length === 0" class="text-[10px] text-amber-600">No divisions = field blocked for all.</div>
-
-                        <!-- Visual Timeline -->
-                        <div v-if="form.rules.some(r => r.booking_window_type)" class="mt-3 rounded border border-gray-100 bg-gray-50 p-2">
-                            <p class="text-[9px] font-semibold text-gray-400 mb-1">Booking Windows</p>
-                            <div v-for="(rule, i) in form.rules.filter(r => r.booking_window_type)" :key="i" class="flex items-center gap-2 mb-1">
-                                <span class="w-24 truncate text-[10px] text-gray-600">{{ divisions.find(d => d.id == rule.division_id)?.name }}</span>
-                                <div class="flex-1 h-3 bg-gray-200 rounded-full relative overflow-hidden">
-                                    <div
-                                        class="absolute h-full rounded-full"
-                                        :class="[
-                                            rule.priority == 1 ? 'bg-brand-600' : rule.priority == 2 ? 'bg-brand-400' : rule.priority == 3 ? 'bg-brand-300' : 'bg-brand-200'
-                                        ]"
-                                        :style="{
-                                            left: rule.booking_window_type === 'rolling' ? '0%' : '0%',
-                                            width: rule.booking_window_type === 'rolling'
-                                                ? Math.min(100, (rule.booking_opens_days || 0) / 90 * 100) + '%'
-                                                : '100%'
-                                        }"
-                                    ></div>
-                                </div>
-                                <span class="text-[9px] text-gray-500 w-16 text-right">
-                                    {{ rule.booking_window_type === 'calendar' ? (rule.booking_opens_date || '?') : (rule.booking_opens_days ? rule.booking_opens_days + 'd' : '?') }}
-                                </span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
