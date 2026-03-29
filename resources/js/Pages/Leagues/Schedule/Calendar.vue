@@ -739,7 +739,10 @@ function editEvent() {
 
     // Extract custom title — server format is "Team - Type" or "Team - Type: Custom Title"
     const rawTitle = liveEvent?.title || ev.title || '';
-    const customTitle = rawTitle.includes(': ') ? rawTitle.split(': ').slice(1).join(': ') : '';
+    const eventType = ext.type || ev.type || '';
+    let customTitle = rawTitle.includes(': ') ? rawTitle.split(': ').slice(1).join(': ') : '';
+    // Guard: if extracted title equals the type name, it's not a real custom title
+    if (customTitle.toLowerCase() === eventType.toLowerCase()) customTitle = '';
 
     openModal({
         entryId: ev.id,
