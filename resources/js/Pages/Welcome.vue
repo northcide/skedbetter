@@ -9,7 +9,11 @@ defineProps({
 </script>
 
 <template>
-    <Head title="SkedBetter - Field Scheduling Made Simple" />
+    <Head title="SkedBetter - Field Scheduling Made Simple">
+        <meta head-key="description" name="description" content="SkedBetter is the modern field scheduling platform for sports leagues. Manage fields, teams, and time slots with conflict detection, drag-and-drop calendars, booking windows, and zero double-bookings." />
+        <meta head-key="og:title" property="og:title" content="SkedBetter - Schedule Fields, Not Headaches" />
+        <meta head-key="og:description" property="og:description" content="The modern scheduling platform for youth sports leagues. Visual calendars, conflict detection, mobile-friendly, and built for coaches and league admins." />
+    </Head>
 
     <div class="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800">
         <!-- Nav -->
@@ -109,9 +113,68 @@ defineProps({
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="border-t border-brand-800 py-8 text-center text-sm text-brand-400">
-            SkedBetter &mdash; Field scheduling made simple.
+        <!-- How It Works -->
+        <div class="bg-gray-50 py-24">
+            <div class="mx-auto max-w-7xl px-6">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900">How it works</h2>
+                    <p class="mt-4 text-lg text-gray-500">Get your league scheduling online in minutes.</p>
+                </div>
+
+                <div class="mt-16 grid grid-cols-1 gap-12 sm:grid-cols-3">
+                    <div class="text-center">
+                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-xl font-bold text-white">1</div>
+                        <h3 class="mt-4 text-lg font-semibold text-gray-900">Create Your League</h3>
+                        <p class="mt-2 text-sm text-gray-600">Sign up, name your league, and add your divisions, teams, and fields. Import from CSV or add them one by one.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-xl font-bold text-white">2</div>
+                        <h3 class="mt-4 text-lg font-semibold text-gray-900">Set Your Rules</h3>
+                        <p class="mt-2 text-sm text-gray-600">Configure booking windows, field restrictions, blackout dates, and weekly limits. The system enforces them automatically.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-xl font-bold text-white">3</div>
+                        <h3 class="mt-4 text-lg font-semibold text-gray-900">Schedule Away</h3>
+                        <p class="mt-2 text-sm text-gray-600">Coaches book field time from their phones. Conflict detection prevents double-bookings. Everyone stays in sync via calendar feeds.</p>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- CTA -->
+        <div class="bg-brand-900 py-16">
+            <div class="mx-auto max-w-4xl px-6 text-center">
+                <h2 class="text-3xl font-bold tracking-tight text-white">Ready to simplify your league scheduling?</h2>
+                <p class="mt-4 text-lg text-brand-200/80">Join leagues that have eliminated scheduling conflicts and spreadsheet chaos.</p>
+                <div class="mt-8">
+                    <Link v-if="canRegister" :href="route('register')" class="rounded-lg bg-white px-8 py-3.5 text-base font-semibold text-brand-700 shadow-lg transition hover:bg-brand-50 hover:shadow-xl">
+                        Get Started Free
+                    </Link>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-brand-800 bg-brand-950 py-8 text-center text-sm text-brand-400">
+            <p>SkedBetter &mdash; Field scheduling made simple.</p>
+            <p class="mt-2 text-brand-500/50 text-xs">&copy; {{ new Date().getFullYear() }} SkedBetter. All rights reserved.</p>
+        </div>
+
+        <!-- JSON-LD Structured Data -->
+        <component :is="'script'" type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "SkedBetter",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "description": "Field scheduling platform for sports leagues with conflict detection, booking windows, and mobile-friendly calendars.",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            }
+        }
+        </component>
     </div>
 </template>
