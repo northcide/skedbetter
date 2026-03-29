@@ -44,6 +44,12 @@
     font-style: italic;
 }
 
+/* Month view: compact event display */
+.fc-month-event { display: flex; align-items: center; gap: 3px; font-size: 10px; line-height: 1.2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.fc-month-time { font-weight: 600; opacity: 0.7; }
+.fc .fc-daygrid-day-number { cursor: pointer; }
+.fc .fc-daygrid-more-link { font-size: 10px; font-weight: 600; color: #6366f1; }
+
 /* Mobile: prevent iOS zoom on input focus, ensure touch targets */
 @media (max-width: 639px) {
     select, textarea,

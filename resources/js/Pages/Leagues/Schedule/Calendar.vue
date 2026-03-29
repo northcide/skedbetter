@@ -355,6 +355,8 @@ const calendarOptions = ref({
         dayGridMonth: { buttonText: 'Month' },
         listWeek: { buttonText: 'List' },
     },
+    dayMaxEvents: 3,
+    moreLinkClick: 'day',
     slotMinTime: '06:00:00',
     slotMaxTime: '22:00:00',
     slotDuration: '00:30:00',
@@ -363,6 +365,24 @@ const calendarOptions = ref({
     expandRows: true,
     height: 'auto',
     contentHeight: isMobile.value ? 'auto' : 560,
+    dateClick: (info) => {
+        if (info.view.type === 'dayGridMonth') {
+            const api = calendarRef.value?.getApi();
+            if (api) {
+                api.changeView('timeGridDay', info.dateStr);
+            }
+        }
+    },
+    eventContent: (arg) => {
+        const view = arg.view.type;
+        if (view === 'dayGridMonth') {
+            const ext = arg.event.extendedProps || {};
+            const time = arg.event.start ? fmt12(arg.event.start.toTimeString().slice(0, 5)) : '';
+            const team = ext.team_name || arg.event.title;
+            return { html: `<span class="fc-month-event"><span class="fc-month-time">${time}</span> ${team}</span>` };
+        }
+        return true;
+    },
     resourceAreaHeaderContent: 'Fields',
     resourceAreaWidth: '150px',
     editable: false,  // per-event editable from server
