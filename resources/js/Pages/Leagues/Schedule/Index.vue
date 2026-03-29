@@ -96,7 +96,7 @@ const statusBadge = (status) => {
             <div class="">
                 <!-- Filters -->
                 <div class="mb-6 overflow-hidden rounded-lg bg-white p-4 shadow-sm">
-                    <div class="grid grid-cols-2 gap-4 md:grid-cols-5">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-5">
                         <select v-model="filters.season_id" @change="applyFilters" class="rounded-md border-gray-300 text-sm">
                             <option value="">All Seasons</option>
                             <option v-for="s in seasons" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -114,13 +114,38 @@ const statusBadge = (status) => {
                     </div>
                 </div>
 
-                <!-- Table -->
+                <!-- Entries -->
                 <div class="overflow-hidden rounded-lg bg-white shadow-sm">
                     <div v-if="entries.data.length === 0" class="p-12 text-center text-gray-500">
                         No schedule entries found.
                     </div>
 
-                    <table v-else class="min-w-full divide-y divide-gray-200">
+                    <!-- Mobile: card layout -->
+                    <div v-else class="divide-y divide-gray-100 md:hidden">
+                        <div v-for="entry in entries.data" :key="'m-' + entry.id" class="px-4 py-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5">
+                                    <span v-if="entry.team?.color_code" class="inline-block h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: entry.team.color_code }"></span>
+                                    <span class="text-sm font-medium text-gray-900">{{ entry.team?.name }}</span>
+                                </div>
+                                <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold" :class="statusBadge(entry.status)">{{ entry.status }}</span>
+                            </div>
+                            <div class="mt-1 text-sm text-gray-600">
+                                {{ fmtDate(entry.date) }} &middot; {{ fmt12(entry.start_time) }} - {{ fmt12(entry.end_time) }}
+                            </div>
+                            <div class="mt-0.5 text-sm text-gray-400">
+                                {{ entry.field?.name }}<span v-if="entry.field?.location"> @ {{ entry.field.location.name }}</span>
+                                &middot; <span class="capitalize">{{ entry.type }}</span>
+                            </div>
+                            <div v-if="isManager" class="mt-2 flex gap-4">
+                                <Link :href="route('leagues.schedule.edit', [league.slug, entry.id])" class="py-1 text-sm font-medium text-brand-600">Edit</Link>
+                                <button v-if="entry.status !== 'cancelled'" @click="cancelEntry(entry)" class="py-1 text-sm font-medium text-red-600">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desktop: table -->
+                    <table v-if="entries.data.length" class="hidden md:table min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Date</th>
@@ -172,7 +197,7 @@ const statusBadge = (status) => {
                         :key="link.label"
                         :href="link.url || '#'"
                         v-html="link.label"
-                        class="rounded px-3 py-1 text-sm"
+                        class="flex items-center justify-center rounded px-3 py-2 text-sm min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:py-1"
                         :class="link.active ? 'bg-brand-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
                     />
                 </div>

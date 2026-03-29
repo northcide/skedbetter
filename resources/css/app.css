@@ -43,3 +43,23 @@
     color: #6b7280 !important;
     font-style: italic;
 }
+
+/* Mobile: prevent iOS zoom on input focus, ensure touch targets */
+@media (max-width: 639px) {
+    select, textarea,
+    input[type="text"], input[type="email"], input[type="password"],
+    input[type="number"], input[type="date"], input[type="time"] {
+        font-size: 16px !important;
+        min-height: 44px;
+    }
+}
+
+/* FullCalendar mobile overrides */
+@media (max-width: 767px) {
+    .fc .fc-toolbar { flex-wrap: wrap; gap: 0.25rem; }
+    .fc .fc-toolbar-title { font-size: 0.85rem !important; }
+    .fc .fc-button { padding: 6px 10px !important; font-size: 12px !important; min-height: 44px; }
+    .fc-event { font-size: 11px; padding: 2px 4px; }
+    .fc .fc-list-event-title { font-size: 13px; }
+    .fc .fc-list-day-cushion { font-size: 13px; }
+}

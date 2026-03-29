@@ -66,7 +66,7 @@ function isActive(item) {
                     <span class="text-gray-300">/</span>
                     <Link :href="route('leagues.show', league.slug)" class="font-medium text-gray-900 hover:text-brand-600">{{ league.name }}</Link>
                 </div>
-                <button @click="mobileMenuOpen = !mobileMenuOpen" class="rounded p-1.5 text-gray-400 lg:hidden">
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="rounded p-2.5 text-gray-400 lg:hidden">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
@@ -75,15 +75,18 @@ function isActive(item) {
         <div class="mx-auto max-w-screen-2xl px-3 py-2 sm:px-4 lg:px-5">
             <div class="lg:grid lg:grid-cols-[160px_1fr] lg:gap-4">
                 <!-- Sidebar -->
-                <aside :class="mobileMenuOpen ? 'block' : 'hidden lg:block'" class="mb-3 lg:mb-0">
+                <!-- Mobile backdrop -->
+                <div v-if="mobileMenuOpen" class="fixed inset-0 z-30 bg-black/30 lg:hidden" @click="mobileMenuOpen = false"></div>
+
+                <aside :class="mobileMenuOpen ? 'block' : 'hidden lg:block'" class="mb-3 lg:mb-0 relative z-40">
                     <nav class="space-y-3">
                         <div v-for="section in navSections" :key="section.label">
-                            <h3 class="px-2 text-[9px] font-bold uppercase tracking-wider text-gray-400">{{ section.label }}</h3>
+                            <h3 class="px-2 text-[11px] lg:text-[9px] font-bold uppercase tracking-wider text-gray-400">{{ section.label }}</h3>
                             <ul class="mt-0.5 space-y-px">
                                 <li v-for="item in section.items" :key="item.route">
                                     <Link
                                         :href="route(item.route, league.slug)"
-                                        class="flex items-center rounded px-2 py-1 text-[12px] font-medium transition"
+                                        class="flex items-center rounded px-2 py-2.5 lg:py-1 text-sm lg:text-[12px] font-medium transition"
                                         :class="isActive(item) ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'"
                                         @click="mobileMenuOpen = false"
                                     >{{ item.label }}</Link>

@@ -6,7 +6,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Modal from '@/Components/Modal.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -43,6 +43,14 @@ const schedulableDivisions = computed(() => {
 const calendarRef = ref(null);
 const teamListRef = ref(null);
 const errorMessages = ref([]);
+const filtersOpen = ref(false);
+
+// Mobile detection
+const mobileQuery = typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)') : null;
+const isMobile = ref(mobileQuery?.matches ?? false);
+function onMobileChange(e) { isMobile.value = e.matches; }
+onMounted(() => mobileQuery?.addEventListener('change', onMobileChange));
+onUnmounted(() => mobileQuery?.removeEventListener('change', onMobileChange));
 const showModal = ref(false);
 const showConfirmation = ref(false);
 const modalSubmitting = ref(false);
@@ -92,7 +100,7 @@ function saveState(patch) {
     localStorage.setItem(storeKey, JSON.stringify({ ...current, ...patch }));
 }
 
-const validViews = ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'resourceTimelineDay'];
+const validViews = ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'resourceTimelineDay', 'listWeek'];
 
 function validateSavedState(s) {
     // Validate view
@@ -331,20 +339,21 @@ onMounted(() => {
     }
 });
 
+const mobileDefault = isMobile.value ? 'listWeek' : 'timeGridWeek';
+
 const calendarOptions = ref({
     plugins: [dayGridPlugin, timeGridPlugin, listPlugin, resourceTimelinePlugin, interactionPlugin],
-    initialView: saved.view || 'timeGridWeek',
+    initialView: saved.view || mobileDefault,
     initialDate: saved.date || undefined,
-    headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay,resourceTimelineDay',
-    },
+    headerToolbar: isMobile.value
+        ? { left: 'prev,next', center: 'title', right: 'listWeek,timeGridDay' }
+        : { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,resourceTimelineDay' },
     views: {
         resourceTimelineDay: { buttonText: 'Fields' },
         timeGridWeek: { buttonText: 'Week' },
         timeGridDay: { buttonText: 'Day' },
         dayGridMonth: { buttonText: 'Month' },
+        listWeek: { buttonText: 'List' },
     },
     slotMinTime: '06:00:00',
     slotMaxTime: '22:00:00',
@@ -353,7 +362,7 @@ const calendarOptions = ref({
     nowIndicator: true,
     expandRows: true,
     height: 'auto',
-    contentHeight: 560,
+    contentHeight: isMobile.value ? 'auto' : 560,
     resourceAreaHeaderContent: 'Fields',
     resourceAreaWidth: '150px',
     editable: false,  // per-event editable from server
@@ -701,30 +710,42 @@ function showError(messages) {
         <FlashMessage />
 
         <!-- Filter Bar -->
-        <div class="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Filter:</span>
+        <div class="mt-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <!-- Mobile: collapsible toggle -->
+            <button @click="filtersOpen = !filtersOpen" class="flex w-full items-center justify-between lg:hidden">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Filters</span>
+                <div class="flex items-center gap-2">
+                    <span v-if="hasFilters" class="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-medium text-brand-700">Active</span>
+                    <svg class="h-4 w-4 text-gray-400 transition-transform" :class="{ 'rotate-180': filtersOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+            </button>
 
-            <select v-model="filters.division_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                <option value="">All Divisions</option>
-                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
-            </select>
+            <!-- Filters: always visible on lg, collapsible on mobile -->
+            <div :class="filtersOpen ? 'mt-2' : 'hidden'" class="lg:!block">
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-center lg:gap-2">
+                    <select v-model="filters.division_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                        <option value="">All Divisions</option>
+                        <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+                    </select>
 
-            <select v-model="filters.team_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                <option value="">All Teams</option>
-                <option v-for="t in viewFilteredTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
-            </select>
+                    <select v-model="filters.team_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                        <option value="">All Teams</option>
+                        <option v-for="t in viewFilteredTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
+                    </select>
 
-            <select v-model="filters.location_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                <option value="">All Locations</option>
-                <option v-for="l in locations" :key="l.id" :value="l.id">{{ l.name }}</option>
-            </select>
+                    <select v-model="filters.location_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                        <option value="">All Locations</option>
+                        <option v-for="l in locations" :key="l.id" :value="l.id">{{ l.name }}</option>
+                    </select>
 
-            <select v-model="filters.field_id" class="w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                <option value="">All Fields</option>
-                <option v-for="f in availableFields" :key="f.id" :value="f.id">{{ f.name }}</option>
-            </select>
+                    <select v-model="filters.field_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                        <option value="">All Fields</option>
+                        <option v-for="f in availableFields" :key="f.id" :value="f.id">{{ f.name }}</option>
+                    </select>
 
-            <button v-if="hasFilters" @click="clearFilters" class="text-[11px] font-medium text-brand-600 hover:text-brand-700">Clear</button>
+                    <button v-if="hasFilters" @click="clearFilters" class="text-[11px] font-medium text-brand-600 hover:text-brand-700 py-2 lg:py-0">Clear</button>
+                </div>
+            </div>
         </div>
 
         <div v-if="errorMessages.length" class="fixed top-3 right-3 z-50 max-w-sm rounded-lg bg-red-500 px-3 py-2 text-xs text-white shadow-lg">
@@ -766,6 +787,14 @@ function showError(messages) {
             </div>
         </div>
 
+        <!-- Mobile FAB: New Entry -->
+        <button v-if="canSchedule"
+            @click="openModal({ date: new Date().toISOString().slice(0, 10) })"
+            class="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg active:bg-brand-700 lg:hidden"
+            title="New Entry">
+            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+        </button>
+
         <!-- Quick Schedule Modal -->
         <Modal :show="showModal" @close="showModal = false" max-width="md">
             <form @submit.prevent="submitModal" class="p-4">
@@ -797,7 +826,7 @@ function showError(messages) {
                 </div>
 
                 <div class="mt-3 space-y-2.5">
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-2">
                         <div>
                             <InputLabel for="m_team" value="Team" class="text-xs" />
                             <select id="m_team" v-model="modalForm.team_id" @change="liveValidate" class="mt-1 block w-full" required>
@@ -830,7 +859,7 @@ function showError(messages) {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-2">
                         <div>
                             <InputLabel for="m_date" value="Date" class="text-xs" />
                             <TextInput id="m_date" v-model="modalForm.date" type="date" class="mt-1 block w-full" required />
@@ -853,7 +882,7 @@ function showError(messages) {
                         {{ fmt12(modalForm.start_time) }} &ndash; {{ fmt12(modalForm.end_time) }}
                     </p>
 
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-2">
                         <div>
                             <InputLabel for="m_type" value="Type" class="text-xs" />
                             <select id="m_type" v-model="modalForm.type" class="mt-1 block w-full">
@@ -870,9 +899,9 @@ function showError(messages) {
                     </div>
                 </div>
 
-                <div class="mt-4 flex justify-end gap-2">
-                    <button type="button" @click="showModal = false" class="rounded px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900">Cancel</button>
-                    <PrimaryButton :disabled="modalSubmitting || !modalForm.team_id || !modalForm.field_id || liveErrors.length > 0">Schedule</PrimaryButton>
+                <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <button type="button" @click="showModal = false" class="rounded-md px-4 py-3 text-sm text-gray-600 hover:text-gray-900 sm:px-3 sm:py-1.5 sm:text-xs">Cancel</button>
+                    <PrimaryButton class="w-full sm:w-auto min-h-[44px] sm:min-h-0" :disabled="modalSubmitting || !modalForm.team_id || !modalForm.field_id || liveErrors.length > 0">Schedule</PrimaryButton>
                 </div>
             </form>
         </Modal>
@@ -901,11 +930,11 @@ function showError(messages) {
                     <p v-if="confirmationDetails.title" class="italic text-gray-500">"{{ confirmationDetails.title }}"</p>
                 </div>
 
-                <div class="mt-5 flex justify-end gap-2">
-                    <button @click="cancelConfirmation" class="rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900">
+                <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <button @click="cancelConfirmation" class="rounded-md px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 sm:px-3 sm:py-1.5 sm:text-xs">
                         Go Back
                     </button>
-                    <PrimaryButton @click="confirmSchedule" :disabled="modalSubmitting">
+                    <PrimaryButton class="w-full sm:w-auto min-h-[44px] sm:min-h-0" @click="confirmSchedule" :disabled="modalSubmitting">
                         {{ modalSubmitting ? 'Saving...' : 'Confirm' }}
                     </PrimaryButton>
                 </div>
@@ -932,16 +961,16 @@ function showError(messages) {
                         </span>
                     </p>
                 </div>
-                <div v-if="isManager || (isCoach && props.coachTeamIds.includes(eventDetail.teamId))" class="mt-4 flex justify-end gap-2">
-                    <button v-if="eventDetail.status !== 'cancelled'" @click="cancelEvent" class="rounded-md px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                <div v-if="isManager || (isCoach && props.coachTeamIds.includes(eventDetail.teamId))" class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <button v-if="eventDetail.status !== 'cancelled'" @click="cancelEvent" class="rounded-md border border-red-200 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 sm:border-0 sm:px-3 sm:py-1.5 sm:text-xs">
                         Delete Entry
                     </button>
-                    <button @click="editEvent" class="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">
+                    <button @click="editEvent" class="rounded-md bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 sm:px-3 sm:py-1.5 sm:text-xs">
                         Edit
                     </button>
                 </div>
                 <div v-else class="mt-4 flex justify-end">
-                    <button @click="showEventDetail = false" class="rounded-md px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900">Close</button>
+                    <button @click="showEventDetail = false" class="rounded-md px-4 py-3 text-sm text-gray-600 hover:text-gray-900 sm:px-3 sm:py-1.5 sm:text-xs">Close</button>
                 </div>
             </div>
         </Modal>
