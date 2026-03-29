@@ -8,7 +8,6 @@ const props = defineProps({
     leagues: Array,
     pendingLeagues: { type: Array, default: () => [] },
     canCreateLeague: Boolean,
-    canRequestLeague: Boolean,
     isSuperadmin: Boolean,
 });
 
@@ -28,14 +27,9 @@ const deleteLeague = (league) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-900">My Leagues</h2>
-                <div class="flex gap-2">
-                    <Link v-if="canRequestLeague" :href="route('leagues.create')">
-                        <PrimaryButton>Request a League</PrimaryButton>
-                    </Link>
-                    <Link v-if="canCreateLeague" :href="route('leagues.create')">
-                        <PrimaryButton>Create League</PrimaryButton>
-                    </Link>
-                </div>
+                <Link v-if="canCreateLeague" :href="route('leagues.create')">
+                    <PrimaryButton>Create League</PrimaryButton>
+                </Link>
             </div>
         </template>
 

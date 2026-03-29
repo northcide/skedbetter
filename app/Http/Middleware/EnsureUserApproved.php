@@ -14,8 +14,8 @@ class EnsureUserApproved
         $user = $request->user();
 
         if ($user && !$user->isApproved() && !$user->isSuperadmin()) {
-            // Allow logout and league request flow
-            if ($request->routeIs('logout', 'leagues.index', 'leagues.create', 'leagues.store')) {
+            // Allow logout and viewing leagues
+            if ($request->routeIs('logout', 'leagues.index')) {
                 return $next($request);
             }
 
