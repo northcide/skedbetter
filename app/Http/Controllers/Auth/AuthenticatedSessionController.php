@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\AuditLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +30,32 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        try {
+            $request->authenticate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            AuditLog::withoutGlobalScopes()->create([
+                'league_id' => null,
+                'user_id' => null,
+                'action' => 'login_failed',
+                'auditable_type' => null,
+                'auditable_id' => null,
+                'new_values' => ['method' => 'password', 'email' => $request->email],
+                'ip_address' => $request->ip(),
+            ]);
+            throw $e;
+        }
 
         $request->session()->regenerate();
+
+        AuditLog::withoutGlobalScopes()->create([
+            'league_id' => null,
+            'user_id' => Auth::id(),
+            'action' => 'login',
+            'auditable_type' => null,
+            'auditable_id' => null,
+            'new_values' => ['method' => 'password'],
+            'ip_address' => $request->ip(),
+        ]);
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

@@ -19,7 +19,17 @@ class AuditLogController extends Controller
             abort(403);
         }
 
-        $query = AuditLog::where('league_id', $context->league()->id)
+        $leagueId = $context->league()->id;
+        $leagueMemberIds = \DB::table('league_user')->where('league_id', $leagueId)->pluck('user_id');
+
+        $query = AuditLog::withoutGlobalScopes()
+            ->where(function ($q) use ($leagueId, $leagueMemberIds) {
+                $q->where('league_id', $leagueId)
+                  ->orWhere(function ($q2) use ($leagueMemberIds) {
+                      $q2->whereNull('league_id')
+                         ->whereIn('user_id', $leagueMemberIds);
+                  });
+            })
             ->with('user:id,name,email')
             ->orderByDesc('created_at');
 
@@ -34,7 +44,14 @@ class AuditLogController extends Controller
         $logs = $query->paginate(50);
 
         // Get unique users and actions for filters
-        $users = AuditLog::where('league_id', $context->league()->id)
+        $users = AuditLog::withoutGlobalScopes()
+            ->where(function ($q) use ($leagueId, $leagueMemberIds) {
+                $q->where('league_id', $leagueId)
+                  ->orWhere(function ($q2) use ($leagueMemberIds) {
+                      $q2->whereNull('league_id')
+                         ->whereIn('audit_logs.user_id', $leagueMemberIds);
+                  });
+            })
             ->join('users', 'users.id', '=', 'audit_logs.user_id')
             ->select('users.id', 'users.name')
             ->distinct()

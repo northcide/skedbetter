@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\MagicLinkMail;
+use App\Models\AuditLog;
 use App\Models\MagicLink;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -42,25 +43,26 @@ class MagicLinkController extends Controller
         return back()->with('success', 'If an account exists with that email, a login link has been sent.');
     }
 
-    public function verify(string $token)
+    public function verify(Request $request, string $token)
     {
         $magicLink = MagicLink::where('token', $token)->first();
 
         if (! $magicLink) {
+            $this->auditLogin(null, 'login_failed', $request->ip(), ['method' => 'magic_link', 'reason' => 'invalid_token']);
             return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'invalid']);
         }
 
         if (! $magicLink->isValid()) {
+            $this->auditLogin(null, 'login_failed', $request->ip(), ['method' => 'magic_link', 'reason' => 'expired', 'email' => $magicLink->email]);
             return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'expired']);
         }
 
         $user = User::where('email', $magicLink->email)->first();
 
         if (! $user) {
+            $this->auditLogin(null, 'login_failed', $request->ip(), ['method' => 'magic_link', 'reason' => 'no_account', 'email' => $magicLink->email]);
             return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'no_account']);
         }
-
-        $magicLink->markUsed();
 
         // Mark email as verified if not already
         if (! $user->email_verified_at) {
@@ -71,7 +73,23 @@ class MagicLinkController extends Controller
 
         Auth::login($user, remember: true);
 
+        $this->auditLogin($user->id, 'login', $request->ip(), ['method' => 'magic_link']);
+
         return redirect()->route('leagues.index');
+    }
+
+    protected function auditLogin(?int $userId, string $action, ?string $ip, array $details = []): void
+    {
+        AuditLog::withoutGlobalScopes()->create([
+            'league_id' => null,
+            'user_id' => $userId,
+            'action' => $action,
+            'auditable_type' => null,
+            'auditable_id' => null,
+            'old_values' => null,
+            'new_values' => $details,
+            'ip_address' => $ip,
+        ]);
     }
 
     // Generate a magic link for a specific user (called by managers)
