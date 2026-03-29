@@ -455,11 +455,13 @@ const calendarOptions = ref({
             const location = ext.location_name || '';
             const type = ext.type ? ext.type.charAt(0).toUpperCase() + ext.type.slice(1) : '';
             const status = ext.status ? ext.status.charAt(0).toUpperCase() + ext.status.slice(1) : '';
+            const customTitle = ext.custom_title || '';
 
             tooltip = document.createElement('div');
             tooltip.className = 'fc-hover-tooltip';
             tooltip.innerHTML = `
                 <div style="font-weight:600;font-size:12px;margin-bottom:3px;">${team}</div>
+                ${customTitle ? `<div style="font-size:11px;color:#374151;font-style:italic;">${customTitle}</div>` : ''}
                 <div style="font-size:11px;color:#6b7280;">${time}</div>
                 ${field ? `<div style="font-size:11px;color:#9ca3af;">${field}${location ? ' @ ' + location : ''}</div>` : ''}
                 ${type ? `<div style="font-size:10px;color:#9ca3af;margin-top:2px;">${type}${status ? ' · ' + status : ''}</div>` : ''}
