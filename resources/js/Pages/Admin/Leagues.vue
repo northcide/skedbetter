@@ -2,7 +2,7 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
 const props = defineProps({ leagues: Array });
@@ -84,7 +84,7 @@ function fmtDate(d) {
             <div v-else class="divide-y divide-gray-50">
                 <div v-for="league in activeLeagues" :key="league.id" class="flex items-center justify-between px-4 py-2.5">
                     <div>
-                        <p class="text-sm font-medium text-gray-900">{{ league.name }}</p>
+                        <Link :href="route('leagues.show', league.slug)" class="text-sm font-medium text-gray-900 hover:text-brand-600">{{ league.name }}</Link>
                         <div class="flex gap-3 text-[10px] text-gray-400">
                             <span>{{ league.divisions_count }} div</span>
                             <span>{{ league.teams_count }} teams</span>
@@ -106,7 +106,7 @@ function fmtDate(d) {
             <div class="divide-y divide-gray-50">
                 <div v-for="league in inactiveLeagues" :key="league.id" class="flex items-center justify-between px-4 py-2.5 opacity-60">
                     <div>
-                        <p class="text-sm font-medium text-gray-900">{{ league.name }}</p>
+                        <Link :href="route('leagues.show', league.slug)" class="text-sm font-medium text-gray-900 hover:text-brand-600">{{ league.name }}</Link>
                     </div>
                     <button @click="toggleActive(league)" class="text-[10px] text-brand-600 hover:text-brand-700">Reactivate</button>
                 </div>
