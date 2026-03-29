@@ -60,12 +60,14 @@ const confirmationDetails = ref({});
 const highlightStartTime = ref(false);
 const modalFieldName = ref('');
 const liveErrors = ref([]);
+const liveWarnings = ref([]);
 const validating = ref(false);
 let validateTimeout = null;
 
 function liveValidate() {
     clearTimeout(validateTimeout);
     liveErrors.value = [];
+    liveWarnings.value = [];
 
     if (!modalForm.team_id || !modalForm.field_id || !modalForm.date || !modalForm.start_time || !modalForm.end_time) return;
     if (modalForm.start_time >= modalForm.end_time) return;
@@ -81,8 +83,10 @@ function liveValidate() {
             exclude_entry_id: editingEntryId.value || null,
         }).then(res => {
             liveErrors.value = res.data.valid ? [] : (res.data.errors || []);
+            liveWarnings.value = res.data.warnings || [];
         }).catch(() => {
             liveErrors.value = [];
+            liveWarnings.value = [];
         }).finally(() => {
             validating.value = false;
         });
@@ -563,6 +567,7 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
     modalForm.type = type || 'practice';
     modalForm.clearErrors();
     liveErrors.value = [];
+    liveWarnings.value = [];
 
     // Calculate duration from start/end if both provided, otherwise default 60
     if (startTime && endTime) {
@@ -908,11 +913,18 @@ function showError(messages) {
                     </ul>
                 </div>
 
-                <!-- Live conflict warnings -->
+                <!-- Live conflict errors -->
                 <div v-if="liveErrors.length && !Object.keys(modalForm.errors).length" class="mt-2 rounded border border-red-200 bg-red-50 p-2 text-xs text-red-700">
                     <p class="font-semibold">Conflicts detected:</p>
                     <ul class="mt-1 list-disc pl-4">
                         <li v-for="e in liveErrors" :key="e">{{ e }}</li>
+                    </ul>
+                </div>
+
+                <!-- Booking window warnings (admin override) -->
+                <div v-if="liveWarnings.length && !liveErrors.length && !Object.keys(modalForm.errors).length" class="mt-2 rounded border border-amber-200 bg-amber-50 p-2 text-xs text-red-600">
+                    <ul class="list-disc pl-4">
+                        <li v-for="w in liveWarnings" :key="w">{{ w }}</li>
                     </ul>
                 </div>
 

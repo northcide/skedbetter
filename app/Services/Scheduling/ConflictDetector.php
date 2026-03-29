@@ -24,6 +24,14 @@ class ConflictDetector
         return "{$h12}:{$m} {$ampm}";
     }
 
+    protected bool $isAdmin = false;
+
+    public function asAdmin(bool $admin = true): self
+    {
+        $this->isAdmin = $admin;
+        return $this;
+    }
+
     public function check(ScheduleRequest $request): ConflictResult
     {
         $result = new ConflictResult();
@@ -324,8 +332,12 @@ class ConflictDetector
 
         $window = $division->bookingWindow;
         if (! $window->isOpenForDate($request->date)) {
-            $result->addViolation('booking_window',
-                "Booking not yet open for {$division->name} ({$window->name}: {$window->opensDescription()})");
+            $msg = "Booking not yet open for {$division->name} ({$window->name}: {$window->opensDescription()})";
+            if ($this->isAdmin) {
+                $result->addWarning('booking_window', $msg);
+            } else {
+                $result->addViolation('booking_window', $msg);
+            }
         }
     }
 }

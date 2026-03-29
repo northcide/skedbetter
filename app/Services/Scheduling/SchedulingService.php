@@ -14,6 +14,11 @@ class SchedulingService
         protected ConstraintValidator $constraintValidator,
     ) {}
 
+    public function getConflictDetector(): ConflictDetector
+    {
+        return $this->conflictDetector;
+    }
+
     public function validate(ScheduleRequest $request): ConflictResult
     {
         $conflicts = $this->conflictDetector->check($request);
@@ -22,7 +27,14 @@ class SchedulingService
             return $conflicts;
         }
 
-        return $this->constraintValidator->validate($request);
+        $constraints = $this->constraintValidator->validate($request);
+
+        // Carry forward any warnings from conflict check
+        foreach ($conflicts->getAllWarnings() as $warning) {
+            $constraints->addWarning('booking_window', $warning);
+        }
+
+        return $constraints;
     }
 
     public function create(array $data, int $userId): ScheduleEntry|ConflictResult

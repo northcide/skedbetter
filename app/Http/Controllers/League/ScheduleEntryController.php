@@ -144,6 +144,9 @@ class ScheduleEntryController extends Controller
             }
         }
 
+        $isAdmin = in_array($role, ['superadmin', 'league_admin']);
+        $this->schedulingService->getConflictDetector()->asAdmin($isAdmin);
+
         $result = $this->schedulingService->create($validated, $request->user()->id);
 
         if ($result instanceof ConflictResult) {
@@ -232,11 +235,16 @@ class ScheduleEntryController extends Controller
             'exclude_entry_id' => $validated['exclude_entry_id'] ?? null,
         ]);
 
+        $role = $context->userRole();
+        $isAdmin = in_array($role, ['superadmin', 'league_admin']);
+        $this->schedulingService->getConflictDetector()->asAdmin($isAdmin);
+
         $result = $this->schedulingService->validate($scheduleRequest);
 
         return response()->json([
             'valid' => ! $result->hasConflicts(),
             'errors' => $result->getAllMessages(),
+            'warnings' => $result->getAllWarnings(),
         ]);
     }
 
