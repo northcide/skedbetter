@@ -437,19 +437,21 @@ const calendarOptions = ref({
         if (info.event.display === 'background') return;
         if (info.el._tooltipBound) return;
         info.el._tooltipBound = true;
-        const ext = info.event.extendedProps || {};
-        const start = info.event.start;
-        const end = info.event.end || new Date(start.getTime() + 3600000);
-        const time = fmt12(start.toTimeString().slice(0, 5)) + ' – ' + fmt12(end.toTimeString().slice(0, 5));
-        const team = ext.team_name || info.event.title;
-        const field = ext.field_name || '';
-        const location = ext.location_name || '';
-        const type = ext.type ? ext.type.charAt(0).toUpperCase() + ext.type.slice(1) : '';
-        const status = ext.status ? ext.status.charAt(0).toUpperCase() + ext.status.slice(1) : '';
+        const ev = info.event;
 
         let tooltip = null;
-        info.el.addEventListener('mouseenter', (e) => {
-            if (window.innerWidth < 1024) return; // skip on mobile/tablet
+        info.el.addEventListener('mouseenter', () => {
+            if (window.innerWidth < 1024) return;
+            const ext = ev.extendedProps || {};
+            const start = ev.start;
+            const end = ev.end || new Date(start.getTime() + 3600000);
+            const time = fmt12(start.toTimeString().slice(0, 5)) + ' – ' + fmt12(end.toTimeString().slice(0, 5));
+            const team = ext.team_name || ev.title;
+            const field = ext.field_name || '';
+            const location = ext.location_name || '';
+            const type = ext.type ? ext.type.charAt(0).toUpperCase() + ext.type.slice(1) : '';
+            const status = ext.status ? ext.status.charAt(0).toUpperCase() + ext.status.slice(1) : '';
+
             tooltip = document.createElement('div');
             tooltip.className = 'fc-hover-tooltip';
             tooltip.innerHTML = `
