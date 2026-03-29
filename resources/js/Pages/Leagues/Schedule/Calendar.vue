@@ -521,9 +521,10 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
         resolvedTeamId = schedulableTeams.value[0].id;
     }
 
-    modalForm.team_id = resolvedTeamId;
+    // Ensure team_id is numeric to match <option :value="t.id">
+    modalForm.team_id = resolvedTeamId ? Number(resolvedTeamId) : '';
     modalForm.date = date;
-    modalForm.field_id = resolvedFieldId;
+    modalForm.field_id = resolvedFieldId ? Number(resolvedFieldId) : '';
     modalFieldName.value = resolvedFieldName;
     modalForm.title = title || '';
     modalForm.type = type || 'practice';
@@ -635,22 +636,25 @@ function cancelEvent() {
 function editEvent() {
     const ev = eventDetail.value;
     showEventDetail.value = false;
+
+    // Resolve field_id from name
+    let fieldId = '';
+    for (const loc of props.locations) {
+        const f = (loc.fields || []).find(f => f.name === ev.fieldName);
+        if (f) { fieldId = f.id; break; }
+    }
+
     openModal({
         entryId: ev.id,
-        teamId: props.teams.find(t => t.name === ev.teamName)?.id || '',
+        teamId: ev.teamId,
         date: ev.date,
         startTime: ev.startTime,
         endTime: ev.endTime,
-        fieldId: '', // will resolve from name
+        fieldId: fieldId,
         fieldName: ev.fieldName,
         type: ev.type,
-        title: ev.title?.replace(/^.+ - /, '') || '', // strip "Team - Type" prefix if auto-generated
+        title: ev.title?.replace(/^.+ - /, '') || '',
     });
-    // Try to resolve field_id from name
-    for (const loc of props.locations) {
-        const f = (loc.fields || []).find(f => f.name === ev.fieldName);
-        if (f) { modalForm.field_id = f.id; break; }
-    }
 }
 
 function buildDetails() {
