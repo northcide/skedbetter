@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/leagues/{league}/toggle-active', [AdminLeagueController::class, 'toggleActive'])->name('admin.leagues.toggle-active');
     Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users');
     Route::post('/admin/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('admin.users.toggle-active');
+    Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
     Route::get('/admin/audit-log', [AdminAuditLogController::class, 'index'])->name('admin.audit-log');
     Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');

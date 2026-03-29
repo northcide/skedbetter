@@ -59,4 +59,16 @@ class AdminUserController extends Controller
 
         return back()->with('success', "{$user->name} has been {$status}.");
     }
+
+    public function destroy(Request $request, User $user)
+    {
+        if (! $request->user()->isSuperadmin()) {
+            abort(403);
+        }
+
+        $name = $user->name;
+        $user->forceDelete();
+
+        return back()->with('success', "{$name} has been permanently deleted.");
+    }
 }

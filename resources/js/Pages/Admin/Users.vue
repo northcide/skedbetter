@@ -20,6 +20,11 @@ function toggleActive(user) {
     router.post(route('admin.users.toggle-active', user.id), {}, { preserveScroll: true });
 }
 
+function deleteUser(user) {
+    if (!confirm(`Permanently delete "${user.name}" (${user.email})? This will remove them from all leagues and cannot be undone.`)) return;
+    router.delete(route('admin.users.destroy', user.id), { preserveScroll: true });
+}
+
 function fmtDate(d) {
     if (!d) return 'Never';
     return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -72,10 +77,13 @@ function fmtDate(d) {
                         </td>
                         <td class="px-3 py-2 text-[10px] text-gray-500">{{ fmtDate(user.last_login_at) }}</td>
                         <td class="px-3 py-2 text-right">
-                            <button @click="toggleActive(user)" class="text-[10px]"
-                                :class="user.approved_at ? 'text-red-500 hover:text-red-700' : 'text-brand-600 hover:text-brand-700'">
-                                {{ user.approved_at ? 'Deactivate' : 'Activate' }}
-                            </button>
+                            <div class="flex items-center justify-end gap-2">
+                                <button @click="toggleActive(user)" class="text-[10px]"
+                                    :class="user.approved_at ? 'text-red-500 hover:text-red-700' : 'text-brand-600 hover:text-brand-700'">
+                                    {{ user.approved_at ? 'Deactivate' : 'Activate' }}
+                                </button>
+                                <button @click="deleteUser(user)" class="text-[10px] text-red-400 hover:text-red-600">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -100,10 +108,13 @@ function fmtDate(d) {
                     </div>
                     <div class="mt-1.5 flex items-center justify-between text-[10px] text-gray-400">
                         <span>Last login: {{ fmtDate(user.last_login_at) }}</span>
-                        <button @click="toggleActive(user)"
-                            :class="user.approved_at ? 'text-red-500' : 'text-brand-600'">
-                            {{ user.approved_at ? 'Deactivate' : 'Activate' }}
-                        </button>
+                        <div class="flex gap-3">
+                            <button @click="toggleActive(user)"
+                                :class="user.approved_at ? 'text-red-500' : 'text-brand-600'">
+                                {{ user.approved_at ? 'Deactivate' : 'Activate' }}
+                            </button>
+                            <button @click="deleteUser(user)" class="text-red-400">Delete</button>
+                        </div>
                     </div>
                 </div>
             </div>
