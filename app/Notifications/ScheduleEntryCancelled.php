@@ -27,7 +27,7 @@ class ScheduleEntryCancelled extends Notification
             ->greeting("A schedule entry has been cancelled")
             ->line("**Team:** {$entry->team->name}")
             ->line("**Date:** {$entry->date->format('l, M j, Y')}")
-            ->line("**Time:** {$entry->start_time} - {$entry->end_time}")
+            ->line("**Time:** " . ScheduleEntryCreated::fmt($entry->start_time) . ' – ' . ScheduleEntryCreated::fmt($entry->end_time))
             ->line("**Field:** {$entry->field->name} at {$entry->field->location->name}")
             ->line('This time slot is now available.');
     }

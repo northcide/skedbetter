@@ -26,9 +26,19 @@ class ScheduleEntryCreated extends Notification
             ->subject("New Schedule: {$entry->team->name}")
             ->greeting("New schedule entry for {$entry->team->name}")
             ->line("**Date:** {$entry->date->format('l, M j, Y')}")
-            ->line("**Time:** {$entry->start_time} - {$entry->end_time}")
+            ->line("**Time:** " . self::fmt($entry->start_time) . ' – ' . self::fmt($entry->end_time))
             ->line("**Field:** {$entry->field->name} at {$entry->field->location->name}")
             ->line("**Type:** " . ucfirst($entry->type->value ?? $entry->type));
+    }
+
+    public static function fmt(string $time): string
+    {
+        $parts = explode(':', $time);
+        $h = (int) $parts[0];
+        $m = $parts[1] ?? '00';
+        $ampm = $h >= 12 ? 'PM' : 'AM';
+        $h12 = $h === 0 ? 12 : ($h > 12 ? $h - 12 : $h);
+        return "{$h12}:{$m} {$ampm}";
     }
 
     public function toArray(object $notifiable): array

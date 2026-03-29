@@ -30,14 +30,63 @@ class ScheduleEntryUpdated extends Notification
 
         if (! empty($this->changes)) {
             foreach ($this->changes as $field => $change) {
-                $mail->line("**{$field}:** {$change['from']} → {$change['to']}");
+                $label = $this->humanLabel($field);
+                $from = $this->humanValue($field, $change['from']);
+                $to = $this->humanValue($field, $change['to']);
+                $mail->line("**{$label}:** {$from} → {$to}");
             }
         }
 
-        $mail->line("**Current:** {$entry->date->format('l, M j, Y')} {$entry->start_time} - {$entry->end_time}")
+        $mail->line("**Current:** {$entry->date->format('l, M j, Y')} " . ScheduleEntryCreated::fmt($entry->start_time) . ' – ' . ScheduleEntryCreated::fmt($entry->end_time))
             ->line("**Field:** {$entry->field->name} at {$entry->field->location->name}");
 
         return $mail;
+    }
+
+    protected function humanLabel(string $field): string
+    {
+        return match ($field) {
+            'date' => 'Date',
+            'start_time' => 'Start Time',
+            'end_time' => 'End Time',
+            'field_id' => 'Field',
+            'team_id' => 'Team',
+            'status' => 'Status',
+            'type' => 'Type',
+            default => str_replace('_', ' ', ucfirst($field)),
+        };
+    }
+
+    protected function humanValue(string $field, mixed $value): string
+    {
+        if ($value === null) return '—';
+
+        if (in_array($field, ['start_time', 'end_time'])) {
+            return ScheduleEntryCreated::fmt((string) $value);
+        }
+
+        if ($field === 'date' && $value) {
+            try { return \Carbon\Carbon::parse($value)->format('M j, Y'); } catch (\Exception $e) {}
+        }
+
+        if ($field === 'field_id') {
+            $f = \App\Models\Field::withoutGlobalScopes()->with('location')->find($value);
+            return $f ? $f->name . ' @ ' . ($f->location->name ?? '') : (string) $value;
+        }
+
+        if ($field === 'team_id') {
+            return \App\Models\Team::withoutGlobalScopes()->find($value)?->name ?? (string) $value;
+        }
+
+        if ($field === 'type') {
+            return ucfirst((string) $value);
+        }
+
+        if ($field === 'status') {
+            return ucfirst((string) $value);
+        }
+
+        return (string) $value;
     }
 
     public function toArray(object $notifiable): array
