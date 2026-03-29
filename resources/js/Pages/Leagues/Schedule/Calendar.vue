@@ -314,6 +314,50 @@ const timeSlots = computed(() => {
     return slots;
 });
 
+// Check if selected field has fixed slots for the selected date
+const fieldHasFixedSlots = computed(() => {
+    if (!modalForm.field_id || !modalForm.date) return false;
+    const [y, m, d] = modalForm.date.split('-').map(Number);
+    const dow = new Date(y, m - 1, d).getDay();
+    for (const loc of props.locations) {
+        const field = (loc.fields || []).find(f => f.id == modalForm.field_id);
+        if (field?.time_slots?.length) {
+            return field.time_slots.some(s => s.day_of_week === dow);
+        }
+    }
+    return false;
+});
+
+const fixedSlots = computed(() => {
+    if (!modalForm.field_id || !modalForm.date) return [];
+    const [y, m, d] = modalForm.date.split('-').map(Number);
+    const dow = new Date(y, m - 1, d).getDay();
+    for (const loc of props.locations) {
+        const field = (loc.fields || []).find(f => f.id == modalForm.field_id);
+        if (field?.time_slots?.length) {
+            return field.time_slots
+                .filter(s => s.day_of_week === dow)
+                .map(s => ({
+                    start: s.start_time.slice(0, 5),
+                    end: s.end_time.slice(0, 5),
+                    label: s.label,
+                    value: `${s.start_time.slice(0, 5)}|${s.end_time.slice(0, 5)}`,
+                    display: `${fmt12(s.start_time.slice(0, 5))} – ${fmt12(s.end_time.slice(0, 5))}${s.label ? ' (' + s.label + ')' : ''}`,
+                }));
+        }
+    }
+    return [];
+});
+
+const selectedSlotValue = ref('');
+
+function onSlotChange() {
+    if (!selectedSlotValue.value) return;
+    const [start, end] = selectedSlotValue.value.split('|');
+    modalForm.start_time = start;
+    modalForm.end_time = end;
+}
+
 const durationOptions = [
     { value: 15, label: '15 min' },
     { value: 30, label: '30 min' },
@@ -611,6 +655,7 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
     modalForm.clearErrors();
     liveErrors.value = [];
     liveWarnings.value = [];
+    selectedSlotValue.value = '';
 
     // Calculate duration from start/end if both provided, otherwise default 60
     if (startTime && endTime) {
@@ -1027,7 +1072,22 @@ watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-2">
+                    <!-- Date + Time (fixed slots vs open) -->
+                    <div v-if="fieldHasFixedSlots" class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-2">
+                        <div>
+                            <InputLabel for="m_date" value="Date" class="text-xs" />
+                            <TextInput id="m_date" v-model="modalForm.date" type="date" class="mt-1 block w-full" required />
+                        </div>
+                        <div>
+                            <InputLabel for="m_slot" value="Available Slot" class="text-xs" />
+                            <select id="m_slot" v-model="selectedSlotValue" @change="onSlotChange" class="mt-1 block w-full" required>
+                                <option value="">Select a slot</option>
+                                <option v-for="s in fixedSlots" :key="s.value" :value="s.value">{{ s.display }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-2">
                         <div>
                             <InputLabel for="m_date" value="Date" class="text-xs" />
                             <TextInput id="m_date" v-model="modalForm.date" type="date" class="mt-1 block w-full" required />

@@ -48,15 +48,11 @@ class FieldController extends Controller
     {
         $context = app(LeagueContext::class);
 
-        $field->load(['location', 'allowedDivisions']);
+        $field->load(['location', 'allowedDivisions', 'timeSlots']);
 
         $fieldRules = $field->allowedDivisions->map(fn($d) => [
             'division_id' => $d->id,
             'max_weekly_slots' => $d->pivot->max_weekly_slots,
-            'priority' => $d->pivot->priority,
-            'booking_window_type' => $d->pivot->booking_window_type,
-            'booking_opens_date' => $d->pivot->booking_opens_date,
-            'booking_opens_days' => $d->pivot->booking_opens_days,
         ]);
 
         return Inertia::render('Leagues/Fields/Edit', [
@@ -65,6 +61,7 @@ class FieldController extends Controller
             'surfaceTypes' => array_column(SurfaceType::cases(), 'value'),
             'divisions' => \App\Models\Division::with('season')->orderBy('name')->get(),
             'fieldRules' => $fieldRules,
+            'timeSlots' => $field->timeSlots,
             'userRole' => $context->userRole(),
         ]);
     }
@@ -92,6 +89,12 @@ class FieldController extends Controller
             'rules' => 'nullable|array',
             'rules.*.division_id' => 'required|exists:divisions,id',
             'rules.*.max_weekly_slots' => 'nullable|integer|min:1',
+            // Time slots
+            'time_slots' => 'nullable|array',
+            'time_slots.*.day_of_week' => 'required|integer|between:0,6',
+            'time_slots.*.start_time' => 'required|date_format:H:i',
+            'time_slots.*.end_time' => 'required|date_format:H:i|after:time_slots.*.start_time',
+            'time_slots.*.label' => 'nullable|string|max:100',
         ]);
 
         // Field details + availability
@@ -122,6 +125,21 @@ class FieldController extends Controller
                     ];
                 }
                 $field->allowedDivisions()->sync($syncData);
+            }
+        }
+
+        // Time slots
+        if (isset($validated['time_slots'])) {
+            $field->timeSlots()->delete();
+            $order = 0;
+            foreach ($validated['time_slots'] as $slot) {
+                $field->timeSlots()->create([
+                    'day_of_week' => $slot['day_of_week'],
+                    'start_time' => $slot['start_time'],
+                    'end_time' => $slot['end_time'],
+                    'label' => $slot['label'] ?? null,
+                    'sort_order' => $order++,
+                ]);
             }
         }
 

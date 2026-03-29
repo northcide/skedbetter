@@ -39,6 +39,11 @@ class Field extends Model
         return $this->hasMany(ScheduleEntry::class);
     }
 
+    public function timeSlots()
+    {
+        return $this->hasMany(FieldTimeSlot::class)->orderBy('sort_order')->orderBy('start_time');
+    }
+
     public function allowedDivisions()
     {
         return $this->belongsToMany(Division::class, 'division_field')

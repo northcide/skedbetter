@@ -13,11 +13,13 @@ const props = defineProps({
     league: Object, field: Object, surfaceTypes: Array,
     divisions: { type: Array, default: () => [] },
     fieldRules: { type: Array, default: () => [] },
+    timeSlots: { type: Array, default: () => [] },
     userRole: String,
 });
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const open = ref({ details: true, availability: false, slots: false, access: false });
+const open = ref({ details: true, availability: false, slots: false, timeSlots: false, access: false });
+const selectedSlotDay = ref(1); // Default to Monday
 const toggle = (key) => { open.value[key] = !open.value[key]; };
 
 const accessMode = ref(props.fieldRules.length > 0 ? 'restricted' : 'open');
@@ -39,10 +41,12 @@ const form = useForm({
     rules: props.fieldRules.map(r => ({
         division_id: r.division_id,
         max_weekly_slots: r.max_weekly_slots,
-        priority: r.priority || '',
-        booking_window_type: r.booking_window_type || '',
-        booking_opens_date: r.booking_opens_date || '',
-        booking_opens_days: r.booking_opens_days || '',
+    })),
+    time_slots: props.timeSlots.map(s => ({
+        day_of_week: s.day_of_week,
+        start_time: s.start_time?.slice(0, 5) || '',
+        end_time: s.end_time?.slice(0, 5) || '',
+        label: s.label || '',
     })),
 });
 
@@ -57,9 +61,50 @@ const toggleDay = (day) => {
 const addRule = () => {
     const used = form.rules.map(r => r.division_id);
     const avail = props.divisions.find(d => !used.includes(d.id));
-    if (avail) form.rules.push({ division_id: avail.id, max_weekly_slots: null, priority: '', booking_window_type: '', booking_opens_date: '', booking_opens_days: '' });
+    if (avail) form.rules.push({ division_id: avail.id, max_weekly_slots: null });
 };
 const removeRule = (i) => form.rules.splice(i, 1);
+
+// Time slots helpers
+const slotsForDay = (day) => form.time_slots.filter(s => s.day_of_week === day);
+const dayHasSlots = (day) => slotsForDay(day).length > 0;
+
+const addSlot = (day) => {
+    form.time_slots.push({ day_of_week: day, start_time: '17:30', end_time: '19:00', label: '' });
+};
+const removeSlot = (day, idx) => {
+    const daySlots = form.time_slots.filter(s => s.day_of_week === day);
+    const slot = daySlots[idx];
+    const globalIdx = form.time_slots.indexOf(slot);
+    if (globalIdx >= 0) form.time_slots.splice(globalIdx, 1);
+};
+const applyToWeekdays = () => {
+    const monSlots = slotsForDay(1);
+    if (!monSlots.length) return;
+    // Apply Monday's slots to Tue-Fri
+    for (let d = 2; d <= 5; d++) {
+        // Remove existing
+        form.time_slots = form.time_slots.filter(s => s.day_of_week !== d);
+        // Copy from Monday
+        monSlots.forEach(s => {
+            form.time_slots.push({ day_of_week: d, start_time: s.start_time, end_time: s.end_time, label: s.label });
+        });
+    }
+};
+
+// Time slot dropdown options (15-min increments)
+const slotTimeOptions = (() => {
+    const opts = [];
+    for (let h = 6; h <= 21; h++) {
+        for (let m = 0; m < 60; m += 15) {
+            const val = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            opts.push({ value: val, label: `${h12}:${String(m).padStart(2, '0')} ${ampm}` });
+        }
+    }
+    return opts;
+})();
 
 const submit = () => {
     form.put(route('leagues.fields.update', [props.league.slug, props.field.id]));
@@ -172,6 +217,58 @@ const submit = () => {
                                 <option value="">None</option>
                                 <option v-for="m in [30,60,90,120,180,240]" :key="m" :value="m">{{ m }} min</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Slots -->
+            <div class="border-t border-gray-100">
+                <button type="button" @click="toggle('timeSlots')" class="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50">
+                    <span class="text-xs font-semibold text-gray-900">Time Slots</span>
+                    <div class="flex items-center gap-2">
+                        <span v-if="form.time_slots.length" class="rounded-full bg-brand-100 px-2 py-0.5 text-[9px] font-medium text-brand-700">{{ form.time_slots.length }} slot(s)</span>
+                        <svg class="h-3 w-3 text-gray-400 transition-transform" :class="{ 'rotate-90': open.timeSlots }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </div>
+                </button>
+                <div v-if="open.timeSlots" class="border-t border-gray-100 px-3 py-2">
+                    <p class="text-[10px] text-gray-400 mb-2">Define fixed time slots per day. Days without slots use open/flexible booking.</p>
+
+                    <!-- Day tabs -->
+                    <div class="flex gap-1 mb-3">
+                        <button v-for="(name, idx) in dayNames" :key="idx" type="button"
+                            @click="selectedSlotDay = idx"
+                            class="rounded px-2 py-1 text-[10px] font-medium transition"
+                            :class="selectedSlotDay === idx
+                                ? 'bg-brand-600 text-white'
+                                : dayHasSlots(idx)
+                                    ? 'bg-brand-50 text-brand-700 hover:bg-brand-100'
+                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'">
+                            {{ name }}
+                        </button>
+                    </div>
+
+                    <!-- Slots for selected day -->
+                    <div class="space-y-1.5">
+                        <div v-for="(slot, idx) in slotsForDay(selectedSlotDay)" :key="idx" class="flex items-center gap-2">
+                            <select v-model="slot.start_time" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
+                                <option v-for="t in slotTimeOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
+                            </select>
+                            <span class="text-[10px] text-gray-400">to</span>
+                            <select v-model="slot.end_time" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
+                                <option v-for="t in slotTimeOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
+                            </select>
+                            <input v-model="slot.label" placeholder="Label (optional)" class="w-24 rounded border-gray-200 py-0.5 px-1.5 text-[11px]" />
+                            <button type="button" @click="removeSlot(selectedSlotDay, idx)" class="text-[10px] text-red-400 hover:text-red-600">Remove</button>
+                        </div>
+
+                        <div v-if="!dayHasSlots(selectedSlotDay)" class="py-2 text-center text-[10px] text-gray-400">
+                            Open booking (no fixed slots) on {{ dayNames[selectedSlotDay] }}
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-1">
+                            <button type="button" @click="addSlot(selectedSlotDay)" class="text-[10px] font-medium text-brand-600 hover:text-brand-700">+ Add Slot</button>
+                            <button v-if="selectedSlotDay === 1 && dayHasSlots(1)" type="button" @click="applyToWeekdays" class="text-[10px] text-gray-500 hover:text-gray-700">Apply Mon → Tue-Fri</button>
                         </div>
                     </div>
                 </div>

@@ -238,6 +238,33 @@ class ConstraintValidator
         $date = Carbon::parse($request->date);
         $dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+        // Check for predefined time slots for this day
+        $daySlots = DB::table('field_time_slots')
+            ->where('field_id', $request->fieldId)
+            ->where('day_of_week', $date->dayOfWeek)
+            ->orderBy('sort_order')
+            ->get();
+
+        if ($daySlots->isNotEmpty()) {
+            // This day uses fixed slots — booking must match exactly
+            $matchesSlot = $daySlots->contains(function ($slot) use ($request) {
+                return substr($slot->start_time, 0, 5) === $request->startTime
+                    && substr($slot->end_time, 0, 5) === $request->endTime;
+            });
+
+            if (! $matchesSlot) {
+                $available = $daySlots->map(fn($s) => $this->fmt(substr($s->start_time, 0, 5)) . ' – ' . $this->fmt(substr($s->end_time, 0, 5))
+                    . ($s->label ? " ({$s->label})" : ''))->join(', ');
+                $result->addViolation(
+                    'field_availability',
+                    "This field has fixed time slots on {$dayNames[$date->dayOfWeek]}. Available slots: {$available}."
+                );
+            }
+
+            // Skip other availability checks for slotted days
+            return;
+        }
+
         // Available days
         $availableDays = $field->available_days ? json_decode($field->available_days, true) : null;
         if ($availableDays && ! in_array($date->dayOfWeek, $availableDays)) {
