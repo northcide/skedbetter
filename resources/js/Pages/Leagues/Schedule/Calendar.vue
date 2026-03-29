@@ -383,9 +383,10 @@ const durationOptions = [
 
 const modalDuration = ref(60);
 
-// Auto-calculate end_time when start_time or duration changes
+// Auto-calculate end_time when start_time or duration changes (skip for fixed slots)
 watch([() => modalForm.start_time, modalDuration], ([start, dur]) => {
     if (!start) return;
+    if (fieldHasFixedSlots.value) return;
     const [h, m] = start.split(':').map(Number);
     const totalMin = h * 60 + m + dur;
     const endH = Math.floor(totalMin / 60);
