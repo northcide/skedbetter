@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\MagicLinkMail;
 use App\Models\AuditLog;
 use App\Models\MagicLink;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -21,11 +22,30 @@ class RegisteredUserController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', [
+            'turnstileSiteKey' => Setting::get('turnstile_site_key', ''),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        // Verify Turnstile CAPTCHA if configured
+        $turnstileSecret = Setting::get('turnstile_secret_key', '');
+        if ($turnstileSecret) {
+            $token = $request->input('cf-turnstile-response', '');
+            if (!$token) {
+                return back()->withErrors(['captcha' => 'Please complete the CAPTCHA verification.']);
+            }
+            $response = \Illuminate\Support\Facades\Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                'secret' => $turnstileSecret,
+                'response' => $token,
+                'remoteip' => $request->ip(),
+            ]);
+            if (!$response->json('success')) {
+                return back()->withErrors(['captcha' => 'CAPTCHA verification failed. Please try again.']);
+            }
+        }
+
         $email = strtolower(trim($request->email));
 
         // Check if user already exists (e.g. created by a league admin via associateCoach)

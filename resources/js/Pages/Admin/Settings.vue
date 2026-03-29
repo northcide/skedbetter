@@ -23,6 +23,8 @@ const form = useForm({
     graph_client_id: props.settings.graph_client_id || '',
     graph_client_secret: '',
     magic_link_expiry_minutes: props.settings.magic_link_expiry_minutes || '60',
+    turnstile_site_key: props.settings.turnstile_site_key || '',
+    turnstile_secret_key: '',
 });
 
 const testForm = useForm({ test_email: '' });
@@ -130,6 +132,23 @@ const sendTest = () => testForm.post(route('admin.settings.test-email'));
                             <TextInput id="g_secret" v-model="form.graph_client_secret" type="password" class="mt-1 block w-full" :placeholder="settings.graph_client_secret_set ? '••••••••' : ''" />
                         </div>
                     </div>
+                </div>
+
+                <!-- Cloudflare Turnstile (CAPTCHA) -->
+                <div class="rounded-lg border border-gray-200 bg-white p-4">
+                    <h3 class="text-sm font-semibold text-gray-900">Cloudflare Turnstile (CAPTCHA)</h3>
+                    <p class="mt-1 text-[11px] text-gray-400">Protects the public registration form. Get keys from <a href="https://dash.cloudflare.com/turnstile" target="_blank" class="text-brand-600 hover:underline">Cloudflare Turnstile</a>.</p>
+                    <div class="mt-3 grid grid-cols-2 gap-3">
+                        <div>
+                            <InputLabel for="ts_site" value="Site Key" class="text-xs" />
+                            <TextInput id="ts_site" v-model="form.turnstile_site_key" type="text" class="mt-1 block w-full" placeholder="0x4AAAAAAA..." />
+                        </div>
+                        <div>
+                            <InputLabel for="ts_secret" value="Secret Key" class="text-xs" />
+                            <TextInput id="ts_secret" v-model="form.turnstile_secret_key" type="password" class="mt-1 block w-full" :placeholder="settings.turnstile_secret_key_set ? '••••••••' : ''" />
+                        </div>
+                    </div>
+                    <p v-if="!settings.turnstile_site_key" class="mt-2 text-[11px] text-amber-600">CAPTCHA is disabled until keys are configured.</p>
                 </div>
 
                 <div class="flex justify-end">

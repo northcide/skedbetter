@@ -26,12 +26,14 @@ class SettingsController extends Controller
             'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_encryption',
             'graph_tenant_id', 'graph_client_id', 'graph_client_secret',
             'magic_link_expiry_minutes',
+            'turnstile_site_key', 'turnstile_secret_key',
         ]);
 
         // Mask the password and secret for display
         $settings['smtp_password_set'] = ! empty($settings['smtp_password']);
         $settings['graph_client_secret_set'] = ! empty($settings['graph_client_secret']);
-        unset($settings['smtp_password'], $settings['graph_client_secret']);
+        $settings['turnstile_secret_key_set'] = ! empty($settings['turnstile_secret_key']);
+        unset($settings['smtp_password'], $settings['graph_client_secret'], $settings['turnstile_secret_key']);
 
         return Inertia::render('Admin/Settings', [
             'settings' => $settings,
@@ -57,6 +59,8 @@ class SettingsController extends Controller
             'graph_client_id' => 'nullable|string|max:255',
             'graph_client_secret' => 'nullable|string|max:255',
             'magic_link_expiry_minutes' => 'required|integer|min:5|max:1440',
+            'turnstile_site_key' => 'nullable|string|max:255',
+            'turnstile_secret_key' => 'nullable|string|max:255',
         ]);
 
         // Don't overwrite secrets with empty values if they weren't changed
@@ -65,6 +69,9 @@ class SettingsController extends Controller
         }
         if (empty($validated['graph_client_secret'])) {
             unset($validated['graph_client_secret']);
+        }
+        if (empty($validated['turnstile_secret_key'])) {
+            unset($validated['turnstile_secret_key']);
         }
 
         Setting::setMany($validated);
