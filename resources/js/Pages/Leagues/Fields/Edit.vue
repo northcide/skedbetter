@@ -102,6 +102,24 @@ const displaySlots = computed(() => {
     return slotsForDay(selectedSlotDays.value[0]);
 });
 
+// Sync changes from the displayed (first day) slot to all other selected days
+function syncSlotToOtherDays(idx) {
+    const sourceDay = selectedSlotDays.value[0];
+    const sourceSlots = slotsForDay(sourceDay);
+    if (!sourceSlots[idx]) return;
+    const src = sourceSlots[idx];
+
+    selectedSlotDays.value.forEach(day => {
+        if (day === sourceDay) return;
+        const daySlots = slotsForDay(day);
+        if (daySlots[idx]) {
+            daySlots[idx].start_time = src.start_time;
+            daySlots[idx].end_time = src.end_time;
+            daySlots[idx].label = src.label;
+        }
+    });
+}
+
 // Time slot dropdown options (15-min increments)
 const slotTimeOptions = (() => {
     const opts = [];
@@ -263,14 +281,14 @@ const submit = () => {
                     <!-- Slots for selected days -->
                     <div v-if="selectedSlotDays.length" class="space-y-1.5">
                         <div v-for="(slot, idx) in displaySlots" :key="idx" class="flex items-center gap-2">
-                            <select v-model="slot.start_time" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
+                            <select v-model="slot.start_time" @change="syncSlotToOtherDays(idx)" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
                                 <option v-for="t in slotTimeOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
                             </select>
                             <span class="text-[10px] text-gray-400">to</span>
-                            <select v-model="slot.end_time" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
+                            <select v-model="slot.end_time" @change="syncSlotToOtherDays(idx)" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
                                 <option v-for="t in slotTimeOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
                             </select>
-                            <input v-model="slot.label" placeholder="Label" class="w-24 rounded border-gray-200 py-0.5 px-1.5 text-[11px]" />
+                            <input v-model="slot.label" @input="syncSlotToOtherDays(idx)" placeholder="Label" class="w-24 rounded border-gray-200 py-0.5 px-1.5 text-[11px]" />
                             <button type="button" @click="removeSlotFromSelected(idx)" class="text-[10px] text-red-400 hover:text-red-600">Remove</button>
                         </div>
 
