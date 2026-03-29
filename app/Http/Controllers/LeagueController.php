@@ -35,39 +35,66 @@ class LeagueController extends Controller
         return Inertia::render('Leagues/Index', [
             'leagues' => $leagues,
             'pendingLeagues' => $pendingLeagues,
-            'canCreateLeague' => $user->isSuperadmin(),
+            'canCreateLeague' => $user->isSuperadmin() || $this->isExistingLeagueAdmin($user),
             'isSuperadmin' => $user->isSuperadmin(),
         ]);
     }
 
     public function create(Request $request)
     {
-        $this->authorizeSuperadmin();
+        $user = $request->user();
+        if (!$user->isSuperadmin() && !$this->isExistingLeagueAdmin($user)) {
+            abort(403);
+        }
 
         return Inertia::render('Leagues/Create', [
-            'isSuperadmin' => true,
+            'isSuperadmin' => $user->isSuperadmin(),
         ]);
     }
 
     public function store(Request $request)
     {
-        $this->authorizeSuperadmin();
+        $user = $request->user();
+        if (!$user->isSuperadmin() && !$this->isExistingLeagueAdmin($user)) {
+            abort(403);
+        }
 
+        if ($user->isSuperadmin()) {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'timezone' => 'required|string|timezone',
+                'admin_email' => 'required|email',
+            ]);
+
+            $adminEmail = $validated['admin_email'];
+            unset($validated['admin_email']);
+            $validated['contact_email'] = $adminEmail;
+            $validated['approved_at'] = now();
+
+            $league = League::create($validated);
+
+            session(["league_{$league->id}_admin_email" => $adminEmail]);
+
+            return redirect()->route('leagues.onboarding', $league->slug)
+                ->with('success', 'League created! Now set it up.');
+        }
+
+        // League admin creating a new league — auto-approved, they are the admin
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'timezone' => 'required|string|timezone',
-            'admin_email' => 'required|email',
         ]);
 
-        $adminEmail = $validated['admin_email'];
-        unset($validated['admin_email']);
-        $validated['contact_email'] = $adminEmail;
+        $validated['contact_email'] = $user->email;
+        $validated['requested_by'] = $user->id;
         $validated['approved_at'] = now();
 
         $league = League::create($validated);
 
-        session(["league_{$league->id}_admin_email" => $adminEmail]);
+        // Make them league admin
+        $league->users()->attach($user->id, ['role' => 'league_admin', 'accepted_at' => now()]);
 
         return redirect()->route('leagues.onboarding', $league->slug)
             ->with('success', 'League created! Now set it up.');
@@ -136,6 +163,11 @@ class LeagueController extends Controller
         if (! request()->user()->isSuperadmin()) {
             abort(403);
         }
+    }
+
+    protected function isExistingLeagueAdmin($user): bool
+    {
+        return $user->leagues()->wherePivot('role', 'league_admin')->exists();
     }
 
     protected function authorizeLeagueAccess($user, League $league): void
