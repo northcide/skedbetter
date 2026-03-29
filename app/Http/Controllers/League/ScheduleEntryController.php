@@ -192,6 +192,10 @@ class ScheduleEntryController extends Controller
             'status' => 'required|in:confirmed,tentative,cancelled',
         ]);
 
+        $context = app(LeagueContext::class);
+        $role = $context->userRole();
+        $this->schedulingService->getConflictDetector()->asAdmin(in_array($role, ['superadmin', 'league_admin']));
+
         $result = $this->schedulingService->update($scheduleEntry, $validated, $request->user()->id);
 
         if ($result instanceof ConflictResult) {
@@ -436,6 +440,10 @@ class ScheduleEntryController extends Controller
     // API endpoint for drag-drop updates
     public function move(Request $request, string $league, ScheduleEntry $scheduleEntry)
     {
+        $context = app(LeagueContext::class);
+        $role = $context->userRole();
+        $this->schedulingService->getConflictDetector()->asAdmin(in_array($role, ['superadmin', 'league_admin']));
+
         $validated = $request->validate([
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
