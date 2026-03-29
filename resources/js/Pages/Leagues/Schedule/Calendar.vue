@@ -409,6 +409,7 @@ const calendarOptions = ref({
     selectable: canSchedule,
     selectMirror: true,
     eventResourceEditable: false,  // per-event from server
+    eventResizableFromStart: true,
     resources: {
         url: route('leagues.schedule.resources', props.league.slug),
         method: 'GET',
