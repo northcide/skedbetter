@@ -477,8 +477,13 @@ class TeamController extends Controller
         // Create or find user
         $user = User::firstOrCreate(
             ['email' => $email],
-            ['name' => $name ?: explode('@', $email)[0], 'password' => bcrypt(\Str::random(32))]
+            ['name' => $name ?: explode('@', $email)[0], 'password' => bcrypt(\Str::random(32)), 'approved_at' => now()]
         );
+
+        // Auto-approve if created by a manager and not yet approved
+        if (!$user->approved_at) {
+            $user->update(['approved_at' => now()]);
+        }
 
         // Update name if provided and user had a generated name
         if ($name && $user->name === explode('@', $email)[0]) {

@@ -12,7 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'phone', 'timezone', 'is_superadmin'])]
+#[Fillable(['name', 'email', 'password', 'phone', 'timezone', 'is_superadmin', 'approved_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -23,6 +23,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'approved_at' => 'datetime',
             'password' => 'hashed',
             'is_superadmin' => 'boolean',
             'last_login_at' => 'datetime',
@@ -32,6 +33,16 @@ class User extends Authenticatable
     public function isSuperadmin(): bool
     {
         return $this->is_superadmin ?? false;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approved_at !== null;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->approved_at === null && !$this->isSuperadmin();
     }
 
     public function leagues()

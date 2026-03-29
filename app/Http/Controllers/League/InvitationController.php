@@ -68,11 +68,15 @@ class InvitationController extends Controller
             return back()->withErrors(['team_ids' => 'Please select at least one team for the coach.']);
         }
 
-        // Create or find user
+        // Create or find user (auto-approved when invited by a manager)
         $user = User::firstOrCreate(
             ['email' => $email],
-            ['name' => $validated['name'] ?: explode('@', $email)[0], 'password' => bcrypt(\Str::random(32))]
+            ['name' => $validated['name'] ?: explode('@', $email)[0], 'password' => bcrypt(\Str::random(32)), 'approved_at' => now()]
         );
+
+        if (! $user->approved_at) {
+            $user->update(['approved_at' => now()]);
+        }
 
         if (! empty($validated['name']) && ! $user->wasRecentlyCreated && $user->name === explode('@', $email)[0]) {
             $user->update(['name' => $validated['name']]);

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\UserApprovalController;
 use App\Http\Controllers\IcalController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\League\BlackoutRuleController;
@@ -58,6 +59,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
     Route::post('/admin/settings/test-email', [SettingsController::class, 'testEmail'])->name('admin.settings.test-email');
+    Route::get('/admin/approvals', [UserApprovalController::class, 'index'])->name('admin.approvals');
+    Route::post('/admin/approvals/{user}/approve', [UserApprovalController::class, 'approve'])->name('admin.approvals.approve');
+    Route::delete('/admin/approvals/{user}/reject', [UserApprovalController::class, 'reject'])->name('admin.approvals.reject');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -45,6 +45,10 @@ const showingNavigationDropdown = ref(false);
                                     </template>
                                     <template #content>
                                         <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
+                                        <DropdownLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.approvals')">
+                                            User Approvals
+                                            <span v-if="$page.props.pendingApprovalCount" class="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">{{ $page.props.pendingApprovalCount }}</span>
+                                        </DropdownLink>
                                         <DropdownLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.settings')">Platform Settings</DropdownLink>
                                         <DropdownLink :href="route('logout')" method="post" as="button">Sign Out</DropdownLink>
                                     </template>
@@ -75,6 +79,11 @@ const showingNavigationDropdown = ref(false);
                         </div>
                         <div class="mt-1 space-y-1">
                             <ResponsiveNavLink :href="route('profile.edit')">Profile</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.approvals')">
+                                User Approvals
+                                <span v-if="$page.props.pendingApprovalCount" class="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">{{ $page.props.pendingApprovalCount }}</span>
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.settings')">Platform Settings</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('logout')" method="post" as="button">Sign Out</ResponsiveNavLink>
                         </div>
                     </div>

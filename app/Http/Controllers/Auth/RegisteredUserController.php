@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -16,19 +16,11 @@ use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(): Response
     {
         return Inertia::render('Auth/Register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
@@ -45,8 +37,16 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
+        AuditLog::withoutGlobalScopes()->create([
+            'league_id' => null,
+            'user_id' => $user->id,
+            'action' => 'registration',
+            'auditable_type' => null,
+            'auditable_id' => null,
+            'new_values' => ['name' => $user->name, 'email' => $user->email],
+            'ip_address' => $request->ip(),
+        ]);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('login')->with('status', 'Your account has been created and is pending approval. You will be notified when it is approved.');
     }
 }

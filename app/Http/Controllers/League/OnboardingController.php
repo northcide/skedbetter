@@ -115,8 +115,11 @@ class OnboardingController extends Controller
             if ($adminEmail) {
                 $adminUser = User::firstOrCreate(
                     ['email' => strtolower(trim($adminEmail))],
-                    ['name' => explode('@', $adminEmail)[0], 'password' => bcrypt(\Str::random(32))]
+                    ['name' => explode('@', $adminEmail)[0], 'password' => bcrypt(\Str::random(32)), 'approved_at' => now()]
                 );
+                if (!$adminUser->approved_at) {
+                    $adminUser->update(['approved_at' => now()]);
+                }
 
                 // Attach as league_admin if not already
                 if (! $l->users()->where('users.id', $adminUser->id)->wherePivot('role', 'league_admin')->exists()) {

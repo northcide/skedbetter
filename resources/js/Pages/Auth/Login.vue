@@ -134,5 +134,10 @@ const submitPassword = () => {
 
             <p class="text-center text-xs text-gray-400">Password login is available for league managers and admins.</p>
         </form>
+
+        <div class="mt-4 text-center">
+            <span class="text-xs text-gray-400">Don't have an account?</span>
+            <Link :href="route('register')" class="ml-1 text-xs font-medium text-brand-600 hover:text-brand-700">Sign up</Link>
+        </div>
     </GuestLayout>
 </template>
