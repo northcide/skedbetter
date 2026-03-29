@@ -421,6 +421,38 @@ const calendarOptions = ref({
     eventReceive: (info) => handleExternalDrop(info),
     select: (info) => handleSelect(info),
     eventClick: (info) => handleEventClick(info),
+    eventDidMount: (info) => {
+        if (info.event.display === 'background') return;
+        const ext = info.event.extendedProps || {};
+        const start = info.event.start;
+        const end = info.event.end || new Date(start.getTime() + 3600000);
+        const time = fmt12(start.toTimeString().slice(0, 5)) + ' – ' + fmt12(end.toTimeString().slice(0, 5));
+        const team = ext.team_name || info.event.title;
+        const field = ext.field_name || '';
+        const location = ext.location_name || '';
+        const type = ext.type ? ext.type.charAt(0).toUpperCase() + ext.type.slice(1) : '';
+        const status = ext.status ? ext.status.charAt(0).toUpperCase() + ext.status.slice(1) : '';
+
+        let tooltip = null;
+        info.el.addEventListener('mouseenter', (e) => {
+            if (window.innerWidth < 1024) return; // skip on mobile/tablet
+            tooltip = document.createElement('div');
+            tooltip.className = 'fc-hover-tooltip';
+            tooltip.innerHTML = `
+                <div style="font-weight:600;font-size:12px;margin-bottom:3px;">${team}</div>
+                <div style="font-size:11px;color:#6b7280;">${time}</div>
+                ${field ? `<div style="font-size:11px;color:#9ca3af;">${field}${location ? ' @ ' + location : ''}</div>` : ''}
+                ${type ? `<div style="font-size:10px;color:#9ca3af;margin-top:2px;">${type}${status ? ' · ' + status : ''}</div>` : ''}
+            `;
+            document.body.appendChild(tooltip);
+            const rect = info.el.getBoundingClientRect();
+            tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 6 + window.scrollY + 'px';
+        });
+        info.el.addEventListener('mouseleave', () => {
+            if (tooltip) { tooltip.remove(); tooltip = null; }
+        });
+    },
     resourceGroupField: 'parentId',
     schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
 });
