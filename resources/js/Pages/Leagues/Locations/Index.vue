@@ -130,20 +130,14 @@ const deleteField = (field) => {
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-3">
-                                <!-- Division restrictions badge -->
-                                <span
-                                    v-if="field.allowed_divisions && field.allowed_divisions.length > 0"
-                                    class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
-                                    :title="field.allowed_divisions.map(d => d.name).join(', ')"
-                                >
-                                    {{ field.allowed_divisions.length }} division{{ field.allowed_divisions.length !== 1 ? 's' : '' }}
-                                </span>
-                                <span v-else class="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-                                    Open
-                                </span>
+                            <div class="flex items-center gap-2 flex-wrap justify-end">
+                                <template v-if="field.allowed_divisions && field.allowed_divisions.length > 0">
+                                    <span v-for="d in field.allowed_divisions" :key="d.id"
+                                        class="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">{{ d.name }}</span>
+                                </template>
+                                <span v-else class="rounded bg-green-50 px-1.5 py-0.5 text-[10px] font-medium text-green-700">All divisions</span>
 
-                                <div v-if="isManager" class="flex items-center gap-2">
+                                <div v-if="isManager" class="flex items-center gap-2 ml-1">
                                     <Link :href="route('leagues.fields.edit', [league.slug, field.id])" class="text-[10px] text-brand-600 hover:text-brand-700">Edit</Link>
                                     <button @click="deleteField(field)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
                                 </div>
