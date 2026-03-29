@@ -284,11 +284,13 @@ function getFieldWindowWarning(field) {
     return null;
 }
 
+const isAdmin = ['superadmin', 'league_admin'].includes(props.userRole);
+
 function isFieldBlocked(field) {
-    // Hard block for access restrictions (all users)
+    // Admins can override everything
+    if (isAdmin) return false;
     if (getFieldBlockReason(field)) return true;
-    // Booking window blocks coaches but not admins
-    if (!isManager && getFieldWindowWarning(field)) return true;
+    if (getFieldWindowWarning(field)) return true;
     return false;
 }
 
@@ -961,8 +963,8 @@ function showError(messages) {
                                         :key="f.id"
                                         :value="f.id"
                                         :disabled="isFieldBlocked(f)"
-                                        :class="isFieldBlocked(f) ? 'text-gray-400' : getFieldWindowWarning(f) ? 'text-amber-600' : ''"
-                                    >{{ f.name }} @ {{ loc.name }}{{ getFieldBlockReason(f) ? ` (${getFieldBlockReason(f)})` : getFieldWindowWarning(f) ? ` ⚠ ${getFieldWindowWarning(f)}` : '' }}</option>
+                                        :class="isFieldBlocked(f) ? 'text-gray-400' : (getFieldBlockReason(f) || getFieldWindowWarning(f)) ? 'text-amber-600' : ''"
+                                    >{{ f.name }} @ {{ loc.name }}{{ getFieldBlockReason(f) ? (isAdmin ? ` ⚠ ${getFieldBlockReason(f)}` : ` (${getFieldBlockReason(f)})`) : getFieldWindowWarning(f) ? ` ⚠ ${getFieldWindowWarning(f)}` : '' }}</option>
                                 </template>
                             </select>
                         </div>

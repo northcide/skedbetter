@@ -252,10 +252,12 @@ class ConflictDetector
 
         if (! empty($fieldRestrictions) && ! in_array($team->division_id, $fieldRestrictions)) {
             $divisionName = DB::table('divisions')->where('id', $team->division_id)->value('name') ?? 'Unknown';
-            $result->addViolation(
-                'field_access',
-                "Field \"{$field->name}\" is not available to the \"{$divisionName}\" division."
-            );
+            $msg = "Field \"{$field->name}\" is not available to the \"{$divisionName}\" division.";
+            if ($this->isAdmin) {
+                $result->addWarning('field_access', $msg);
+            } else {
+                $result->addViolation('field_access', $msg);
+            }
             return;
         }
 
@@ -267,10 +269,12 @@ class ConflictDetector
 
         if (! empty($divisionFields) && ! in_array($request->fieldId, $divisionFields)) {
             $divisionName = DB::table('divisions')->where('id', $team->division_id)->value('name') ?? 'Unknown';
-            $result->addViolation(
-                'field_access',
-                "The \"{$divisionName}\" division can only schedule on its assigned fields."
-            );
+            $msg = "The \"{$divisionName}\" division can only schedule on its assigned fields.";
+            if ($this->isAdmin) {
+                $result->addWarning('field_access', $msg);
+            } else {
+                $result->addViolation('field_access', $msg);
+            }
         }
     }
 
