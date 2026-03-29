@@ -39,7 +39,7 @@ function openEdit(window) {
     editing.value = window;
     form.name = window.name;
     form.window_type = window.window_type;
-    form.opens_date = window.opens_date ? window.opens_date.split('T')[0] : '';
+    form.opens_date = window.opens_date ? String(window.opens_date).split('T')[0] : '';
     form.rolling_days = window.rolling_days || '';
     form.division_ids = window.divisions.map(d => d.id);
     showModal.value = true;
@@ -64,21 +64,24 @@ function deleteWindow(window) {
 
 function fmtDate(d) {
     if (!d) return '';
-    const date = new Date(d + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const dateStr = d.split('T')[0];
+    const [y, m, dy] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, dy).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 const isOpen = (w) => {
     if (w.window_type === 'calendar' && w.opens_date) {
-        return new Date() >= new Date(w.opens_date + 'T00:00:00');
+        const dateStr = w.opens_date.split('T')[0];
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date() >= new Date(y, m - 1, d);
     }
-    return true; // rolling windows are always "open" conceptually
+    return true;
 };
 
 // Calendar windows sorted by opens_date for timeline
 const calendarWindows = computed(() =>
     props.windows.filter(w => w.window_type === 'calendar' && w.opens_date)
-        .sort((a, b) => a.opens_date.localeCompare(b.opens_date))
+        .sort((a, b) => String(a.opens_date).localeCompare(String(b.opens_date)))
 );
 </script>
 
