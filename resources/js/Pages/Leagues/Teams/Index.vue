@@ -131,26 +131,25 @@ function isDirty(team) {
 
         <div class="mt-3 rounded-lg border border-gray-200 bg-white">
             <!-- Header -->
-            <div class="hidden sm:grid grid-cols-[28px_minmax(100px,1.2fr)_minmax(80px,1fr)_minmax(100px,1.5fr)_minmax(60px,0.6fr)_auto] gap-2 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                <span></span>
-                <span>Team</span>
-                <span>Coach</span>
-                <span>Email</span>
-                <span>Division</span>
-                <span></span>
+            <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
+                <span class="w-7 shrink-0"></span>
+                <span class="flex-1 min-w-0">Team</span>
+                <span class="flex-1 min-w-0">Coach</span>
+                <span class="flex-1 min-w-0">Email</span>
+                <span class="w-20 shrink-0">Division</span>
+                <span class="w-28 shrink-0"></span>
             </div>
 
             <!-- Team rows — desktop -->
             <div v-for="team in filteredTeams" :key="team.id"
-                class="hidden sm:grid grid-cols-[28px_minmax(100px,1.2fr)_minmax(80px,1fr)_minmax(100px,1.5fr)_minmax(60px,0.6fr)_auto] gap-2 items-center px-3 py-1 border-b border-gray-50 hover:bg-gray-50">
+                class="hidden sm:flex items-center gap-2 px-3 py-1 border-b border-gray-50 hover:bg-gray-50">
                 <!-- Color swatch -->
-                <div class="relative flex justify-center">
+                <div class="relative w-7 shrink-0 flex justify-center">
                     <button @click="isManager && toggleColorPicker(team.id)"
                         class="h-5 w-5 rounded-full border border-gray-200 cursor-pointer"
                         :style="{ backgroundColor: edits[team.id].color_code || '#e5e7eb' }"
                         :disabled="!isManager">
                     </button>
-                    <!-- Color picker popover -->
                     <div v-if="colorPickerOpen === team.id" class="absolute top-7 left-0 z-50 rounded-lg border border-gray-200 bg-white p-2 shadow-lg" style="width: 176px">
                         <div class="grid grid-cols-6 gap-1">
                             <button v-for="c in presetColors" :key="c"
@@ -168,26 +167,27 @@ function isDirty(team) {
                 </div>
 
                 <input v-model="edits[team.id].name" :disabled="!isManager"
-                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    class="flex-1 min-w-0 rounded border-transparent bg-transparent px-1 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
 
                 <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="—"
-                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    class="flex-1 min-w-0 rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
 
                 <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="—"
-                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    class="flex-1 min-w-0 rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
 
-                <span class="text-[10px] text-gray-500 truncate" :title="team.division?.name">{{ team.division?.name }}</span>
+                <span class="w-20 shrink-0 text-[10px] text-gray-500 truncate" :title="team.division?.name">{{ team.division?.name }}</span>
 
-                <div class="flex items-center gap-1.5 justify-end flex-wrap" v-if="isManager">
-                    <label v-if="isDirty(team) && edits[team.id].contact_email" class="flex items-center gap-1 text-[9px] text-gray-500 cursor-pointer">
+                <div class="w-28 shrink-0 flex items-center gap-1 justify-end" v-if="isManager">
+                    <label v-if="isDirty(team) && edits[team.id].contact_email" class="flex items-center gap-0.5 text-[9px] text-gray-500 cursor-pointer" title="Send invite on save">
                         <input type="checkbox" v-model="sendInvite[team.id]" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500 h-3 w-3" />
-                        Invite
+                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     </label>
                     <button v-if="isDirty(team)" @click="saveTeam(team)" :disabled="saving[team.id]"
                         class="rounded bg-brand-600 px-1.5 py-0.5 text-[9px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
                         {{ saving[team.id] ? '...' : 'Save' }}
                     </button>
                     <button v-if="!isDirty(team) && (team.contact_email || edits[team.id].contact_email)" @click="sendInviteOnly(team)" :disabled="inviting[team.id]"
+                        title="Send login invite to coach"
                         class="rounded border border-brand-300 bg-brand-50 px-1.5 py-0.5 text-[9px] font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50">
                         {{ inviting[team.id] ? '...' : 'Invite' }}
                     </button>
