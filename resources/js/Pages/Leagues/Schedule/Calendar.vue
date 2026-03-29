@@ -496,7 +496,8 @@ function handleEventDrop(info) {
         axios.patch(route('leagues.schedule.move', [props.league.slug, event.id]), {
             date: newDate, start_time: newStartTime, end_time: newEndTime, field_id: fieldId,
         }, { headers: { Accept: 'application/json' } }).then(() => {
-            // Success — FullCalendar already moved the event visually
+            // Refetch to sync event objects for tooltips
+            setTimeout(() => calendarRef.value?.getApi()?.refetchEvents(), 300);
         }).catch((error) => {
             console.error('Move error:', error.response?.data);
             info.revert();
@@ -527,7 +528,8 @@ function handleEventResize(info) {
     axios.patch(route('leagues.schedule.move', [props.league.slug, event.id]), {
         date, start_time: startTime, end_time: endTime, field_id: fieldId,
     }, { headers: { Accept: 'application/json' } }).then(() => {
-        // Success — event already visually resized by FullCalendar
+        // Refetch to sync event objects for tooltips
+        setTimeout(() => calendarRef.value?.getApi()?.refetchEvents(), 300);
     }).catch((error) => {
         console.error('Resize error:', error.response?.data);
         info.revert();
