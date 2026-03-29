@@ -831,10 +831,13 @@ function showError(messages) {
                             :data-team-id="team.id"
                             :data-team-name="team.name"
                             :data-team-color="team.color_code || '#3B82F6'"
-                            class="mb-0.5 flex cursor-grab items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium text-gray-700 transition hover:bg-gray-50 active:cursor-grabbing"
+                            class="mb-0.5 flex cursor-grab items-start gap-1.5 rounded px-2 py-1 transition hover:bg-gray-50 active:cursor-grabbing"
                         >
-                            <span class="inline-block h-2 w-2 shrink-0 rounded-full" :style="{ backgroundColor: team.color_code || '#3B82F6' }"></span>
-                            <span class="truncate">{{ team.name }}</span>
+                            <span class="mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full" :style="{ backgroundColor: team.color_code || '#3B82F6' }"></span>
+                            <div class="min-w-0">
+                                <span class="block truncate text-[11px] font-medium text-gray-700">{{ team.name }}</span>
+                                <span v-if="team.contact_name" class="block truncate text-[9px] text-gray-400 leading-tight">{{ team.contact_name }}</span>
+                            </div>
                         </div>
                         <div v-if="sidebarTeams.length === 0" class="px-2 py-3 text-center text-[10px] text-gray-400">No teams</div>
                     </div>
