@@ -14,6 +14,7 @@ const props = defineProps({
 
 const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 const filterDiv = ref('');
+const filterSearch = ref('');
 const saving = ref({});
 const saved = ref({});
 const colorPickerOpen = ref(null);
@@ -37,8 +38,20 @@ const presetColors = [
 ];
 
 const filteredTeams = computed(() => {
-    if (filterDiv.value) return props.teams.filter(t => t.division_id == filterDiv.value);
-    return props.teams;
+    let result = props.teams;
+    if (filterDiv.value) {
+        result = result.filter(t => t.division_id == filterDiv.value);
+    }
+    if (filterSearch.value) {
+        const q = filterSearch.value.toLowerCase();
+        result = result.filter(t =>
+            t.name.toLowerCase().includes(q) ||
+            (t.contact_name || '').toLowerCase().includes(q) ||
+            (t.contact_email || '').toLowerCase().includes(q) ||
+            (t.division?.name || '').toLowerCase().includes(q)
+        );
+    }
+    return result;
 });
 
 const edits = ref({});
@@ -119,12 +132,15 @@ function isDirty(team) {
     <Head :title="`${league.name} - Team Roster`" />
 
     <LeagueLayout :league="league" :userRole="userRole || ''">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2">
             <h2 class="text-base font-semibold text-gray-900">Team Roster</h2>
-            <select v-model="filterDiv" class="w-40">
-                <option value="">All Divisions</option>
-                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
-            </select>
+            <div class="flex items-center gap-2">
+                <input v-model="filterSearch" type="text" placeholder="Search..." class="w-36 rounded-md border-gray-300 text-xs" />
+                <select v-model="filterDiv" class="w-36">
+                    <option value="">All Divisions</option>
+                    <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+                </select>
+            </div>
         </div>
 
         <FlashMessage />
