@@ -379,7 +379,8 @@ const calendarOptions = ref({
             const ext = arg.event.extendedProps || {};
             const time = arg.event.start ? fmt12(arg.event.start.toTimeString().slice(0, 5)) : '';
             const team = ext.team_name || arg.event.title;
-            return { html: `<span class="fc-month-event"><span class="fc-month-time">${time}</span> ${team}</span>` };
+            const color = arg.event.backgroundColor || '#3B82F6';
+            return { html: `<span class="fc-month-event" style="background:${color}; color:#fff; border-radius:3px; padding:1px 4px;"><span class="fc-month-time">${time}</span> ${team}</span>` };
         }
         return true;
     },
