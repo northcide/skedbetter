@@ -6,7 +6,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Modal from '@/Components/Modal.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -631,9 +631,11 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
         snappedStart = `${String(adjH).padStart(2, '0')}:${String(adjM).padStart(2, '0')}`;
     }
 
-    // Set start_time AFTER duration so the watcher calculates end_time
+    // Set both times — use nextTick to ensure end_time isn't overwritten by the duration watcher
     modalForm.start_time = snappedStart;
-    modalForm.end_time = endTime || '';
+    const resolvedEndTime = endTime || '';
+    modalForm.end_time = resolvedEndTime;
+    nextTick(() => { if (resolvedEndTime) modalForm.end_time = resolvedEndTime; });
     highlightStartTime.value = !!snappedStart;
     if (highlightStartTime.value) {
         setTimeout(() => { highlightStartTime.value = false; }, 3000);
