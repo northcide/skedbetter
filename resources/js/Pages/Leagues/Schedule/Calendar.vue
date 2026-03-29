@@ -737,13 +737,6 @@ function editEvent() {
         }
     }
 
-    // Extract custom title — server format is "Team - Type" or "Team - Type: Custom Title"
-    const rawTitle = liveEvent?.title || ev.title || '';
-    const eventType = ext.type || ev.type || '';
-    let customTitle = rawTitle.includes(': ') ? rawTitle.split(': ').slice(1).join(': ') : '';
-    // Guard: if extracted title equals the type name, it's not a real custom title
-    if (customTitle.toLowerCase() === eventType.toLowerCase()) customTitle = '';
-
     openModal({
         entryId: ev.id,
         teamId: ext.team_id || ev.teamId,
@@ -753,7 +746,7 @@ function editEvent() {
         fieldId: fieldId,
         fieldName: fieldName,
         type: ext.type || ev.type,
-        title: customTitle,
+        title: ext.custom_title || '',
     });
 }
 

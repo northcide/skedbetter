@@ -323,6 +323,7 @@ class ScheduleEntryController extends Controller
                     'type' => $entry->type->value ?? $entry->type,
                     'status' => $entry->status->value ?? $entry->status,
                     'notes' => $entry->notes,
+                    'custom_title' => $entry->title,
                 ],
             ];
         });
