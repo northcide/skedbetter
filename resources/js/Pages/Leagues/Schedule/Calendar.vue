@@ -56,6 +56,7 @@ const showConfirmation = ref(false);
 const modalSubmitting = ref(false);
 const editingEntryId = ref(null); // null = new entry, number = editing existing
 const confirmationDetails = ref({});
+const highlightStartTime = ref(false);
 const modalFieldName = ref('');
 const liveErrors = ref([]);
 const validating = ref(false);
@@ -553,6 +554,10 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
     // Set start_time AFTER duration so the watcher calculates end_time
     modalForm.start_time = snappedStart;
     modalForm.end_time = endTime || '';
+    highlightStartTime.value = !!snappedStart;
+    if (highlightStartTime.value) {
+        setTimeout(() => { highlightStartTime.value = false; }, 3000);
+    }
     showModal.value = true;
     liveValidate();
 }
@@ -904,7 +909,10 @@ function showError(messages) {
                         </div>
                         <div>
                             <InputLabel for="m_start" value="Start Time" class="text-xs" />
-                            <select id="m_start" v-model="modalForm.start_time" class="mt-1 block w-full" required>
+                            <select id="m_start" v-model="modalForm.start_time"
+                                class="mt-1 block w-full transition-all duration-500"
+                                :class="highlightStartTime ? 'ring-2 ring-brand-400 border-brand-400 bg-brand-50' : ''"
+                                @change="highlightStartTime = false" required>
                                 <option value="">Select</option>
                                 <option v-for="t in timeSlots" :key="t.value" :value="t.value">{{ t.label }}</option>
                             </select>
