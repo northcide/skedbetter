@@ -42,6 +42,7 @@ const navSections = computed(() => {
                 { label: 'Divisions & Teams', route: 'leagues.divisions.index', match: 'divisions' },
                 { label: 'Team Roster', route: 'leagues.teams.index', match: '/teams' },
                 { label: 'Locations & Fields', route: 'leagues.locations.index', match: 'locations' },
+                { label: 'Import Data', route: 'leagues.data-import', match: 'data-import' },
             ],
         },
         {

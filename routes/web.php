@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminLeagueController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\League\DataImportController;
 use App\Http\Controllers\IcalController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\League\BlackoutRuleController;
@@ -142,6 +143,12 @@ Route::middleware('auth')->group(function () {
                 Route::post('members/{user}/generate-magic-link', [InvitationController::class, 'generateMagicLink'])->name('members.generate-magic-link');
 
                 Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
+
+                // Data import
+                Route::get('data-import', [DataImportController::class, 'create'])->name('data-import');
+                Route::get('data-import/template/{type}', [DataImportController::class, 'template'])->name('data-import.template');
+                Route::post('data-import/preview', [DataImportController::class, 'preview'])->name('data-import.preview');
+                Route::post('data-import/import', [DataImportController::class, 'import'])->name('data-import.import');
 
                 Route::resource('blackouts', BlackoutRuleController::class)
                     ->except(['show'])
