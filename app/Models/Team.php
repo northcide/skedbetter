@@ -13,7 +13,10 @@ class Team extends Model
 
     protected $fillable = [
         'division_id', 'league_id', 'name', 'color_code',
-        'contact_name', 'contact_email', 'contact_phone', 'max_weekly_slots',
+        'contact_name', 'contact_email', 'contact_phone',
+        'contact_name_2', 'contact_email_2',
+        'contact_name_3', 'contact_email_3',
+        'max_weekly_slots',
     ];
 
     public function division()

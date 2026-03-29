@@ -51,6 +51,10 @@ const filteredTeams = computed(() => {
             t.name.toLowerCase().includes(q) ||
             (t.contact_name || '').toLowerCase().includes(q) ||
             (t.contact_email || '').toLowerCase().includes(q) ||
+            (t.contact_name_2 || '').toLowerCase().includes(q) ||
+            (t.contact_email_2 || '').toLowerCase().includes(q) ||
+            (t.contact_name_3 || '').toLowerCase().includes(q) ||
+            (t.contact_email_3 || '').toLowerCase().includes(q) ||
             (t.division?.name || '').toLowerCase().includes(q)
         );
     }
@@ -63,6 +67,10 @@ props.teams.forEach(t => {
         name: t.name,
         contact_name: t.contact_name || '',
         contact_email: t.contact_email || '',
+        contact_name_2: t.contact_name_2 || '',
+        contact_email_2: t.contact_email_2 || '',
+        contact_name_3: t.contact_name_3 || '',
+        contact_email_3: t.contact_email_3 || '',
         color_code: t.color_code || '',
     };
 });
@@ -87,6 +95,10 @@ function saveTeam(team) {
         name: edits.value[team.id].name,
         contact_name: edits.value[team.id].contact_name,
         contact_email: edits.value[team.id].contact_email,
+        contact_name_2: edits.value[team.id].contact_name_2,
+        contact_email_2: edits.value[team.id].contact_email_2,
+        contact_name_3: edits.value[team.id].contact_name_3,
+        contact_email_3: edits.value[team.id].contact_email_3,
         color_code: edits.value[team.id].color_code,
         division_id: team.division_id,
         send_invite: sendInvite.value[team.id] || false,
@@ -127,6 +139,10 @@ function isDirty(team) {
     return e.name !== team.name
         || e.contact_name !== (team.contact_name || '')
         || e.contact_email !== (team.contact_email || '')
+        || e.contact_name_2 !== (team.contact_name_2 || '')
+        || e.contact_email_2 !== (team.contact_email_2 || '')
+        || e.contact_name_3 !== (team.contact_name_3 || '')
+        || e.contact_email_3 !== (team.contact_email_3 || '')
         || e.color_code !== (team.color_code || '');
 }
 
@@ -193,23 +209,22 @@ onUnmounted(() => removeInertiaListener?.());
 
         <FlashMessage />
 
-        <div class="mt-3 max-w-4xl rounded-lg border border-gray-200 bg-white">
+        <div class="mt-3 max-w-5xl rounded-lg border border-gray-200 bg-white">
             <!-- Header -->
             <div class="hidden sm:flex items-center gap-1.5 px-2 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
                 <span class="w-6 shrink-0"></span>
-                <span class="w-32 shrink-0">Team</span>
-                <span class="w-28 shrink-0">Coach</span>
-                <span class="w-44 shrink-0">Email</span>
+                <span class="w-28 shrink-0">Team</span>
+                <span class="flex-1 min-w-0">Coaches (Name / Email)</span>
                 <span class="w-20 shrink-0">Division</span>
-                <span class="flex-1"></span>
+                <span class="w-28 shrink-0"></span>
             </div>
 
             <!-- Team rows — desktop -->
             <div v-for="team in filteredTeams" :key="team.id"
-                class="hidden sm:flex items-center gap-1.5 px-2 py-1 border-b border-gray-50 hover:bg-gray-50 transition-colors duration-500"
-                :class="highlightDirty && isDirty(team) ? 'bg-amber-50 border-amber-200' : ''"
+                class="hidden sm:flex items-start gap-1.5 px-2 py-1.5 border-b border-gray-50 hover:bg-gray-50 transition-colors duration-500"
+                :class="highlightDirty && isDirty(team) ? 'bg-amber-50 border-amber-200' : ''">
                 <!-- Color swatch -->
-                <div class="relative w-6 shrink-0 flex justify-center">
+                <div class="relative w-6 shrink-0 flex justify-center pt-0.5">
                     <button @click="isManager && toggleColorPicker(team.id)"
                         class="h-5 w-5 rounded-full border border-gray-200 cursor-pointer"
                         :style="{ backgroundColor: edits[team.id].color_code || '#e5e7eb' }"
@@ -232,15 +247,31 @@ onUnmounted(() => removeInertiaListener?.());
                 </div>
 
                 <input v-model="edits[team.id].name" :disabled="!isManager"
-                    class="w-32 shrink-0 rounded border-transparent bg-transparent px-1 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                    class="w-28 shrink-0 rounded border-transparent bg-transparent px-1 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
 
-                <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="—"
-                    class="w-28 shrink-0 rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                <!-- Coaches (stacked) -->
+                <div class="flex-1 min-w-0 space-y-px">
+                    <div class="flex items-center gap-1">
+                        <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="Head coach"
+                            class="w-24 rounded border-transparent bg-transparent px-1 py-0.5 text-[11px] text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                        <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="email"
+                            class="w-40 rounded border-transparent bg-transparent px-1 py-0.5 text-[11px] text-gray-500 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                    </div>
+                    <div v-if="edits[team.id].contact_name_2 || edits[team.id].contact_email_2 || isManager" class="flex items-center gap-1">
+                        <input v-model="edits[team.id].contact_name_2" :disabled="!isManager" placeholder="Asst coach 2"
+                            class="w-24 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-500 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                        <input v-model="edits[team.id].contact_email_2" type="email" :disabled="!isManager" placeholder="email"
+                            class="w-40 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-400 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                    </div>
+                    <div v-if="edits[team.id].contact_name_3 || edits[team.id].contact_email_3 || isManager" class="flex items-center gap-1">
+                        <input v-model="edits[team.id].contact_name_3" :disabled="!isManager" placeholder="Asst coach 3"
+                            class="w-24 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-500 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                        <input v-model="edits[team.id].contact_email_3" type="email" :disabled="!isManager" placeholder="email"
+                            class="w-40 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-400 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                    </div>
+                </div>
 
-                <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="—"
-                    class="w-44 shrink-0 rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
-
-                <span class="w-20 shrink-0 text-[10px] text-gray-500 truncate" :title="team.division?.name">{{ team.division?.name }}</span>
+                <span class="w-20 shrink-0 text-[10px] text-gray-500 truncate pt-0.5" :title="team.division?.name">{{ team.division?.name }}</span>
 
                 <div class="flex-1 flex items-center gap-1 justify-end" v-if="isManager">
                     <label v-if="isDirty(team) && edits[team.id].contact_email" class="flex items-center gap-0.5 text-[9px] text-gray-500 cursor-pointer" title="Send invite on save">
@@ -292,11 +323,25 @@ onUnmounted(() => removeInertiaListener?.());
                         class="flex-1 rounded border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-gray-900 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
                     <span class="shrink-0 text-[10px] text-gray-400">{{ team.division?.name }}</span>
                 </div>
-                <div class="mt-1.5 grid grid-cols-2 gap-2 pl-7">
-                    <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="Coach name"
-                        class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
-                    <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="Coach email"
-                        class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                <div class="mt-1.5 space-y-1 pl-7">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="Head coach"
+                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                        <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="email"
+                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    </div>
+                    <div v-if="edits[team.id].contact_name_2 || edits[team.id].contact_email_2 || isManager" class="grid grid-cols-2 gap-2">
+                        <input v-model="edits[team.id].contact_name_2" :disabled="!isManager" placeholder="Asst coach 2"
+                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                        <input v-model="edits[team.id].contact_email_2" type="email" :disabled="!isManager" placeholder="email"
+                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    </div>
+                    <div v-if="edits[team.id].contact_name_3 || edits[team.id].contact_email_3 || isManager" class="grid grid-cols-2 gap-2">
+                        <input v-model="edits[team.id].contact_name_3" :disabled="!isManager" placeholder="Asst coach 3"
+                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                        <input v-model="edits[team.id].contact_email_3" type="email" :disabled="!isManager" placeholder="email"
+                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    </div>
                 </div>
                 <div v-if="isManager" class="mt-1.5 flex items-center gap-2 pl-7 flex-wrap">
                     <label v-if="isDirty(team) && edits[team.id].contact_email" class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer">

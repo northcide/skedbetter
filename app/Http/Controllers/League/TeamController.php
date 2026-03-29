@@ -389,6 +389,10 @@ class TeamController extends Controller
             'contact_name' => 'nullable|string|max:255',
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
+            'contact_name_2' => 'nullable|string|max:255',
+            'contact_email_2' => 'nullable|email',
+            'contact_name_3' => 'nullable|string|max:255',
+            'contact_email_3' => 'nullable|email',
             'max_weekly_slots' => 'nullable|integer|min:1',
             'send_invite' => 'nullable|boolean',
         ]);
@@ -398,9 +402,16 @@ class TeamController extends Controller
 
         $team->update($validated);
 
-        // Auto-create/associate coach if email provided
-        if (! empty($validated['contact_email'])) {
-            $this->associateCoach($team, $validated['contact_email'], $validated['contact_name'] ?? null);
+        // Auto-create/associate coaches for all provided emails
+        $coachEmails = [
+            ['email' => $validated['contact_email'] ?? null, 'name' => $validated['contact_name'] ?? null],
+            ['email' => $validated['contact_email_2'] ?? null, 'name' => $validated['contact_name_2'] ?? null],
+            ['email' => $validated['contact_email_3'] ?? null, 'name' => $validated['contact_name_3'] ?? null],
+        ];
+        foreach ($coachEmails as $coach) {
+            if (!empty($coach['email'])) {
+                $this->associateCoach($team, $coach['email'], $coach['name']);
+            }
         }
 
         // Send invite if requested
