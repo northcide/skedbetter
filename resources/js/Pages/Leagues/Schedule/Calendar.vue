@@ -669,9 +669,6 @@ watch(() => modalForm.team_id, () => {
 const showEventDetail = ref(false);
 const eventDetail = ref({});
 
-// Clear tooltips whenever modals open/close
-watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
-
 function handleEventClick(info) {
     const ev = info.event;
     const ext = ev.extendedProps || {};
@@ -826,6 +823,9 @@ function showError(messages) {
     errorMessages.value = Array.isArray(messages) ? messages : [messages];
     setTimeout(() => { errorMessages.value = []; }, 5000);
 }
+
+// Clear tooltips whenever modals open/close
+watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
 </script>
 
 <template>
