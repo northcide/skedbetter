@@ -429,12 +429,14 @@ const calendarOptions = ref({
         saveState({ view: info.view.type, date: info.start.toISOString().slice(0, 10) });
     },
     eventDrop: (info) => handleEventDrop(info),
-    eventResize: (info) => handleEventDrop(info),
+    eventResize: (info) => handleEventResize(info),
     eventReceive: (info) => handleExternalDrop(info),
     select: (info) => handleSelect(info),
     eventClick: (info) => handleEventClick(info),
     eventDidMount: (info) => {
         if (info.event.display === 'background') return;
+        if (info.el._tooltipBound) return;
+        info.el._tooltipBound = true;
         const ext = info.event.extendedProps || {};
         const start = info.event.start;
         const end = info.event.end || new Date(start.getTime() + 3600000);
@@ -504,6 +506,27 @@ function handleEventDrop(info) {
         console.error('handleEventDrop error:', e);
         info.revert();
     }
+}
+
+function handleEventResize(info) {
+    const event = info.event;
+    const ext = event.extendedProps || {};
+    const date = event.start.toISOString().slice(0, 10);
+    const startTime = event.start.toTimeString().slice(0, 5);
+    const end = event.end || new Date(event.start.getTime() + 3600000);
+    const endTime = end.toTimeString().slice(0, 5);
+    const fieldId = ext.field_id || '';
+
+    axios.patch(route('leagues.schedule.move', [props.league.slug, event.id]), {
+        date, start_time: startTime, end_time: endTime, field_id: fieldId,
+    }, { headers: { Accept: 'application/json' } }).then(() => {
+        // Success — event already visually resized by FullCalendar
+    }).catch((error) => {
+        console.error('Resize error:', error.response?.data);
+        info.revert();
+        const msgs = error.response?.data?.errors || ['Resize failed'];
+        showError(Array.isArray(msgs) ? msgs : [msgs]);
+    });
 }
 
 function handleExternalDrop(info) {
