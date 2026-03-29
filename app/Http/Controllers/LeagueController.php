@@ -15,12 +15,12 @@ class LeagueController extends Controller
 
         if ($user->isSuperadmin()) {
             $leagues = League::whereNotNull('approved_at')
-                ->withCount(['teams', 'locations', 'divisions'])->latest()->get();
+                ->withCount(['teams', 'locations', 'divisions', 'fields'])->latest()->get();
             $leagues->each(fn ($l) => $l->user_role = 'superadmin');
         } else {
             $leagues = $user->leagues()
                 ->whereNotNull('leagues.approved_at')
-                ->withCount(['teams', 'locations', 'divisions'])
+                ->withCount(['teams', 'locations', 'divisions', 'fields'])
                 ->latest()
                 ->get();
             $leagues->each(fn ($l) => $l->user_role = $l->pivot->role ?? 'coach');
@@ -103,7 +103,7 @@ class LeagueController extends Controller
     public function show(Request $request, string $league)
     {
         $league = League::where('slug', $league)
-            ->withCount(['teams', 'locations', 'divisions'])
+            ->withCount(['teams', 'locations', 'divisions', 'fields'])
             ->firstOrFail();
 
         $user = $request->user();

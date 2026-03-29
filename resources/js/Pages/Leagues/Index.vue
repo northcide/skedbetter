@@ -74,6 +74,7 @@ const deleteLeague = (league) => {
                                 <span>{{ league.divisions_count }} divisions</span>
                                 <span>{{ league.teams_count }} teams</span>
                                 <span>{{ league.locations_count }} locations</span>
+                                <span>{{ league.fields_count }} fields</span>
                             </div>
                         </Link>
                         <div class="mt-2 flex gap-4">
@@ -92,6 +93,7 @@ const deleteLeague = (league) => {
                             <th class="px-4 py-2.5 text-center">Divisions</th>
                             <th class="px-4 py-2.5 text-center">Teams</th>
                             <th class="px-4 py-2.5 text-center">Locations</th>
+                            <th class="px-4 py-2.5 text-center">Fields</th>
                             <th class="px-4 py-2.5 text-center">Status</th>
                             <th class="px-4 py-2.5"></th>
                         </tr>
@@ -107,6 +109,7 @@ const deleteLeague = (league) => {
                             <td class="px-4 py-3 text-center text-sm text-gray-600">{{ league.divisions_count }}</td>
                             <td class="px-4 py-3 text-center text-sm text-gray-600">{{ league.teams_count }}</td>
                             <td class="px-4 py-3 text-center text-sm text-gray-600">{{ league.locations_count }}</td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-600">{{ league.fields_count }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span v-if="league.is_active" class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">Active</span>
                                 <span v-else class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">Inactive</span>
