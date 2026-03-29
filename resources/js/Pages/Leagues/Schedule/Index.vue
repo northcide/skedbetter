@@ -122,24 +122,25 @@ const statusBadge = (status) => {
 
                     <!-- Mobile: card layout -->
                     <div v-else class="divide-y divide-gray-100 md:hidden">
-                        <div v-for="entry in entries.data" :key="'m-' + entry.id" class="px-4 py-3">
+                        <div v-for="entry in entries.data" :key="'m-' + entry.id" class="px-4 py-3"
+                            :class="entry.status === 'cancelled' ? 'opacity-40' : ''">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-1.5">
                                     <span v-if="entry.team?.color_code" class="inline-block h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: entry.team.color_code }"></span>
-                                    <span class="text-sm font-medium text-gray-900">{{ entry.team?.name }}</span>
+                                    <span class="text-sm font-medium" :class="entry.status === 'cancelled' ? 'line-through text-gray-400' : 'text-gray-900'">{{ entry.team?.name }}</span>
                                 </div>
                                 <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold" :class="statusBadge(entry.status)">{{ entry.status }}</span>
                             </div>
-                            <div class="mt-1 text-sm text-gray-600">
+                            <div class="mt-1 text-sm" :class="entry.status === 'cancelled' ? 'line-through text-gray-300' : 'text-gray-600'">
                                 {{ fmtDate(entry.date) }} &middot; {{ fmt12(entry.start_time) }} - {{ fmt12(entry.end_time) }}
                             </div>
-                            <div class="mt-0.5 text-sm text-gray-400">
+                            <div class="mt-0.5 text-sm" :class="entry.status === 'cancelled' ? 'line-through text-gray-300' : 'text-gray-400'">
                                 {{ entry.field?.name }}<span v-if="entry.field?.location"> @ {{ entry.field.location.name }}</span>
                                 &middot; <span class="capitalize">{{ entry.type }}</span>
                             </div>
-                            <div v-if="isManager" class="mt-2 flex gap-4">
+                            <div v-if="isManager && entry.status !== 'cancelled'" class="mt-2 flex gap-4">
                                 <Link :href="route('leagues.schedule.edit', [league.slug, entry.id])" class="py-1 text-sm font-medium text-brand-600">Edit</Link>
-                                <button v-if="entry.status !== 'cancelled'" @click="cancelEntry(entry)" class="py-1 text-sm font-medium text-red-600">Delete</button>
+                                <button @click="cancelEntry(entry)" class="py-1 text-sm font-medium text-red-600">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -158,32 +159,35 @@ const statusBadge = (status) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
-                            <tr v-for="entry in entries.data" :key="entry.id">
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+                            <tr v-for="entry in entries.data" :key="entry.id"
+                                :class="entry.status === 'cancelled' ? 'opacity-40' : ''">
+                                <td class="whitespace-nowrap px-4 py-3 text-sm" :class="entry.status === 'cancelled' ? 'line-through text-gray-400' : 'text-gray-900'">
                                     {{ fmtDate(entry.date) }}
                                 </td>
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+                                <td class="whitespace-nowrap px-4 py-3 text-sm" :class="entry.status === 'cancelled' ? 'line-through text-gray-400' : 'text-gray-500'">
                                     {{ fmt12(entry.start_time) }} - {{ fmt12(entry.end_time) }}
                                 </td>
-                                <td class="whitespace-nowrap px-4 py-3 text-sm">
+                                <td class="whitespace-nowrap px-4 py-3 text-sm" :class="entry.status === 'cancelled' ? 'line-through text-gray-400' : ''">
                                     <div class="flex items-center gap-1">
                                         <span v-if="entry.team?.color_code" class="inline-block h-2 w-2 rounded-full" :style="{ backgroundColor: entry.team.color_code }"></span>
                                         {{ entry.team?.name }}
                                     </div>
                                 </td>
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+                                <td class="whitespace-nowrap px-4 py-3 text-sm" :class="entry.status === 'cancelled' ? 'line-through text-gray-400' : 'text-gray-500'">
                                     {{ entry.field?.name }}
                                     <span v-if="entry.field?.location" class="text-gray-400"> @ {{ entry.field.location.name }}</span>
                                 </td>
-                                <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500 capitalize">{{ entry.type }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 text-sm capitalize" :class="entry.status === 'cancelled' ? 'line-through text-gray-400' : 'text-gray-500'">{{ entry.type }}</td>
                                 <td class="whitespace-nowrap px-4 py-3">
                                     <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5" :class="statusBadge(entry.status)">
                                         {{ entry.status }}
                                     </span>
                                 </td>
                                 <td v-if="isManager" class="whitespace-nowrap px-4 py-3 text-right text-sm">
-                                    <Link :href="route('leagues.schedule.edit', [league.slug, entry.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>
-                                    <button v-if="entry.status !== 'cancelled'" @click="cancelEntry(entry)" class="ml-2 text-red-600 hover:text-red-900">Cancel</button>
+                                    <template v-if="entry.status !== 'cancelled'">
+                                        <Link :href="route('leagues.schedule.edit', [league.slug, entry.id])" class="text-brand-600 hover:text-brand-700">Edit</Link>
+                                        <button @click="cancelEntry(entry)" class="ml-2 text-red-600 hover:text-red-900">Cancel</button>
+                                    </template>
                                 </td>
                             </tr>
                         </tbody>
