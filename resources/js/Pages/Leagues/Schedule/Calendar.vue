@@ -982,6 +982,9 @@ function showError(messages) {
                     </p>
                 </div>
                 <div v-if="isManager || (isCoach && props.coachTeamIds.includes(eventDetail.teamId))" class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <button @click="showEventDetail = false" class="rounded-md px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 sm:px-3 sm:py-1.5 sm:text-xs">
+                        Cancel
+                    </button>
                     <button v-if="eventDetail.status !== 'cancelled'" @click="cancelEvent" class="rounded-md border border-red-200 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 sm:border-0 sm:px-3 sm:py-1.5 sm:text-xs">
                         Delete Entry
                     </button>
