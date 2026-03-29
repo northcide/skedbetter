@@ -17,6 +17,9 @@ const filterDiv = ref('');
 const saving = ref({});
 const saved = ref({});
 const colorPickerOpen = ref(null);
+const sendInvite = ref({});
+const inviting = ref({});
+const invited = ref({});
 
 const presetColors = [
     // Row 1: Reds & Oranges
@@ -70,12 +73,30 @@ function saveTeam(team) {
         contact_email: edits.value[team.id].contact_email,
         color_code: edits.value[team.id].color_code,
         division_id: team.division_id,
-    }).then(() => {
+        send_invite: sendInvite.value[team.id] || false,
+    }).then((res) => {
         saved.value[team.id] = true;
-        setTimeout(() => { saved.value[team.id] = false; }, 1500);
+        if (res.data.invite_sent) invited.value[team.id] = true;
+        sendInvite.value[team.id] = false;
+        setTimeout(() => { saved.value[team.id] = false; invited.value[team.id] = false; }, 2000);
     }).finally(() => {
         saving.value[team.id] = false;
     });
+}
+
+function sendInviteOnly(team) {
+    inviting.value[team.id] = true;
+    axios.post(route('leagues.teams.send-invite', [props.league.slug, team.id]))
+        .then(() => {
+            invited.value[team.id] = true;
+            setTimeout(() => { invited.value[team.id] = false; }, 2000);
+        })
+        .catch((err) => {
+            alert(err.response?.data?.message || 'Failed to send invite.');
+        })
+        .finally(() => {
+            inviting.value[team.id] = false;
+        });
 }
 
 function deleteTeam(team) {
@@ -110,7 +131,7 @@ function isDirty(team) {
 
         <div class="mt-3 rounded-lg border border-gray-200 bg-white">
             <!-- Header -->
-            <div class="hidden sm:grid grid-cols-[28px_minmax(100px,1.2fr)_minmax(80px,1fr)_minmax(100px,1.5fr)_minmax(60px,0.6fr)_60px] gap-2 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
+            <div class="hidden sm:grid grid-cols-[28px_minmax(100px,1.2fr)_minmax(80px,1fr)_minmax(100px,1.5fr)_minmax(60px,0.6fr)_auto] gap-2 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
                 <span></span>
                 <span>Team</span>
                 <span>Coach</span>
@@ -121,7 +142,7 @@ function isDirty(team) {
 
             <!-- Team rows — desktop -->
             <div v-for="team in filteredTeams" :key="team.id"
-                class="hidden sm:grid grid-cols-[28px_minmax(100px,1.2fr)_minmax(80px,1fr)_minmax(100px,1.5fr)_minmax(60px,0.6fr)_60px] gap-2 items-center px-3 py-1 border-b border-gray-50 hover:bg-gray-50">
+                class="hidden sm:grid grid-cols-[28px_minmax(100px,1.2fr)_minmax(80px,1fr)_minmax(100px,1.5fr)_minmax(60px,0.6fr)_auto] gap-2 items-center px-3 py-1 border-b border-gray-50 hover:bg-gray-50">
                 <!-- Color swatch -->
                 <div class="relative flex justify-center">
                     <button @click="isManager && toggleColorPicker(team.id)"
@@ -157,12 +178,21 @@ function isDirty(team) {
 
                 <span class="text-[10px] text-gray-500 truncate" :title="team.division?.name">{{ team.division?.name }}</span>
 
-                <div class="flex items-center gap-1 justify-end" v-if="isManager">
+                <div class="flex items-center gap-1.5 justify-end flex-wrap" v-if="isManager">
+                    <label v-if="isDirty(team) && edits[team.id].contact_email" class="flex items-center gap-1 text-[9px] text-gray-500 cursor-pointer">
+                        <input type="checkbox" v-model="sendInvite[team.id]" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500 h-3 w-3" />
+                        Invite
+                    </label>
                     <button v-if="isDirty(team)" @click="saveTeam(team)" :disabled="saving[team.id]"
                         class="rounded bg-brand-600 px-1.5 py-0.5 text-[9px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
                         {{ saving[team.id] ? '...' : 'Save' }}
                     </button>
-                    <span v-if="saved[team.id]" class="text-[9px] text-green-600">Saved</span>
+                    <button v-if="!isDirty(team) && (team.contact_email || edits[team.id].contact_email)" @click="sendInviteOnly(team)" :disabled="inviting[team.id]"
+                        class="rounded border border-brand-300 bg-brand-50 px-1.5 py-0.5 text-[9px] font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50">
+                        {{ inviting[team.id] ? '...' : 'Invite' }}
+                    </button>
+                    <span v-if="invited[team.id]" class="text-[9px] text-green-600">Sent!</span>
+                    <span v-else-if="saved[team.id]" class="text-[9px] text-green-600">Saved</span>
                     <button @click="deleteTeam(team)" class="text-[9px] text-red-400 hover:text-red-600">Del</button>
                 </div>
             </div>
@@ -202,12 +232,21 @@ function isDirty(team) {
                     <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="Coach email"
                         class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
                 </div>
-                <div v-if="isManager" class="mt-1.5 flex items-center gap-2 pl-7">
+                <div v-if="isManager" class="mt-1.5 flex items-center gap-2 pl-7 flex-wrap">
+                    <label v-if="isDirty(team) && edits[team.id].contact_email" class="flex items-center gap-1 text-[10px] text-gray-500 cursor-pointer">
+                        <input type="checkbox" v-model="sendInvite[team.id]" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500 h-3.5 w-3.5" />
+                        Send invite
+                    </label>
                     <button v-if="isDirty(team)" @click="saveTeam(team)" :disabled="saving[team.id]"
                         class="rounded bg-brand-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
                         {{ saving[team.id] ? '...' : 'Save' }}
                     </button>
-                    <span v-if="saved[team.id]" class="text-[10px] text-green-600">Saved</span>
+                    <button v-if="!isDirty(team) && (team.contact_email || edits[team.id].contact_email)" @click="sendInviteOnly(team)" :disabled="inviting[team.id]"
+                        class="rounded border border-brand-300 bg-brand-50 px-2 py-1 text-[10px] font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-50">
+                        {{ inviting[team.id] ? '...' : 'Send Invite' }}
+                    </button>
+                    <span v-if="invited[team.id]" class="text-[10px] text-green-600">Sent!</span>
+                    <span v-else-if="saved[team.id]" class="text-[10px] text-green-600">Saved</span>
                     <button @click="deleteTeam(team)" class="text-[10px] text-red-400 hover:text-red-600">Delete</button>
                 </div>
             </div>

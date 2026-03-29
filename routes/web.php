@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
             Route::resource('divisions', DivisionController::class)->except(['show']);
             Route::post('divisions/bulk', [DivisionController::class, 'bulkStore'])->name('divisions.bulk');
             Route::resource('teams', TeamController::class);
+            Route::post('teams/{team}/send-invite', [TeamController::class, 'sendInvite'])->name('teams.send-invite');
             Route::post('teams/bulk', [TeamController::class, 'bulkStore'])->name('teams.bulk');
             Route::get('teams-import', [TeamImportController::class, 'create'])->name('teams.import');
             Route::post('teams-import', [TeamImportController::class, 'store'])->name('teams.import.store');

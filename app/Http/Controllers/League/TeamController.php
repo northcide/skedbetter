@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\League;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Auth\MagicLinkController;
+use App\Mail\MagicLinkMail;
 use App\Models\BlackoutRule;
 use App\Models\Division;
 use App\Models\Field;
 use App\Models\SchedulingConstraint;
 use App\Models\Team;
+use App\Models\User;
 use App\Services\LeagueContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 
@@ -403,7 +407,11 @@ class TeamController extends Controller
             'contact_email' => 'nullable|email',
             'contact_phone' => 'nullable|string|max:20',
             'max_weekly_slots' => 'nullable|integer|min:1',
+            'send_invite' => 'nullable|boolean',
         ]);
+
+        $sendInvite = $validated['send_invite'] ?? false;
+        unset($validated['send_invite']);
 
         $team->update($validated);
 
@@ -412,12 +420,42 @@ class TeamController extends Controller
             $this->associateCoach($team, $validated['contact_email'], $validated['contact_name'] ?? null);
         }
 
+        // Send invite if requested
+        $inviteSent = false;
+        if ($sendInvite && ! empty($validated['contact_email'])) {
+            try {
+                $magicLink = MagicLinkController::generateForUser($validated['contact_email'], $request->user()->id);
+                Mail::to($validated['contact_email'])->send(new MagicLinkMail($magicLink));
+                $inviteSent = true;
+            } catch (\Exception $e) {
+                // Silently fail — save still succeeded
+            }
+        }
+
         if ($request->wantsJson()) {
-            return response()->json(['success' => true]);
+            return response()->json(['success' => true, 'invite_sent' => $inviteSent]);
         }
 
         return redirect()->route('leagues.divisions.index', $league)
-            ->with('success', 'Team updated successfully.');
+            ->with('success', 'Team updated successfully.' . ($inviteSent ? ' Invite sent.' : ''));
+    }
+
+    public function sendInvite(Request $request, string $league, Team $team)
+    {
+        if (! $team->contact_email) {
+            return response()->json(['success' => false, 'message' => 'No coach email set.'], 422);
+        }
+
+        // Ensure coach user exists and is associated
+        $this->associateCoach($team, $team->contact_email, $team->contact_name);
+
+        try {
+            $magicLink = MagicLinkController::generateForUser($team->contact_email, $request->user()->id);
+            Mail::to($team->contact_email)->send(new MagicLinkMail($magicLink));
+            return response()->json(['success' => true, 'message' => "Invite sent to {$team->contact_email}."]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => "Failed to send: {$e->getMessage()}"], 500);
+        }
     }
 
     public function destroy(Request $request, string $league, Team $team)
