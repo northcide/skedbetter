@@ -10,6 +10,8 @@ const props = defineProps({
     isSuperadmin: Boolean,
 });
 
+const isLeagueManager = (league) => ['superadmin', 'league_admin', 'division_manager'].includes(league.user_role);
+
 const deleteLeague = (league) => {
     if (confirm(`Delete "${league.name}"? This will delete all divisions, teams, fields, and schedule entries in this league. This cannot be undone.`)) {
         router.delete(route('leagues.destroy', league.slug));
@@ -57,7 +59,7 @@ const deleteLeague = (league) => {
                         </Link>
                         <div class="mt-2 flex gap-4">
                             <Link :href="route('leagues.show', league.slug)" class="py-1 text-sm font-medium text-brand-600">Open</Link>
-                            <Link :href="route('leagues.edit', league.slug)" class="py-1 text-sm font-medium text-gray-500">Edit</Link>
+                            <Link v-if="isLeagueManager(league)" :href="route('leagues.edit', league.slug)" class="py-1 text-sm font-medium text-gray-500">Edit</Link>
                             <button v-if="isSuperadmin" @click="deleteLeague(league)" class="py-1 text-sm font-medium text-red-500">Delete</button>
                         </div>
                     </div>
@@ -93,7 +95,7 @@ const deleteLeague = (league) => {
                             <td class="px-4 py-3 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <Link :href="route('leagues.show', league.slug)" class="text-[11px] font-medium text-brand-600 hover:text-brand-700">Open</Link>
-                                    <Link :href="route('leagues.edit', league.slug)" class="text-[11px] font-medium text-gray-500 hover:text-gray-700">Edit</Link>
+                                    <Link v-if="isLeagueManager(league)" :href="route('leagues.edit', league.slug)" class="text-[11px] font-medium text-gray-500 hover:text-gray-700">Edit</Link>
                                     <button v-if="isSuperadmin" @click="deleteLeague(league)" class="text-[11px] font-medium text-red-500 hover:text-red-700">Delete</button>
                                 </div>
                             </td>

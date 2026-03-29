@@ -14,11 +14,14 @@ class LeagueController extends Controller
 
         if ($user->isSuperadmin()) {
             $leagues = League::withCount(['teams', 'locations', 'divisions'])->latest()->get();
+            // Superadmins get manager role on all leagues
+            $leagues->each(fn ($l) => $l->user_role = 'superadmin');
         } else {
             $leagues = $user->leagues()
                 ->withCount(['teams', 'locations', 'divisions'])
                 ->latest()
                 ->get();
+            $leagues->each(fn ($l) => $l->user_role = $l->pivot->role ?? 'coach');
         }
 
         return Inertia::render('Leagues/Index', [
