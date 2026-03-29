@@ -3,7 +3,7 @@ import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
     league: Object,
@@ -126,6 +126,29 @@ function isDirty(team) {
         || e.contact_email !== (team.contact_email || '')
         || e.color_code !== (team.color_code || '');
 }
+
+const hasUnsavedChanges = computed(() => props.teams.some(t => isDirty(t)));
+
+// Warn on browser close/refresh
+function onBeforeUnload(e) {
+    if (hasUnsavedChanges.value) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+}
+onMounted(() => window.addEventListener('beforeunload', onBeforeUnload));
+onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload));
+
+// Warn on Inertia navigation (sidebar links, etc.)
+let removeInertiaListener;
+onMounted(() => {
+    removeInertiaListener = router.on('before', (event) => {
+        if (hasUnsavedChanges.value && !confirm('You have unsaved changes. Leave this page?')) {
+            event.preventDefault();
+        }
+    });
+});
+onUnmounted(() => removeInertiaListener?.());
 </script>
 
 <template>
