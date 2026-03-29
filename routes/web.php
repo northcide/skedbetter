@@ -67,43 +67,17 @@ Route::middleware('auth')->group(function () {
     Route::resource('leagues', LeagueController::class)->except(['show']);
     Route::get('/leagues/{league}', [LeagueController::class, 'show'])->name('leagues.show');
 
-    // League-scoped routes
+    // League-scoped routes (accessible by all league members including coaches)
     Route::prefix('leagues/{league}')
         ->middleware('league')
         ->as('leagues.')
         ->group(function () {
-            Route::resource('seasons', SeasonController::class)->except(['show']);
-            Route::resource('divisions', DivisionController::class)->except(['show']);
-            Route::post('divisions/bulk', [DivisionController::class, 'bulkStore'])->name('divisions.bulk');
-            Route::resource('teams', TeamController::class);
-            Route::post('teams/{team}/send-invite', [TeamController::class, 'sendInvite'])->name('teams.send-invite');
-            Route::post('teams/bulk', [TeamController::class, 'bulkStore'])->name('teams.bulk');
-            Route::get('teams-import', [TeamImportController::class, 'create'])->name('teams.import');
-            Route::post('teams-import', [TeamImportController::class, 'store'])->name('teams.import.store');
-            Route::resource('locations', LocationController::class)->except(['show']);
-            Route::post('locations/bulk', [LocationController::class, 'bulkStore'])->name('locations.bulk');
-            Route::resource('fields', FieldController::class)->except(['index', 'show']);
-            Route::get('fields/{field}/rules', [FieldRulesController::class, 'edit'])->name('fields.rules');
-            Route::put('fields/{field}/rules', [FieldRulesController::class, 'update'])->name('fields.rules.update');
-
-            // Scheduling Rules Dashboard
-            Route::get('scheduling-rules', [SchedulingRulesController::class, 'index'])->name('scheduling-rules.index');
-            Route::post('scheduling-rules', [SchedulingRulesController::class, 'update'])->name('scheduling-rules.update');
-
-            // Nested: fields under locations
-            Route::get('locations/{location}/fields/create', [FieldController::class, 'create'])
-                ->name('locations.fields.create');
-            Route::post('locations/{location}/fields', [FieldController::class, 'store'])
-                ->name('locations.fields.store');
-
-            // Schedule entries
+            // Schedule (coaches can view all, create/edit/delete own)
             Route::get('schedule/calendar', [ScheduleEntryController::class, 'calendar'])
                 ->name('schedule.calendar');
             Route::resource('schedule', ScheduleEntryController::class)
                 ->except(['show'])
                 ->parameters(['schedule' => 'scheduleEntry']);
-
-            // Calendar API endpoints
             Route::get('schedule/calendar/events', [ScheduleEntryController::class, 'events'])
                 ->name('schedule.events');
             Route::post('schedule/validate', [ScheduleEntryController::class, 'validateEntry'])
@@ -112,32 +86,57 @@ Route::middleware('auth')->group(function () {
                 ->name('schedule.resources');
             Route::patch('schedule/{scheduleEntry}/move', [ScheduleEntryController::class, 'move'])
                 ->name('schedule.move');
-            Route::get('schedule/bulk', [ScheduleEntryController::class, 'bulk'])
-                ->name('schedule.bulk');
-            Route::post('schedule/bulk', [ScheduleEntryController::class, 'bulkStore'])
-                ->name('schedule.bulk.store');
-            Route::post('schedule/{scheduleEntry}/cancel-series', [ScheduleEntryController::class, 'cancelSeries'])
-                ->name('schedule.cancel-series');
 
-            // Onboarding wizard
-            Route::get('setup', [OnboardingController::class, 'index'])->name('onboarding');
-            Route::post('setup/save', [OnboardingController::class, 'save'])->name('onboarding.save');
+            // Team show (coaches can view their own team)
+            Route::get('teams/{team}', [TeamController::class, 'show'])->name('teams.show');
 
-            // Members & invitations
-            Route::get('members', [InvitationController::class, 'index'])->name('members.index');
-            Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
-            Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
-            Route::delete('members/{user}', [InvitationController::class, 'removeMember'])->name('members.destroy');
-            Route::post('members/{user}/send-magic-link', [InvitationController::class, 'sendMagicLink'])->name('members.send-magic-link');
-            Route::post('members/{user}/generate-magic-link', [InvitationController::class, 'generateMagicLink'])->name('members.generate-magic-link');
+            // Manager-only routes
+            Route::middleware('league.manager')->group(function () {
+                Route::resource('seasons', SeasonController::class)->except(['show']);
+                Route::resource('divisions', DivisionController::class)->except(['show']);
+                Route::post('divisions/bulk', [DivisionController::class, 'bulkStore'])->name('divisions.bulk');
+                Route::resource('teams', TeamController::class)->except(['show']);
+                Route::post('teams/{team}/send-invite', [TeamController::class, 'sendInvite'])->name('teams.send-invite');
+                Route::post('teams/bulk', [TeamController::class, 'bulkStore'])->name('teams.bulk');
+                Route::get('teams-import', [TeamImportController::class, 'create'])->name('teams.import');
+                Route::post('teams-import', [TeamImportController::class, 'store'])->name('teams.import.store');
+                Route::resource('locations', LocationController::class)->except(['show']);
+                Route::post('locations/bulk', [LocationController::class, 'bulkStore'])->name('locations.bulk');
+                Route::resource('fields', FieldController::class)->except(['index', 'show']);
+                Route::get('fields/{field}/rules', [FieldRulesController::class, 'edit'])->name('fields.rules');
+                Route::put('fields/{field}/rules', [FieldRulesController::class, 'update'])->name('fields.rules.update');
 
-            // Audit log (superadmin + league admin only)
-            Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
+                Route::get('scheduling-rules', [SchedulingRulesController::class, 'index'])->name('scheduling-rules.index');
+                Route::post('scheduling-rules', [SchedulingRulesController::class, 'update'])->name('scheduling-rules.update');
 
-            // Blackout rules
-            Route::resource('blackouts', BlackoutRuleController::class)
-                ->except(['show'])
-                ->parameters(['blackouts' => 'blackout']);
+                Route::get('locations/{location}/fields/create', [FieldController::class, 'create'])
+                    ->name('locations.fields.create');
+                Route::post('locations/{location}/fields', [FieldController::class, 'store'])
+                    ->name('locations.fields.store');
+
+                Route::get('schedule/bulk', [ScheduleEntryController::class, 'bulk'])
+                    ->name('schedule.bulk');
+                Route::post('schedule/bulk', [ScheduleEntryController::class, 'bulkStore'])
+                    ->name('schedule.bulk.store');
+                Route::post('schedule/{scheduleEntry}/cancel-series', [ScheduleEntryController::class, 'cancelSeries'])
+                    ->name('schedule.cancel-series');
+
+                Route::get('setup', [OnboardingController::class, 'index'])->name('onboarding');
+                Route::post('setup/save', [OnboardingController::class, 'save'])->name('onboarding.save');
+
+                Route::get('members', [InvitationController::class, 'index'])->name('members.index');
+                Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
+                Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
+                Route::delete('members/{user}', [InvitationController::class, 'removeMember'])->name('members.destroy');
+                Route::post('members/{user}/send-magic-link', [InvitationController::class, 'sendMagicLink'])->name('members.send-magic-link');
+                Route::post('members/{user}/generate-magic-link', [InvitationController::class, 'generateMagicLink'])->name('members.generate-magic-link');
+
+                Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
+
+                Route::resource('blackouts', BlackoutRuleController::class)
+                    ->except(['show'])
+                    ->parameters(['blackouts' => 'blackout']);
+            });
         });
 });
 

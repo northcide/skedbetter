@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'league' => \App\Http\Middleware\SetLeagueContext::class,
+            'league.manager' => \App\Http\Middleware\EnsureLeagueManager::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -14,7 +14,18 @@ const mobileMenuOpen = ref(false);
 const isManager = computed(() => ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole));
 
 const navSections = computed(() => {
-    const sections = [
+    if (!isManager.value) {
+        // Coaches only see scheduling
+        return [{
+            label: 'Scheduling',
+            items: [
+                { label: 'Calendar', route: 'leagues.schedule.calendar', match: 'schedule/calendar' },
+                { label: 'Schedule List', route: 'leagues.schedule.index', match: '/schedule', exact: false },
+            ],
+        }];
+    }
+
+    return [
         {
             label: 'Scheduling',
             items: [
@@ -33,20 +44,15 @@ const navSections = computed(() => {
                 { label: 'Locations & Fields', route: 'leagues.locations.index', match: 'locations' },
             ],
         },
-    ];
-
-    if (isManager.value) {
-        sections.push({
+        {
             label: 'Admin',
             items: [
                 { label: 'Members', route: 'leagues.members.index', match: 'members' },
                 { label: 'Audit Log', route: 'leagues.audit-log.index', match: 'audit-log' },
                 { label: 'Settings', route: 'leagues.edit', match: '/edit' },
             ],
-        });
-    }
-
-    return sections;
+        },
+    ];
 });
 
 function isActive(item) {
