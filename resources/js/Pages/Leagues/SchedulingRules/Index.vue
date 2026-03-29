@@ -3,7 +3,7 @@ import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head } from '@inertiajs/vue3';
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
     league: Object,
@@ -21,13 +21,11 @@ const selectedDivision = computed(() =>
     props.divisions.find(d => d.id === selectedDivisionId.value)
 );
 
-// Editable division-level max weekly events
 const divMaxWeekly = ref({});
 props.divisions.forEach(d => {
     divMaxWeekly.value[d.id] = d.max_weekly_events_per_team || '';
 });
 
-// Build editable state from matrix: field_id => division_id => rule
 const rules = ref({});
 props.fields.forEach(f => {
     rules.value[f.id] = {};
@@ -35,7 +33,6 @@ props.fields.forEach(f => {
         const existing = props.matrix[f.id]?.[d.id];
         rules.value[f.id][d.id] = {
             enabled: !!existing,
-            max_weekly_slots: existing?.max_weekly_slots || '',
             priority: existing?.priority ? String(existing.priority) : '',
             booking_window_type: existing?.booking_window_type || '',
             booking_opens_date: existing?.booking_opens_date || '',
@@ -44,7 +41,6 @@ props.fields.forEach(f => {
     });
 });
 
-// Shortcut to get rule for current division + field
 const r = (fieldId) => rules.value[fieldId]?.[selectedDivisionId.value];
 
 const enabledCount = computed(() => {
@@ -61,17 +57,13 @@ function enableAll() {
     props.fields.forEach(f => { if (r(f.id)) r(f.id).enabled = true; });
 }
 function disableAll() {
-    props.fields.forEach(f => {
-        if (r(f.id)) {
-            r(f.id).enabled = false;
-        }
-    });
+    props.fields.forEach(f => { if (r(f.id)) r(f.id).enabled = false; });
 }
 
 function save() {
     saving.value = true;
-    const payload = [];
     const divId = selectedDivisionId.value;
+    const payload = [];
     props.fields.forEach(f => {
         const rule = rules.value[f.id][divId];
         payload.push({
@@ -103,133 +95,99 @@ function save() {
     <Head :title="`${league.name} - Scheduling Rules`" />
 
     <LeagueLayout :league="league" :userRole="userRole || ''">
-        <!-- Header -->
         <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-base font-semibold text-gray-900">Scheduling Rules</h2>
-                <p class="text-[10px] text-gray-400">Pick a division, then configure which fields it can access.</p>
-            </div>
+            <h2 class="text-base font-semibold text-gray-900">Scheduling Rules</h2>
             <PrimaryButton @click="save" :disabled="saving" size="sm">{{ saving ? 'Saving...' : 'Save' }}</PrimaryButton>
         </div>
 
         <FlashMessage />
 
-        <!-- Division Picker + Quick Actions -->
-        <div class="mt-3 flex items-center gap-3">
-            <select v-model="selectedDivisionId" class="rounded-lg border-gray-300 text-sm font-medium focus:border-brand-500 focus:ring-brand-500">
-                <option v-for="d in divisions" :key="d.id" :value="d.id">
-                    {{ d.name }} ({{ d.teams_count ?? 0 }} teams)
-                </option>
+        <!-- Division bar -->
+        <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <select v-model="selectedDivisionId" class="rounded-md border-gray-300 py-1.5 text-sm font-medium focus:border-brand-500 focus:ring-brand-500">
+                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }} ({{ d.teams_count ?? 0 }})</option>
             </select>
-            <span v-if="selectedDivision?.scheduling_priority" class="rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
-                Priority: {{ selectedDivision.scheduling_priority }}
-            </span>
-            <span v-else class="text-[10px] text-gray-400">No default priority</span>
-            <span class="text-xs text-gray-500">
-                &middot; {{ enabledCount }} of {{ fields.length }} fields enabled
-            </span>
+            <div class="flex items-center gap-1.5">
+                <span class="text-[10px] text-gray-500">Priority:</span>
+                <span v-if="selectedDivision?.scheduling_priority" class="rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">{{ selectedDivision.scheduling_priority }}</span>
+                <span v-else class="text-[10px] text-gray-400">none</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <span class="text-[10px] text-gray-500">Max/wk:</span>
+                <select v-model="divMaxWeekly[selectedDivisionId]" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px] focus:border-brand-500 focus:ring-brand-500">
+                    <option value="">none</option>
+                    <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                </select>
+            </div>
+            <span class="text-[10px] text-gray-400">{{ enabledCount }}/{{ fields.length }} fields</span>
             <div class="ml-auto flex gap-2">
-                <button @click="enableAll" class="text-[10px] text-brand-600 hover:text-brand-700 font-medium">Enable all</button>
-                <button @click="disableAll" class="text-[10px] text-gray-500 hover:text-gray-700 font-medium">Disable all</button>
+                <button @click="enableAll" class="text-[10px] text-brand-600 hover:text-brand-700 font-medium">All on</button>
+                <button @click="disableAll" class="text-[10px] text-gray-500 hover:text-gray-700 font-medium">All off</button>
             </div>
         </div>
 
-        <!-- Division-level weekly limit -->
-        <div v-if="selectedDivisionId" class="mt-2 flex items-center gap-2">
-            <label class="text-[10px] font-medium text-gray-500">Max events per team per week:</label>
-            <select v-model="divMaxWeekly[selectedDivisionId]"
-                class="rounded-md border-gray-200 text-xs py-1 px-2 focus:border-brand-500 focus:ring-brand-500">
-                <option value="">No limit</option>
-                <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-            </select>
-            <span class="text-[10px] text-gray-400">Applies across all fields for this division</span>
-        </div>
-
-        <!-- Field Cards by Location -->
-        <div v-if="selectedDivisionId" class="mt-4 space-y-5">
-            <div v-for="loc in fieldsByLocation" :key="loc.name">
+        <!-- Field rows grouped by location -->
+        <div v-if="selectedDivisionId" class="mt-3 rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
+            <template v-for="loc in fieldsByLocation" :key="loc.name">
                 <!-- Location header -->
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">{{ loc.name }}</span>
-                    <div class="flex-1 border-t border-gray-200"></div>
+                <div class="bg-gray-50 px-3 py-1">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">{{ loc.name }}</span>
                 </div>
 
-                <!-- Cards grid -->
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div v-for="field in loc.fields" :key="field.id"
-                        class="rounded-xl border bg-white transition-all"
-                        :class="r(field.id)?.enabled ? 'border-brand-200 shadow-sm' : 'border-gray-100'">
+                <!-- One row per field -->
+                <div v-for="field in loc.fields" :key="field.id"
+                    class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50/50 transition-colors"
+                    :class="{ 'opacity-40': !r(field.id)?.enabled }">
 
-                        <!-- Card header -->
-                        <div class="flex items-center justify-between px-3 py-2 cursor-pointer" @click="toggleField(field.id)">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <input type="checkbox" :checked="r(field.id)?.enabled"
-                                    @click.stop="toggleField(field.id)"
-                                    class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
-                                <span class="text-sm font-medium text-gray-900 truncate">{{ field.name }}</span>
-                            </div>
-                            <span v-if="!r(field.id)?.enabled" class="text-[10px] text-gray-400">Not enabled</span>
-                        </div>
+                    <!-- Checkbox + Name -->
+                    <label class="flex items-center gap-1.5 min-w-0 shrink-0" style="width: 160px">
+                        <input type="checkbox" :checked="r(field.id)?.enabled"
+                            @change="toggleField(field.id)"
+                            class="rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+                        <span class="text-xs font-medium text-gray-900 truncate">{{ field.name }}</span>
+                    </label>
 
-                        <!-- Settings (only when enabled) -->
-                        <div v-if="r(field.id)?.enabled" class="border-t border-gray-100 px-3 py-2 space-y-2">
-                            <!-- Priority override -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[10px] font-medium text-gray-500 mb-0.5">
-                                        Priority Override
-                                        <span v-if="selectedDivision?.scheduling_priority && !r(field.id).priority" class="text-gray-400 font-normal">(using {{ selectedDivision.scheduling_priority }})</span>
-                                    </label>
-                                    <select v-model="r(field.id).priority"
-                                        class="w-full rounded-md border-gray-200 text-xs py-1 px-2 focus:border-brand-500 focus:ring-brand-500">
-                                        <option value="">{{ selectedDivision?.scheduling_priority ? 'Use default (' + selectedDivision.scheduling_priority + ')' : 'None' }}</option>
-                                        <option value="1">1 (Highest)</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5 (Lowest)</option>
-                                    </select>
-                                </div>
-                            </div>
+                    <!-- Inline controls (only interactive when enabled) -->
+                    <template v-if="r(field.id)?.enabled">
+                        <!-- Priority -->
+                        <select v-model="r(field.id).priority" title="Priority override"
+                            class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px] focus:border-brand-500 focus:ring-brand-500">
+                            <option value="">{{ selectedDivision?.scheduling_priority ? 'Pri ' + selectedDivision.scheduling_priority : 'Pri -' }}</option>
+                            <option value="1">Pri 1</option>
+                            <option value="2">Pri 2</option>
+                            <option value="3">Pri 3</option>
+                            <option value="4">Pri 4</option>
+                            <option value="5">Pri 5</option>
+                        </select>
 
-                            <!-- Row 2: Booking window -->
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[10px] font-medium text-gray-500 mb-0.5">Booking Window</label>
-                                    <select v-model="r(field.id).booking_window_type"
-                                        class="w-full rounded-md border-gray-200 text-xs py-1 px-2 focus:border-brand-500 focus:ring-brand-500">
-                                        <option value="">None</option>
-                                        <option value="calendar">Opens on date</option>
-                                        <option value="rolling">Rolling days ahead</option>
-                                    </select>
-                                </div>
-                                <div v-if="r(field.id).booking_window_type === 'calendar'">
-                                    <label class="block text-[10px] font-medium text-gray-500 mb-0.5">Opens on</label>
-                                    <input v-model="r(field.id).booking_opens_date" type="date"
-                                        class="w-full rounded-md border-gray-200 text-xs py-1 px-2 focus:border-brand-500 focus:ring-brand-500" />
-                                </div>
-                                <div v-else-if="r(field.id).booking_window_type === 'rolling'">
-                                    <label class="block text-[10px] font-medium text-gray-500 mb-0.5">Days ahead</label>
-                                    <select v-model="r(field.id).booking_opens_days"
-                                        class="w-full rounded-md border-gray-200 text-xs py-1 px-2 focus:border-brand-500 focus:ring-brand-500">
-                                        <option value="">Select</option>
-                                        <option v-for="d in [7,14,21,28,45,60,90]" :key="d" :value="d">{{ d }} days</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        <!-- Booking window -->
+                        <select v-model="r(field.id).booking_window_type" title="Booking window"
+                            class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px] focus:border-brand-500 focus:ring-brand-500">
+                            <option value="">No window</option>
+                            <option value="calendar">Opens on date</option>
+                            <option value="rolling">Rolling days</option>
+                        </select>
+
+                        <!-- Window value -->
+                        <input v-if="r(field.id).booking_window_type === 'calendar'"
+                            v-model="r(field.id).booking_opens_date" type="date" title="Opens on date"
+                            class="rounded border-gray-200 py-0.5 px-1.5 text-[11px] focus:border-brand-500 focus:ring-brand-500" />
+                        <select v-else-if="r(field.id).booking_window_type === 'rolling'"
+                            v-model="r(field.id).booking_opens_days" title="Days ahead"
+                            class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px] focus:border-brand-500 focus:ring-brand-500">
+                            <option value="">Days?</option>
+                            <option v-for="d in [7,14,21,28,45,60,90]" :key="d" :value="d">{{ d }}d</option>
+                        </select>
+                    </template>
                 </div>
-            </div>
+            </template>
         </div>
 
         <!-- Legend -->
-        <div class="mt-4 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
-            <div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-500">
-                <span><strong>Priority:</strong> 1 = highest, books first when windows overlap. Set default on division, override per-field here</span>
-                <span><strong>Max/week:</strong> Total events any team in this division can have per week, across all fields</span>
-                <span><strong>Booking Window:</strong> When this division can start booking this field</span>
-            </div>
+        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-0.5 px-1 text-[10px] text-gray-400">
+            <span><strong>Pri:</strong> 1=highest, default from division unless overridden</span>
+            <span><strong>Max/wk:</strong> total events per team per week across all fields</span>
+            <span><strong>Window:</strong> when this division can start booking a field</span>
         </div>
     </LeagueLayout>
 </template>
