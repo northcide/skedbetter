@@ -21,6 +21,7 @@ const addingTeam = ref(false);
 const newTeam = ref({ name: '', division_id: '', contact_name: '', contact_email: '' });
 const saved = ref({});
 const colorPickerOpen = ref(null);
+const expandedCoaches = ref({});
 const sendInvite = ref({});
 const inviting = ref({});
 const invited = ref({});
@@ -146,6 +147,14 @@ function isDirty(team) {
         || e.color_code !== (team.color_code || '');
 }
 
+function assistantCount(team) {
+    let count = 0;
+    const e = edits.value[team.id];
+    if (e.contact_name_2 || e.contact_email_2) count++;
+    if (e.contact_name_3 || e.contact_email_3) count++;
+    return count;
+}
+
 function addTeam() {
     if (!newTeam.value.name || !newTeam.value.division_id) return;
     addingTeam.value = true;
@@ -249,25 +258,34 @@ onUnmounted(() => removeInertiaListener?.());
                 <input v-model="edits[team.id].name" :disabled="!isManager"
                     class="w-28 shrink-0 rounded border-transparent bg-transparent px-1 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
 
-                <!-- Coaches (stacked) -->
-                <div class="flex-1 min-w-0 space-y-px">
+                <!-- Head coach + expand toggle -->
+                <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1">
-                        <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="Head coach"
+                        <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="Coach"
                             class="w-24 rounded border-transparent bg-transparent px-1 py-0.5 text-[11px] text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
                         <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="email"
                             class="w-40 rounded border-transparent bg-transparent px-1 py-0.5 text-[11px] text-gray-500 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                        <button v-if="isManager || assistantCount(team) > 0" @click="expandedCoaches[team.id] = !expandedCoaches[team.id]"
+                            class="shrink-0 rounded px-1 py-0.5 text-[9px] transition"
+                            :class="assistantCount(team) > 0 ? 'text-brand-600 hover:text-brand-700' : 'text-gray-400 hover:text-gray-600'">
+                            <span v-if="expandedCoaches[team.id]">hide</span>
+                            <span v-else>+{{ assistantCount(team) || '' }} asst</span>
+                        </button>
                     </div>
-                    <div v-if="edits[team.id].contact_name_2 || edits[team.id].contact_email_2 || isManager" class="flex items-center gap-1">
-                        <input v-model="edits[team.id].contact_name_2" :disabled="!isManager" placeholder="Asst coach 2"
-                            class="w-24 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-500 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
-                        <input v-model="edits[team.id].contact_email_2" type="email" :disabled="!isManager" placeholder="email"
-                            class="w-40 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-400 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
-                    </div>
-                    <div v-if="edits[team.id].contact_name_3 || edits[team.id].contact_email_3 || isManager" class="flex items-center gap-1">
-                        <input v-model="edits[team.id].contact_name_3" :disabled="!isManager" placeholder="Asst coach 3"
-                            class="w-24 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-500 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
-                        <input v-model="edits[team.id].contact_email_3" type="email" :disabled="!isManager" placeholder="email"
-                            class="w-40 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-400 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                    <!-- Assistant coaches (expandable) -->
+                    <div v-if="expandedCoaches[team.id]" class="mt-0.5 space-y-px pl-0">
+                        <div class="flex items-center gap-1">
+                            <input v-model="edits[team.id].contact_name_2" :disabled="!isManager" placeholder="Asst coach 2"
+                                class="w-24 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-500 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                            <input v-model="edits[team.id].contact_email_2" type="email" :disabled="!isManager" placeholder="email"
+                                class="w-40 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-400 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <input v-model="edits[team.id].contact_name_3" :disabled="!isManager" placeholder="Asst coach 3"
+                                class="w-24 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-500 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                            <input v-model="edits[team.id].contact_email_3" type="email" :disabled="!isManager" placeholder="email"
+                                class="w-40 rounded border-transparent bg-transparent px-1 py-0.5 text-[10px] text-gray-400 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                        </div>
                     </div>
                 </div>
 
@@ -323,24 +341,31 @@ onUnmounted(() => removeInertiaListener?.());
                         class="flex-1 rounded border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-gray-900 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
                     <span class="shrink-0 text-[10px] text-gray-400">{{ team.division?.name }}</span>
                 </div>
-                <div class="mt-1.5 space-y-1 pl-7">
+                <div class="mt-1.5 pl-7">
                     <div class="grid grid-cols-2 gap-2">
-                        <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="Head coach"
+                        <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="Coach"
                             class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
                         <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="email"
                             class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
                     </div>
-                    <div v-if="edits[team.id].contact_name_2 || edits[team.id].contact_email_2 || isManager" class="grid grid-cols-2 gap-2">
-                        <input v-model="edits[team.id].contact_name_2" :disabled="!isManager" placeholder="Asst coach 2"
-                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
-                        <input v-model="edits[team.id].contact_email_2" type="email" :disabled="!isManager" placeholder="email"
-                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
-                    </div>
-                    <div v-if="edits[team.id].contact_name_3 || edits[team.id].contact_email_3 || isManager" class="grid grid-cols-2 gap-2">
-                        <input v-model="edits[team.id].contact_name_3" :disabled="!isManager" placeholder="Asst coach 3"
-                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
-                        <input v-model="edits[team.id].contact_email_3" type="email" :disabled="!isManager" placeholder="email"
-                            class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    <button v-if="isManager || assistantCount(team) > 0" @click="expandedCoaches[team.id] = !expandedCoaches[team.id]"
+                        class="mt-1 text-[10px]"
+                        :class="assistantCount(team) > 0 ? 'text-brand-600' : 'text-gray-400'">
+                        {{ expandedCoaches[team.id] ? 'Hide assistants' : (assistantCount(team) > 0 ? assistantCount(team) + ' assistant(s)' : '+ Add assistants') }}
+                    </button>
+                    <div v-if="expandedCoaches[team.id]" class="mt-1 space-y-1">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input v-model="edits[team.id].contact_name_2" :disabled="!isManager" placeholder="Asst coach 2"
+                                class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                            <input v-model="edits[team.id].contact_email_2" type="email" :disabled="!isManager" placeholder="email"
+                                class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input v-model="edits[team.id].contact_name_3" :disabled="!isManager" placeholder="Asst coach 3"
+                                class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                            <input v-model="edits[team.id].contact_email_3" type="email" :disabled="!isManager" placeholder="email"
+                                class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-[10px] text-gray-500 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                        </div>
                     </div>
                 </div>
                 <div v-if="isManager" class="mt-1.5 flex items-center gap-2 pl-7 flex-wrap">
