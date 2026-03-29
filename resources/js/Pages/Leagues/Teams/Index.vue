@@ -146,6 +146,12 @@ function addTeam() {
 }
 
 const hasUnsavedChanges = computed(() => props.teams.some(t => isDirty(t)));
+const highlightDirty = ref(false);
+
+function flashDirtyRows() {
+    highlightDirty.value = true;
+    setTimeout(() => { highlightDirty.value = false; }, 3000);
+}
 
 // Warn on browser close/refresh
 function onBeforeUnload(e) {
@@ -163,6 +169,7 @@ onMounted(() => {
     removeInertiaListener = router.on('before', (event) => {
         if (hasUnsavedChanges.value && !confirm('You have unsaved changes. Leave this page?')) {
             event.preventDefault();
+            flashDirtyRows();
         }
     });
 });
@@ -199,7 +206,8 @@ onUnmounted(() => removeInertiaListener?.());
 
             <!-- Team rows — desktop -->
             <div v-for="team in filteredTeams" :key="team.id"
-                class="hidden sm:flex items-center gap-1.5 px-2 py-1 border-b border-gray-50 hover:bg-gray-50">
+                class="hidden sm:flex items-center gap-1.5 px-2 py-1 border-b border-gray-50 hover:bg-gray-50 transition-colors duration-500"
+                :class="highlightDirty && isDirty(team) ? 'bg-amber-50 border-amber-200' : ''"
                 <!-- Color swatch -->
                 <div class="relative w-6 shrink-0 flex justify-center">
                     <button @click="isManager && toggleColorPicker(team.id)"
@@ -256,7 +264,8 @@ onUnmounted(() => removeInertiaListener?.());
 
             <!-- Team rows — mobile -->
             <div v-for="team in filteredTeams" :key="'m-' + team.id"
-                class="sm:hidden border-b border-gray-50 px-3 py-2.5">
+                class="sm:hidden border-b border-gray-50 px-3 py-2.5 transition-colors duration-500"
+                :class="highlightDirty && isDirty(team) ? 'bg-amber-50 border-amber-200' : ''">
                 <div class="flex items-center gap-2">
                     <div class="relative">
                         <button @click="isManager && toggleColorPicker(team.id)"
