@@ -18,7 +18,7 @@ use App\Http\Controllers\League\FieldRulesController;
 use App\Http\Controllers\League\LocationController;
 use App\Http\Controllers\League\AuditLogController;
 use App\Http\Controllers\League\ScheduleEntryController;
-use App\Http\Controllers\League\SchedulingRulesController;
+use App\Http\Controllers\League\BookingWindowController;
 use App\Http\Controllers\League\SeasonController;
 use App\Http\Controllers\League\TeamController;
 use App\Http\Controllers\NotificationController;
@@ -118,8 +118,10 @@ Route::middleware('auth')->group(function () {
                 Route::get('fields/{field}/rules', [FieldRulesController::class, 'edit'])->name('fields.rules');
                 Route::put('fields/{field}/rules', [FieldRulesController::class, 'update'])->name('fields.rules.update');
 
-                Route::get('scheduling-rules', [SchedulingRulesController::class, 'index'])->name('scheduling-rules.index');
-                Route::post('scheduling-rules', [SchedulingRulesController::class, 'update'])->name('scheduling-rules.update');
+                Route::get('booking-windows', [BookingWindowController::class, 'index'])->name('booking-windows.index');
+                Route::post('booking-windows', [BookingWindowController::class, 'store'])->name('booking-windows.store');
+                Route::put('booking-windows/{bookingWindow}', [BookingWindowController::class, 'update'])->name('booking-windows.update');
+                Route::delete('booking-windows/{bookingWindow}', [BookingWindowController::class, 'destroy'])->name('booking-windows.destroy');
 
                 Route::get('locations/{location}/fields/create', [FieldController::class, 'create'])
                     ->name('locations.fields.create');

@@ -123,7 +123,7 @@ class TeamController extends Controller
         $context = app(LeagueContext::class);
         $leagueModel = $context->league();
 
-        $team->load(['division.season', 'users', 'scheduleEntries' => function ($q) {
+        $team->load(['division.season', 'division.bookingWindow', 'users', 'scheduleEntries' => function ($q) {
             $q->active()->orderBy('date')->orderBy('start_time')->limit(20);
         }, 'scheduleEntries.field.location']);
 
@@ -169,11 +169,12 @@ class TeamController extends Controller
                 'type' => 'weekly_limit',
             ];
         }
-        if ($division && $division->scheduling_priority) {
+        if ($division && $division->bookingWindow) {
+            $window = $division->bookingWindow;
             $rules[] = [
                 'source' => 'Division',
                 'sourceDetail' => $division->name,
-                'rule' => "Default scheduling priority: {$division->scheduling_priority} (1=highest)",
+                'rule' => "Booking Window: {$window->name} ({$window->opensDescription()})",
                 'type' => 'constraint',
             ];
         }
@@ -184,8 +185,7 @@ class TeamController extends Controller
             ->join('locations', 'locations.id', '=', 'fields.location_id')
             ->where('division_field.division_id', $divisionId)
             ->select('fields.id', 'fields.name as field_name', 'locations.name as location_name',
-                'division_field.max_weekly_slots', 'division_field.priority',
-                'division_field.booking_window_type', 'division_field.booking_opens_date', 'division_field.booking_opens_days')
+                'division_field.max_weekly_slots')
             ->get();
 
         // Check if ANY fields have restrictions (meaning some fields exclude this division)
@@ -220,25 +220,8 @@ class TeamController extends Controller
         }
 
         // Fields where this division IS allowed
-        $divPriority = $division?->scheduling_priority;
         foreach ($restrictedFields as $rf) {
             $parts = [];
-            $effectivePriority = $rf->priority ?: $divPriority;
-            if ($effectivePriority) {
-                $label = "Priority {$effectivePriority}";
-                if ($rf->priority && $divPriority && $rf->priority != $divPriority) {
-                    $label .= " (override)";
-                } elseif (!$rf->priority && $divPriority) {
-                    $label .= " (division default)";
-                }
-                $parts[] = $label;
-            }
-            if ($rf->booking_window_type === 'calendar' && $rf->booking_opens_date) {
-                $opens = \Carbon\Carbon::parse($rf->booking_opens_date);
-                $parts[] = $opens->isPast() ? 'booking open' : "opens {$opens->format('M j')}";
-            } elseif ($rf->booking_window_type === 'rolling' && $rf->booking_opens_days) {
-                $parts[] = "books {$rf->booking_opens_days}d ahead";
-            }
             if ($rf->max_weekly_slots) $parts[] = "max {$rf->max_weekly_slots}/wk";
 
             $rule = ! empty($parts) ? implode(', ', $parts) : 'Allowed';

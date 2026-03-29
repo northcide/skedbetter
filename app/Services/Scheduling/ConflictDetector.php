@@ -3,6 +3,7 @@
 namespace App\Services\Scheduling;
 
 use App\Models\BlackoutRule;
+use App\Models\Division;
 use App\Models\Field;
 use App\Models\ScheduleEntry;
 use App\Models\Team;
@@ -318,27 +319,13 @@ class ConflictDetector
         $team = Team::withoutGlobalScopes()->find($request->teamId);
         if (! $team) return;
 
-        $pivot = DB::table('division_field')
-            ->where('field_id', $request->fieldId)
-            ->where('division_id', $team->division_id)
-            ->first();
+        $division = Division::withoutGlobalScopes()->with('bookingWindow')->find($team->division_id);
+        if (! $division || ! $division->bookingWindow) return;
 
-        if (! $pivot || ! $pivot->booking_window_type) return;
-
-        if ($pivot->booking_window_type === 'calendar') {
-            if ($pivot->booking_opens_date && Carbon::today()->lt(Carbon::parse($pivot->booking_opens_date))) {
-                $opensDate = Carbon::parse($pivot->booking_opens_date)->format('M j, Y');
-                $result->addViolation('booking_window',
-                    "Booking for this field opens {$opensDate} for your division.");
-            }
-        } elseif ($pivot->booking_window_type === 'rolling') {
-            if ($pivot->booking_opens_days !== null) {
-                $daysAhead = (int) Carbon::today()->diffInDays(Carbon::parse($request->date), false);
-                if ($daysAhead > $pivot->booking_opens_days) {
-                    $result->addViolation('booking_window',
-                        "Your division can book this field up to {$pivot->booking_opens_days} days in advance. This date is {$daysAhead} days away.");
-                }
-            }
+        $window = $division->bookingWindow;
+        if (! $window->isOpenForDate($request->date)) {
+            $result->addViolation('booking_window',
+                "Booking not yet open for {$division->name} ({$window->name}: {$window->opensDescription()})");
         }
     }
 }

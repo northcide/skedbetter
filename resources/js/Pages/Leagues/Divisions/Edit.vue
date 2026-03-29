@@ -13,6 +13,7 @@ const props = defineProps({
     fields: { type: Array, default: () => [] },
     allowedFieldIds: { type: Array, default: () => [] },
     blockedFieldIds: { type: Array, default: () => [] },
+    bookingWindows: { type: Array, default: () => [] },
     userRole: String,
 });
 
@@ -26,7 +27,7 @@ const form = useForm({
     skill_level: props.division.skill_level || '',
     max_event_minutes: props.division.max_event_minutes || '',
     max_weekly_events_per_team: props.division.max_weekly_events_per_team || '',
-    scheduling_priority: props.division.scheduling_priority ? String(props.division.scheduling_priority) : '',
+    booking_window_id: props.division.booking_window_id || '',
     field_access: props.allowedFieldIds.length > 0 ? 'specific' : 'all',
     allowed_field_ids: [...props.allowedFieldIds],
 });
@@ -104,14 +105,10 @@ const fieldsByLocation = props.fields.reduce((acc, f) => {
                 <div v-if="open.rules" class="border-t border-gray-100 px-3 py-2">
                     <div class="grid grid-cols-3 gap-2">
                         <div>
-                            <InputLabel for="scheduling_priority" value="Scheduling Priority" />
-                            <select id="scheduling_priority" v-model="form.scheduling_priority" class="mt-1 block w-full">
-                                <option value="">None</option>
-                                <option value="1">1 (Highest)</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5 (Lowest)</option>
+                            <InputLabel for="booking_window_id" value="Booking Window" />
+                            <select id="booking_window_id" v-model="form.booking_window_id" class="mt-1 block w-full">
+                                <option value="">No restriction</option>
+                                <option v-for="w in bookingWindows" :key="w.id" :value="w.id">{{ w.name }}</option>
                             </select>
                         </div>
                         <div>
@@ -132,7 +129,7 @@ const fieldsByLocation = props.fields.reduce((acc, f) => {
                             </select>
                         </div>
                     </div>
-                    <p class="mt-1 text-[10px] text-gray-400">Priority applies to all fields by default. Override per-field on the Scheduling Rules page.</p>
+                    <p class="mt-1 text-[10px] text-gray-400">Manage booking windows on the Booking Windows page.</p>
                 </div>
             </div>
 

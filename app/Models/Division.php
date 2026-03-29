@@ -12,12 +12,17 @@ class Division extends Model
     use BelongsToLeague, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'league_id', 'season_id', 'name', 'age_group', 'skill_level', 'max_event_minutes', 'max_weekly_events_per_team', 'scheduling_priority', 'sort_order',
+        'league_id', 'season_id', 'name', 'age_group', 'skill_level', 'max_event_minutes', 'max_weekly_events_per_team', 'booking_window_id', 'sort_order',
     ];
 
     public function season()
     {
         return $this->belongsTo(Season::class);
+    }
+
+    public function bookingWindow()
+    {
+        return $this->belongsTo(BookingWindow::class);
     }
 
     public function teams()
@@ -33,7 +38,7 @@ class Division extends Model
     public function allowedFields()
     {
         return $this->belongsToMany(Field::class, 'division_field')
-            ->withPivot('max_weekly_slots', 'priority', 'booking_window_type', 'booking_opens_date', 'booking_opens_days')
+            ->withPivot('max_weekly_slots')
             ->withTimestamps();
     }
 }
