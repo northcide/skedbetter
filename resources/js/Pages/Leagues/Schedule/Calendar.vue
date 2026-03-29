@@ -22,6 +22,7 @@ const props = defineProps({
     divisions: { type: Array, default: () => [] },
     locations: { type: Array, default: () => [] },
     coachTeamIds: { type: Array, default: () => [] },
+    teamWindowStatus: { type: Array, default: () => [] },
 });
 
 const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
@@ -755,6 +756,18 @@ function showError(messages) {
         </div>
 
         <FlashMessage />
+
+        <!-- Booking Window Status (coaches) -->
+        <div v-if="teamWindowStatus.length" class="mt-1 sm:mt-2 space-y-1">
+            <div v-for="tw in teamWindowStatus" :key="tw.team_id"
+                class="flex items-center gap-2 rounded-md px-3 py-1.5 text-xs"
+                :class="tw.window_open ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'">
+                <span class="inline-block h-2.5 w-2.5 shrink-0 rounded-full" :style="{ backgroundColor: tw.color_code || '#3B82F6' }"></span>
+                <span class="font-medium" :class="tw.window_open ? 'text-green-800' : 'text-amber-800'">{{ tw.team_name }}</span>
+                <span v-if="tw.window_open" class="text-green-600">Booking open</span>
+                <span v-else class="text-amber-600">{{ tw.window_name }}: {{ tw.window_description }}</span>
+            </div>
+        </div>
 
         <!-- Filter Bar -->
         <div class="mt-1 sm:mt-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 sm:px-3 sm:py-2">

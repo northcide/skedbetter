@@ -28,6 +28,27 @@ class ScheduleEntryController extends Controller
         $user = $request->user();
         $coachTeamIds = $user->teams()->pluck('teams.id')->toArray();
 
+        // Build booking window status for coach's teams
+        $teamWindowStatus = [];
+        if (!empty($coachTeamIds)) {
+            $coachTeams = Team::with('division.bookingWindow')
+                ->whereIn('id', $coachTeamIds)
+                ->get();
+
+            foreach ($coachTeams as $team) {
+                $window = $team->division?->bookingWindow;
+                $teamWindowStatus[] = [
+                    'team_id' => $team->id,
+                    'team_name' => $team->name,
+                    'division_name' => $team->division?->name,
+                    'color_code' => $team->color_code,
+                    'window_name' => $window?->name,
+                    'window_open' => $window ? $window->isOpenForDate(now()->toDateString()) : true,
+                    'window_description' => $window?->opensDescription(),
+                ];
+            }
+        }
+
         return Inertia::render('Leagues/Schedule/Calendar', [
             'league' => $context->league(),
             'userRole' => $context->userRole(),
@@ -36,6 +57,7 @@ class ScheduleEntryController extends Controller
             'divisions' => \App\Models\Division::with('season')->orderBy('name')->get(),
             'locations' => \App\Models\Location::with(['fields' => fn($q) => $q->orderBy('sort_order')->with('allowedDivisions:id')])->orderBy('name')->get(),
             'coachTeamIds' => $coachTeamIds,
+            'teamWindowStatus' => $teamWindowStatus,
         ]);
     }
 
