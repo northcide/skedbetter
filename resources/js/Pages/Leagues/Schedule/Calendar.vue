@@ -716,23 +716,39 @@ function editEvent() {
     const ev = eventDetail.value;
     showEventDetail.value = false;
 
+    // Try to get fresh data from FullCalendar API
+    const api = calendarRef.value?.getApi();
+    const liveEvent = api?.getEventById(ev.id) || api?.getEventById(String(ev.id));
+
+    const date = liveEvent ? liveEvent.start.toISOString().slice(0, 10) : ev.date;
+    const startTime = liveEvent ? liveEvent.start.toTimeString().slice(0, 5) : ev.startTime;
+    const endTime = liveEvent ? (liveEvent.end || new Date(liveEvent.start.getTime() + 3600000)).toTimeString().slice(0, 5) : ev.endTime;
+    const ext = liveEvent?.extendedProps || {};
+
     // Resolve field_id from name
-    let fieldId = '';
-    for (const loc of props.locations) {
-        const f = (loc.fields || []).find(f => f.name === ev.fieldName);
-        if (f) { fieldId = f.id; break; }
+    const fieldName = ext.field_name || ev.fieldName;
+    let fieldId = ext.field_id || '';
+    if (!fieldId) {
+        for (const loc of props.locations) {
+            const f = (loc.fields || []).find(f => f.name === fieldName);
+            if (f) { fieldId = f.id; break; }
+        }
     }
+
+    // Extract custom title — server format is "Team - Type" or "Team - Type: Custom Title"
+    const rawTitle = liveEvent?.title || ev.title || '';
+    const customTitle = rawTitle.includes(': ') ? rawTitle.split(': ').slice(1).join(': ') : '';
 
     openModal({
         entryId: ev.id,
-        teamId: ev.teamId,
-        date: ev.date,
-        startTime: ev.startTime,
-        endTime: ev.endTime,
+        teamId: ext.team_id || ev.teamId,
+        date,
+        startTime,
+        endTime,
         fieldId: fieldId,
-        fieldName: ev.fieldName,
-        type: ev.type,
-        title: ev.title?.replace(/^.+ - /, '') || '',
+        fieldName: fieldName,
+        type: ext.type || ev.type,
+        title: customTitle,
     });
 }
 
