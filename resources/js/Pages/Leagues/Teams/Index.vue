@@ -16,6 +16,9 @@ const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(pr
 const filterDiv = ref('');
 const filterSearch = ref('');
 const saving = ref({});
+const showAddRow = ref(false);
+const addingTeam = ref(false);
+const newTeam = ref({ name: '', division_id: '', contact_name: '', contact_email: '' });
 const saved = ref({});
 const colorPickerOpen = ref(null);
 const sendInvite = ref({});
@@ -127,6 +130,21 @@ function isDirty(team) {
         || e.color_code !== (team.color_code || '');
 }
 
+function addTeam() {
+    if (!newTeam.value.name || !newTeam.value.division_id) return;
+    addingTeam.value = true;
+    axios.post(route('leagues.teams.store', props.league.slug), {
+        name: newTeam.value.name,
+        division_id: newTeam.value.division_id,
+        contact_name: newTeam.value.contact_name || null,
+        contact_email: newTeam.value.contact_email || null,
+    }).then(() => {
+        newTeam.value = { name: '', division_id: '', contact_name: '', contact_email: '' };
+        showAddRow.value = false;
+        router.reload({ only: ['teams'] });
+    }).catch(() => {}).finally(() => { addingTeam.value = false; });
+}
+
 const hasUnsavedChanges = computed(() => props.teams.some(t => isDirty(t)));
 
 // Warn on browser close/refresh
@@ -162,6 +180,8 @@ onUnmounted(() => removeInertiaListener?.());
                 <option value="">All Divisions</option>
                 <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
             </select>
+            <button v-if="isManager && !showAddRow" @click="showAddRow = true"
+                class="text-[10px] font-medium text-brand-600 hover:text-brand-700">+ Add Team</button>
         </div>
 
         <FlashMessage />
@@ -288,8 +308,48 @@ onUnmounted(() => removeInertiaListener?.());
                 </div>
             </div>
 
-            <div v-if="filteredTeams.length === 0" class="px-3 py-6 text-center text-xs text-gray-400">
+            <div v-if="filteredTeams.length === 0 && !showAddRow" class="px-3 py-6 text-center text-xs text-gray-400">
                 No teams{{ filterDiv ? ' in this division' : '' }}.
+            </div>
+
+            <!-- Inline add row -->
+            <div v-if="showAddRow && isManager" class="border-t border-brand-200 bg-brand-50/30 px-2 py-2">
+                <!-- Desktop -->
+                <div class="hidden sm:flex items-center gap-1.5">
+                    <div class="w-6 shrink-0"></div>
+                    <input v-model="newTeam.name" placeholder="Team name *" class="w-32 shrink-0 rounded border-gray-300 bg-white px-1 py-0.5 text-xs" />
+                    <input v-model="newTeam.contact_name" placeholder="Coach name" class="w-28 shrink-0 rounded border-gray-300 bg-white px-1 py-0.5 text-xs" />
+                    <input v-model="newTeam.contact_email" type="email" placeholder="Coach email" class="w-44 shrink-0 rounded border-gray-300 bg-white px-1 py-0.5 text-xs" />
+                    <select v-model="newTeam.division_id" class="w-28 shrink-0 rounded border-gray-300 bg-white py-0.5 pl-1 pr-6 text-[10px]">
+                        <option value="">Division *</option>
+                        <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+                    </select>
+                    <div class="flex-1 flex items-center gap-1 justify-end">
+                        <button @click="addTeam" :disabled="addingTeam || !newTeam.name || !newTeam.division_id"
+                            class="rounded bg-brand-600 px-1.5 py-0.5 text-[9px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                            {{ addingTeam ? '...' : 'Add' }}
+                        </button>
+                        <button @click="showAddRow = false" class="text-[9px] text-gray-500 hover:text-gray-700">Cancel</button>
+                    </div>
+                </div>
+                <!-- Mobile -->
+                <div class="sm:hidden space-y-2">
+                    <input v-model="newTeam.name" placeholder="Team name *" class="w-full rounded border-gray-300 bg-white px-2 py-1.5 text-sm" />
+                    <select v-model="newTeam.division_id" class="w-full rounded border-gray-300 bg-white py-1.5 px-2 text-sm">
+                        <option value="">Select division *</option>
+                        <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+                    </select>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input v-model="newTeam.contact_name" placeholder="Coach name" class="rounded border-gray-300 bg-white px-2 py-1.5 text-xs" />
+                        <input v-model="newTeam.contact_email" type="email" placeholder="Coach email" class="rounded border-gray-300 bg-white px-2 py-1.5 text-xs" />
+                    </div>
+                    <div class="flex gap-2">
+                        <PrimaryButton @click="addTeam" :disabled="addingTeam || !newTeam.name || !newTeam.division_id" class="text-xs">
+                            {{ addingTeam ? '...' : 'Add Team' }}
+                        </PrimaryButton>
+                        <button @click="showAddRow = false" class="text-xs text-gray-500">Cancel</button>
+                    </div>
+                </div>
             </div>
         </div>
 
