@@ -81,8 +81,8 @@ class FieldController extends Controller
             'available_days.*' => 'integer|between:0,6',
             'available_start_time' => 'nullable|date_format:H:i',
             'available_end_time' => 'nullable|date_format:H:i',
-            'slot_interval_minutes' => 'nullable|integer|in:15,30,60',
-            'min_event_minutes' => 'nullable|integer|in:15,30,45,60,90,120',
+            'slot_interval_minutes' => 'nullable|integer|in:30,60',
+            'min_event_minutes' => 'nullable|integer|in:30,60,90,120',
             'max_event_minutes' => 'nullable|integer|in:30,60,90,120,180,240',
             // Division access
             'access_mode' => 'nullable|in:open,restricted',

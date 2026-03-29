@@ -120,11 +120,11 @@ function syncSlotToOtherDays(idx) {
     });
 }
 
-// Time slot dropdown options (15-min increments)
+// Time slot dropdown options (30-min increments)
 const slotTimeOptions = (() => {
     const opts = [];
     for (let h = 6; h <= 21; h++) {
-        for (let m = 0; m < 60; m += 15) {
+        for (let m = 0; m < 60; m += 30) {
             const val = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
             const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
             const ampm = h >= 12 ? 'PM' : 'AM';
@@ -209,8 +209,8 @@ const submit = () => {
                         <p class="mt-0.5 text-[10px] text-gray-400">Leave all off for no restriction.</p>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <div><InputLabel value="Opens" /><TextInput v-model="form.available_start_time" type="time" class="mt-1 block w-full" /></div>
-                        <div><InputLabel value="Closes" /><TextInput v-model="form.available_end_time" type="time" class="mt-1 block w-full" /></div>
+                        <div><InputLabel value="Opens" /><TextInput v-model="form.available_start_time" type="time" step="1800" class="mt-1 block w-full" /></div>
+                        <div><InputLabel value="Closes" /><TextInput v-model="form.available_end_time" type="time" step="1800" class="mt-1 block w-full" /></div>
                     </div>
                 </div>
             </div>
@@ -227,7 +227,6 @@ const submit = () => {
                             <InputLabel value="Start Interval" />
                             <select v-model="form.slot_interval_minutes" class="mt-1 block w-full">
                                 <option value="">Any</option>
-                                <option value="15">15 min</option>
                                 <option value="30">30 min</option>
                                 <option value="60">60 min</option>
                             </select>
@@ -236,7 +235,7 @@ const submit = () => {
                             <InputLabel value="Min Duration" />
                             <select v-model="form.min_event_minutes" class="mt-1 block w-full">
                                 <option value="">None</option>
-                                <option v-for="m in [15,30,45,60,90,120]" :key="m" :value="m">{{ m }} min</option>
+                                <option v-for="m in [30,60,90,120]" :key="m" :value="m">{{ m }} min</option>
                             </select>
                         </div>
                         <div>

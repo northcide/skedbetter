@@ -104,11 +104,11 @@ const submit = () => {
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                         <InputLabel for="start_time" value="Start Time (blank = all day)" />
-                        <TextInput id="start_time" v-model="form.start_time" type="time" class="mt-1 block w-full" />
+                        <TextInput id="start_time" v-model="form.start_time" type="time" step="1800" class="mt-1 block w-full" />
                     </div>
                     <div>
                         <InputLabel for="end_time" value="End Time" />
-                        <TextInput id="end_time" v-model="form.end_time" type="time" class="mt-1 block w-full" />
+                        <TextInput id="end_time" v-model="form.end_time" type="time" step="1800" class="mt-1 block w-full" />
                     </div>
                 </div>
 

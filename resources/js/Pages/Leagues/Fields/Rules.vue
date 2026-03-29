@@ -100,11 +100,11 @@ const submit = () => {
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <InputLabel for="av_start" value="Opens At" class="text-xs" />
-                            <TextInput id="av_start" v-model="form.available_start_time" type="time" class="mt-1 block w-full" />
+                            <TextInput id="av_start" v-model="form.available_start_time" type="time" step="1800" class="mt-1 block w-full" />
                         </div>
                         <div>
                             <InputLabel for="av_end" value="Closes At" class="text-xs" />
-                            <TextInput id="av_end" v-model="form.available_end_time" type="time" class="mt-1 block w-full" />
+                            <TextInput id="av_end" v-model="form.available_end_time" type="time" step="1800" class="mt-1 block w-full" />
                         </div>
                     </div>
                 </div>
@@ -120,7 +120,6 @@ const submit = () => {
                         <InputLabel for="slot_int" value="Start Time Interval" class="text-xs" />
                         <select id="slot_int" v-model="form.slot_interval_minutes" class="mt-1 block w-full">
                             <option value="">Any time</option>
-                            <option value="15">Every 15 min</option>
                             <option value="30">Every 30 min</option>
                             <option value="60">On the hour</option>
                         </select>
@@ -130,9 +129,7 @@ const submit = () => {
                         <InputLabel for="min_dur" value="Min Duration" class="text-xs" />
                         <select id="min_dur" v-model="form.min_event_minutes" class="mt-1 block w-full">
                             <option value="">No minimum</option>
-                            <option value="15">15 min</option>
                             <option value="30">30 min</option>
-                            <option value="45">45 min</option>
                             <option value="60">60 min</option>
                             <option value="90">90 min</option>
                             <option value="120">120 min</option>
