@@ -253,37 +253,43 @@ function getFieldBlockReason(field) {
     const divFields = divisionFieldMap.value[team.division_id];
     if (divFields && divFields.size > 0 && !divFields.has(field.id)) return 'not assigned';
 
-    // If we get here, check booking window
-    const divEntry = (allowed || []).find(d => d.id === team.division_id);
-    if (!divEntry) return null;
+    return null;
+}
 
-    // Check booking window from pivot
-    const pivot = divEntry.pivot;
-    if (!pivot || !pivot.booking_window_type) return null;
+function getFieldWindowWarning(field) {
+    if (!modalForm.team_id) return null;
+    const team = props.teams.find(t => t.id == modalForm.team_id);
+    if (!team) return null;
 
-    if (pivot.booking_window_type === 'calendar' && pivot.booking_opens_date) {
-        const opens = new Date(pivot.booking_opens_date);
+    const division = props.divisions.find(d => d.id === team.division_id);
+    if (!division?.booking_window) return null;
+
+    const w = division.booking_window;
+    if (w.window_type === 'calendar' && w.opens_date) {
+        const dateStr = String(w.opens_date).split('T')[0];
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const opens = new Date(y, m - 1, d);
         if (new Date() < opens) {
-            return `opens ${opens.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+            return `${w.name}: opens ${opens.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
         }
-    } else if (pivot.booking_window_type === 'rolling' && pivot.booking_opens_days) {
-        // For rolling, we'd need to check against the selected date
-        // but we can show the general limit
-        if (modalForm.date) {
-            const eventDate = new Date(modalForm.date + 'T00:00');
-            const today = new Date(); today.setHours(0,0,0,0);
-            const daysAhead = Math.ceil((eventDate - today) / 86400000);
-            if (daysAhead > pivot.booking_opens_days) {
-                return `${pivot.booking_opens_days}d ahead only`;
-            }
+    } else if (w.window_type === 'rolling' && w.rolling_days && modalForm.date) {
+        const [ey, em, ed] = modalForm.date.split('-').map(Number);
+        const eventDate = new Date(ey, em - 1, ed);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const daysAhead = Math.ceil((eventDate - today) / 86400000);
+        if (daysAhead > w.rolling_days) {
+            return `${w.name}: ${w.rolling_days}d ahead only`;
         }
     }
-
     return null;
 }
 
 function isFieldBlocked(field) {
-    return getFieldBlockReason(field) !== null;
+    // Hard block for access restrictions (all users)
+    if (getFieldBlockReason(field)) return true;
+    // Booking window blocks coaches but not admins
+    if (!isManager && getFieldWindowWarning(field)) return true;
+    return false;
 }
 
 // Time slot generation (6:00 AM to 10:00 PM in 15-min increments)
@@ -955,8 +961,8 @@ function showError(messages) {
                                         :key="f.id"
                                         :value="f.id"
                                         :disabled="isFieldBlocked(f)"
-                                        :class="isFieldBlocked(f) ? 'text-gray-400' : ''"
-                                    >{{ f.name }} @ {{ loc.name }}{{ getFieldBlockReason(f) ? ` (${getFieldBlockReason(f)})` : '' }}</option>
+                                        :class="isFieldBlocked(f) ? 'text-gray-400' : getFieldWindowWarning(f) ? 'text-amber-600' : ''"
+                                    >{{ f.name }} @ {{ loc.name }}{{ getFieldBlockReason(f) ? ` (${getFieldBlockReason(f)})` : getFieldWindowWarning(f) ? ` ⚠ ${getFieldWindowWarning(f)}` : '' }}</option>
                                 </template>
                             </select>
                         </div>
