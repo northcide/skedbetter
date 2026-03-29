@@ -21,6 +21,12 @@ const selectedDivision = computed(() =>
     props.divisions.find(d => d.id === selectedDivisionId.value)
 );
 
+// Editable division-level max weekly events
+const divMaxWeekly = ref({});
+props.divisions.forEach(d => {
+    divMaxWeekly.value[d.id] = d.max_weekly_events_per_team || '';
+});
+
 // Build editable state from matrix: field_id => division_id => rule
 const rules = ref({});
 props.fields.forEach(f => {
@@ -65,7 +71,6 @@ function disableAll() {
 function save() {
     saving.value = true;
     const payload = [];
-    // Only send current division's rules
     const divId = selectedDivisionId.value;
     props.fields.forEach(f => {
         const rule = rules.value[f.id][divId];
@@ -73,7 +78,6 @@ function save() {
             field_id: f.id,
             division_id: divId,
             enabled: rule.enabled,
-            max_weekly_slots: rule.max_weekly_slots || null,
             priority: rule.priority || null,
             booking_window_type: rule.booking_window_type || null,
             booking_opens_date: rule.booking_opens_date || null,
@@ -81,7 +85,11 @@ function save() {
         });
     });
 
-    axios.post(route('leagues.scheduling-rules.update', props.league.slug), { rules: payload }, {
+    axios.post(route('leagues.scheduling-rules.update', props.league.slug), {
+        rules: payload,
+        division_id: divId,
+        max_weekly_events_per_team: divMaxWeekly.value[divId] || null,
+    }, {
         headers: { Accept: 'application/json' },
     }).then(() => {
         saving.value = false;
@@ -114,7 +122,7 @@ function save() {
                 </option>
             </select>
             <span v-if="selectedDivision?.scheduling_priority" class="rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
-                Default Priority: {{ selectedDivision.scheduling_priority }}
+                Priority: {{ selectedDivision.scheduling_priority }}
             </span>
             <span v-else class="text-[10px] text-gray-400">No default priority</span>
             <span class="text-xs text-gray-500">
@@ -124,6 +132,17 @@ function save() {
                 <button @click="enableAll" class="text-[10px] text-brand-600 hover:text-brand-700 font-medium">Enable all</button>
                 <button @click="disableAll" class="text-[10px] text-gray-500 hover:text-gray-700 font-medium">Disable all</button>
             </div>
+        </div>
+
+        <!-- Division-level weekly limit -->
+        <div v-if="selectedDivisionId" class="mt-2 flex items-center gap-2">
+            <label class="text-[10px] font-medium text-gray-500">Max events per team per week:</label>
+            <select v-model="divMaxWeekly[selectedDivisionId]"
+                class="rounded-md border-gray-200 text-xs py-1 px-2 focus:border-brand-500 focus:ring-brand-500">
+                <option value="">No limit</option>
+                <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+            </select>
+            <span class="text-[10px] text-gray-400">Applies across all fields for this division</span>
         </div>
 
         <!-- Field Cards by Location -->
@@ -154,7 +173,7 @@ function save() {
 
                         <!-- Settings (only when enabled) -->
                         <div v-if="r(field.id)?.enabled" class="border-t border-gray-100 px-3 py-2 space-y-2">
-                            <!-- Row 1: Priority + Weekly limit -->
+                            <!-- Priority override -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-[10px] font-medium text-gray-500 mb-0.5">
@@ -170,11 +189,6 @@ function save() {
                                         <option value="4">4</option>
                                         <option value="5">5 (Lowest)</option>
                                     </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-medium text-gray-500 mb-0.5">Max / week</label>
-                                    <input v-model="r(field.id).max_weekly_slots" type="number" min="1" placeholder="No limit"
-                                        class="w-full rounded-md border-gray-200 text-xs py-1 px-2 focus:border-brand-500 focus:ring-brand-500" />
                                 </div>
                             </div>
 
@@ -213,7 +227,7 @@ function save() {
         <div class="mt-4 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-500">
                 <span><strong>Priority:</strong> 1 = highest, books first when windows overlap. Set default on division, override per-field here</span>
-                <span><strong>Max/week:</strong> Slots this division can book per week on this field</span>
+                <span><strong>Max/week:</strong> Total events any team in this division can have per week, across all fields</span>
                 <span><strong>Booking Window:</strong> When this division can start booking this field</span>
             </div>
         </div>

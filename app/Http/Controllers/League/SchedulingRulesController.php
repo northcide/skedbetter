@@ -71,19 +71,26 @@ class SchedulingRulesController extends Controller
             'rules.*.field_id' => 'required|exists:fields,id',
             'rules.*.division_id' => 'required|exists:divisions,id',
             'rules.*.enabled' => 'required|boolean',
-            'rules.*.max_weekly_slots' => 'nullable|integer|min:1',
             'rules.*.priority' => 'nullable|integer|min:1|max:5',
             'rules.*.booking_window_type' => 'nullable|in:calendar,rolling',
             'rules.*.booking_opens_date' => 'nullable|date',
             'rules.*.booking_opens_days' => 'nullable|integer|min:1',
+            'division_id' => 'nullable|exists:divisions,id',
+            'max_weekly_events_per_team' => 'nullable|integer|min:1|max:20',
         ]);
+
+        // Save division-level weekly limit
+        if (!empty($validated['division_id'])) {
+            Division::where('id', $validated['division_id'])->update([
+                'max_weekly_events_per_team' => $validated['max_weekly_events_per_team'] ?? null,
+            ]);
+        }
 
         foreach ($validated['rules'] as $rule) {
             if ($rule['enabled']) {
                 DB::table('division_field')->updateOrInsert(
                     ['field_id' => $rule['field_id'], 'division_id' => $rule['division_id']],
                     [
-                        'max_weekly_slots' => $rule['max_weekly_slots'] ?? null,
                         'priority' => $rule['priority'] ?? null,
                         'booking_window_type' => $rule['booking_window_type'] ?? null,
                         'booking_opens_date' => ($rule['booking_window_type'] ?? null) === 'calendar' ? ($rule['booking_opens_date'] ?? null) : null,
