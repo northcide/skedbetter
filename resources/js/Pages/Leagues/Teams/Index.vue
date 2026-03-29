@@ -16,13 +16,22 @@ const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(pr
 const filterDiv = ref('');
 const saving = ref({});
 const saved = ref({});
+const colorPickerOpen = ref(null);
+
+const presetColors = [
+    '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16',
+    '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9',
+    '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF',
+    '#EC4899', '#F43F5E', '#78716C', '#57534E', '#1E293B',
+    '#DC2626', '#EA580C', '#D97706', '#65A30D', '#059669',
+    '#0891B2', '#2563EB', '#4F46E5', '#7C3AED', '#9333EA',
+];
 
 const filteredTeams = computed(() => {
     if (filterDiv.value) return props.teams.filter(t => t.division_id == filterDiv.value);
     return props.teams;
 });
 
-// Editable state — clone team data
 const edits = ref({});
 props.teams.forEach(t => {
     edits.value[t.id] = {
@@ -32,6 +41,20 @@ props.teams.forEach(t => {
         color_code: t.color_code || '',
     };
 });
+
+function pickColor(teamId, color) {
+    edits.value[teamId].color_code = color;
+    colorPickerOpen.value = null;
+}
+
+function clearColor(teamId) {
+    edits.value[teamId].color_code = '';
+    colorPickerOpen.value = null;
+}
+
+function toggleColorPicker(teamId) {
+    colorPickerOpen.value = colorPickerOpen.value === teamId ? null : teamId;
+}
 
 function saveTeam(team) {
     saving.value[team.id] = true;
@@ -81,38 +104,50 @@ function isDirty(team) {
 
         <div class="mt-3 rounded-lg border border-gray-200 bg-white">
             <!-- Header -->
-            <div class="grid grid-cols-[40px_1fr_1fr_1fr_30px_60px] gap-1 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
+            <div class="hidden sm:grid grid-cols-[28px_minmax(100px,1.2fr)_minmax(80px,1fr)_minmax(100px,1.5fr)_minmax(60px,0.6fr)_60px] gap-2 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-gray-400 border-b border-gray-100">
                 <span></span>
-                <span>Team Name</span>
-                <span>Coach Name</span>
-                <span>Coach Email</span>
-                <span></span>
+                <span>Team</span>
+                <span>Coach</span>
+                <span>Email</span>
+                <span>Division</span>
                 <span></span>
             </div>
 
-            <!-- Team rows -->
-            <div v-for="team in filteredTeams" :key="team.id" class="grid grid-cols-[40px_1fr_1fr_1fr_30px_60px] gap-1 items-center px-3 py-1 border-b border-gray-50 hover:bg-gray-50">
-                <!-- Color -->
-                <div class="flex justify-center">
-                    <input type="color" v-model="edits[team.id].color_code" class="h-5 w-5 cursor-pointer rounded border-0 p-0" :disabled="!isManager" />
+            <!-- Team rows — desktop -->
+            <div v-for="team in filteredTeams" :key="team.id"
+                class="hidden sm:grid grid-cols-[28px_minmax(100px,1.2fr)_minmax(80px,1fr)_minmax(100px,1.5fr)_minmax(60px,0.6fr)_60px] gap-2 items-center px-3 py-1 border-b border-gray-50 hover:bg-gray-50">
+                <!-- Color swatch -->
+                <div class="relative flex justify-center">
+                    <button @click="isManager && toggleColorPicker(team.id)"
+                        class="h-5 w-5 rounded-full border border-gray-200 cursor-pointer"
+                        :style="{ backgroundColor: edits[team.id].color_code || '#e5e7eb' }"
+                        :disabled="!isManager">
+                    </button>
+                    <!-- Color picker popover -->
+                    <div v-if="colorPickerOpen === team.id" class="absolute top-7 left-0 z-50 rounded-lg border border-gray-200 bg-white p-2 shadow-lg" style="width: 176px">
+                        <div class="grid grid-cols-6 gap-1">
+                            <button v-for="c in presetColors" :key="c"
+                                @click="pickColor(team.id, c)"
+                                class="h-6 w-6 rounded-full border transition hover:scale-110"
+                                :class="edits[team.id].color_code === c ? 'border-gray-900 ring-2 ring-brand-500' : 'border-gray-200'"
+                                :style="{ backgroundColor: c }">
+                            </button>
+                        </div>
+                        <button @click="clearColor(team.id)" class="mt-1.5 w-full text-center text-[10px] text-gray-500 hover:text-gray-700">No color</button>
+                    </div>
                 </div>
 
-                <!-- Name -->
                 <input v-model="edits[team.id].name" :disabled="!isManager"
-                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-900 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
 
-                <!-- Coach Name -->
                 <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="—"
-                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
 
-                <!-- Coach Email -->
                 <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="—"
-                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60" />
+                    class="rounded border-transparent bg-transparent px-1 py-0.5 text-xs text-gray-700 hover:border-gray-200 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
 
-                <!-- Division badge -->
-                <span class="text-[9px] text-gray-400 truncate" :title="team.division?.name">{{ team.division?.name?.slice(0, 4) }}</span>
+                <span class="text-[10px] text-gray-500 truncate" :title="team.division?.name">{{ team.division?.name }}</span>
 
-                <!-- Actions -->
                 <div class="flex items-center gap-1 justify-end" v-if="isManager">
                     <button v-if="isDirty(team)" @click="saveTeam(team)" :disabled="saving[team.id]"
                         class="rounded bg-brand-600 px-1.5 py-0.5 text-[9px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
@@ -120,6 +155,48 @@ function isDirty(team) {
                     </button>
                     <span v-if="saved[team.id]" class="text-[9px] text-green-600">Saved</span>
                     <button @click="deleteTeam(team)" class="text-[9px] text-red-400 hover:text-red-600">Del</button>
+                </div>
+            </div>
+
+            <!-- Team rows — mobile -->
+            <div v-for="team in filteredTeams" :key="'m-' + team.id"
+                class="sm:hidden border-b border-gray-50 px-3 py-2.5">
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <button @click="isManager && toggleColorPicker(team.id)"
+                            class="h-5 w-5 rounded-full border border-gray-200 shrink-0"
+                            :style="{ backgroundColor: edits[team.id].color_code || '#e5e7eb' }"
+                            :disabled="!isManager">
+                        </button>
+                        <div v-if="colorPickerOpen === team.id" class="absolute top-7 left-0 z-50 rounded-lg border border-gray-200 bg-white p-2 shadow-lg" style="width: 176px">
+                            <div class="grid grid-cols-6 gap-1">
+                                <button v-for="c in presetColors" :key="c"
+                                    @click="pickColor(team.id, c)"
+                                    class="h-6 w-6 rounded-full border transition hover:scale-110"
+                                    :class="edits[team.id].color_code === c ? 'border-gray-900 ring-2 ring-brand-500' : 'border-gray-200'"
+                                    :style="{ backgroundColor: c }">
+                                </button>
+                            </div>
+                            <button @click="clearColor(team.id)" class="mt-1.5 w-full text-center text-[10px] text-gray-500 hover:text-gray-700">No color</button>
+                        </div>
+                    </div>
+                    <input v-model="edits[team.id].name" :disabled="!isManager"
+                        class="flex-1 rounded border-transparent bg-transparent px-1 py-0.5 text-sm font-medium text-gray-900 focus:border-brand-500 focus:bg-white focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    <span class="shrink-0 text-[10px] text-gray-400">{{ team.division?.name }}</span>
+                </div>
+                <div class="mt-1.5 grid grid-cols-2 gap-2 pl-7">
+                    <input v-model="edits[team.id].contact_name" :disabled="!isManager" placeholder="Coach name"
+                        class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                    <input v-model="edits[team.id].contact_email" type="email" :disabled="!isManager" placeholder="Coach email"
+                        class="rounded border-gray-200 bg-transparent px-1.5 py-1 text-xs text-gray-700 focus:border-brand-500 focus:ring-brand-500 disabled:opacity-60 min-w-0" />
+                </div>
+                <div v-if="isManager" class="mt-1.5 flex items-center gap-2 pl-7">
+                    <button v-if="isDirty(team)" @click="saveTeam(team)" :disabled="saving[team.id]"
+                        class="rounded bg-brand-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
+                        {{ saving[team.id] ? '...' : 'Save' }}
+                    </button>
+                    <span v-if="saved[team.id]" class="text-[10px] text-green-600">Saved</span>
+                    <button @click="deleteTeam(team)" class="text-[10px] text-red-400 hover:text-red-600">Delete</button>
                 </div>
             </div>
 
