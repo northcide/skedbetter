@@ -19,7 +19,13 @@ const props = defineProps({
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const open = ref({ details: true, availability: false, slots: false, timeSlots: false, access: false });
-const selectedSlotDay = ref(1); // Default to Monday
+const selectedSlotDays = ref([1]); // Default to Monday selected
+
+const toggleSlotDay = (day) => {
+    const idx = selectedSlotDays.value.indexOf(day);
+    if (idx >= 0) selectedSlotDays.value.splice(idx, 1);
+    else selectedSlotDays.value.push(day);
+};
 const toggle = (key) => { open.value[key] = !open.value[key]; };
 
 const accessMode = ref(props.fieldRules.length > 0 ? 'restricted' : 'open');
@@ -69,28 +75,32 @@ const removeRule = (i) => form.rules.splice(i, 1);
 const slotsForDay = (day) => form.time_slots.filter(s => s.day_of_week === day);
 const dayHasSlots = (day) => slotsForDay(day).length > 0;
 
-const addSlot = (day) => {
-    form.time_slots.push({ day_of_week: day, start_time: '17:30', end_time: '19:00', label: '' });
+const addSlot = () => {
+    selectedSlotDays.value.forEach(day => {
+        form.time_slots.push({ day_of_week: day, start_time: '17:30', end_time: '19:00', label: '' });
+    });
 };
-const removeSlot = (day, idx) => {
-    const daySlots = form.time_slots.filter(s => s.day_of_week === day);
-    const slot = daySlots[idx];
-    const globalIdx = form.time_slots.indexOf(slot);
-    if (globalIdx >= 0) form.time_slots.splice(globalIdx, 1);
+const removeSlotFromSelected = (idx) => {
+    // Remove the slot at this index position from ALL selected days
+    selectedSlotDays.value.forEach(day => {
+        const daySlots = form.time_slots.filter(s => s.day_of_week === day);
+        if (daySlots[idx]) {
+            const globalIdx = form.time_slots.indexOf(daySlots[idx]);
+            if (globalIdx >= 0) form.time_slots.splice(globalIdx, 1);
+        }
+    });
 };
-const applyToWeekdays = () => {
-    const monSlots = slotsForDay(1);
-    if (!monSlots.length) return;
-    // Apply Monday's slots to Tue-Fri
-    for (let d = 2; d <= 5; d++) {
-        // Remove existing
-        form.time_slots = form.time_slots.filter(s => s.day_of_week !== d);
-        // Copy from Monday
-        monSlots.forEach(s => {
-            form.time_slots.push({ day_of_week: d, start_time: s.start_time, end_time: s.end_time, label: s.label });
-        });
-    }
+const clearSelectedDays = () => {
+    selectedSlotDays.value.forEach(day => {
+        form.time_slots = form.time_slots.filter(s => s.day_of_week !== day);
+    });
 };
+
+// Show slots from the first selected day as the "template"
+const displaySlots = computed(() => {
+    if (!selectedSlotDays.value.length) return [];
+    return slotsForDay(selectedSlotDays.value[0]);
+});
 
 // Time slot dropdown options (15-min increments)
 const slotTimeOptions = (() => {
@@ -234,23 +244,25 @@ const submit = () => {
                 <div v-if="open.timeSlots" class="border-t border-gray-100 px-3 py-2">
                     <p class="text-[10px] text-gray-400 mb-2">Define fixed time slots per day. Days without slots use open/flexible booking.</p>
 
-                    <!-- Day tabs -->
-                    <div class="flex gap-1 mb-3">
+                    <!-- Day toggles (multi-select) -->
+                    <p class="text-[10px] text-gray-500 mb-1">Select days to edit together:</p>
+                    <div class="flex flex-wrap gap-1 mb-3">
                         <button v-for="(name, idx) in dayNames" :key="idx" type="button"
-                            @click="selectedSlotDay = idx"
-                            class="rounded px-2 py-1 text-[10px] font-medium transition"
-                            :class="selectedSlotDay === idx
-                                ? 'bg-brand-600 text-white'
+                            @click="toggleSlotDay(idx)"
+                            class="rounded px-2.5 py-1 text-[10px] font-medium transition border"
+                            :class="selectedSlotDays.includes(idx)
+                                ? 'bg-brand-600 text-white border-brand-600'
                                 : dayHasSlots(idx)
-                                    ? 'bg-brand-50 text-brand-700 hover:bg-brand-100'
-                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'">
+                                    ? 'bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100'
+                                    : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'">
                             {{ name }}
+                            <span v-if="dayHasSlots(idx) && !selectedSlotDays.includes(idx)" class="ml-0.5 text-[8px]">{{ slotsForDay(idx).length }}</span>
                         </button>
                     </div>
 
-                    <!-- Slots for selected day -->
-                    <div class="space-y-1.5">
-                        <div v-for="(slot, idx) in slotsForDay(selectedSlotDay)" :key="idx" class="flex items-center gap-2">
+                    <!-- Slots for selected days -->
+                    <div v-if="selectedSlotDays.length" class="space-y-1.5">
+                        <div v-for="(slot, idx) in displaySlots" :key="idx" class="flex items-center gap-2">
                             <select v-model="slot.start_time" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
                                 <option v-for="t in slotTimeOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
                             </select>
@@ -258,18 +270,25 @@ const submit = () => {
                             <select v-model="slot.end_time" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
                                 <option v-for="t in slotTimeOptions" :key="t.value" :value="t.value">{{ t.label }}</option>
                             </select>
-                            <input v-model="slot.label" placeholder="Label (optional)" class="w-24 rounded border-gray-200 py-0.5 px-1.5 text-[11px]" />
-                            <button type="button" @click="removeSlot(selectedSlotDay, idx)" class="text-[10px] text-red-400 hover:text-red-600">Remove</button>
+                            <input v-model="slot.label" placeholder="Label" class="w-24 rounded border-gray-200 py-0.5 px-1.5 text-[11px]" />
+                            <button type="button" @click="removeSlotFromSelected(idx)" class="text-[10px] text-red-400 hover:text-red-600">Remove</button>
                         </div>
 
-                        <div v-if="!dayHasSlots(selectedSlotDay)" class="py-2 text-center text-[10px] text-gray-400">
-                            Open booking (no fixed slots) on {{ dayNames[selectedSlotDay] }}
+                        <div v-if="!displaySlots.length" class="py-2 text-center text-[10px] text-gray-400">
+                            Open booking (no fixed slots) on selected days
                         </div>
 
                         <div class="flex items-center gap-2 pt-1">
-                            <button type="button" @click="addSlot(selectedSlotDay)" class="text-[10px] font-medium text-brand-600 hover:text-brand-700">+ Add Slot</button>
-                            <button v-if="selectedSlotDay === 1 && dayHasSlots(1)" type="button" @click="applyToWeekdays" class="text-[10px] text-gray-500 hover:text-gray-700">Apply Mon → Tue-Fri</button>
+                            <button type="button" @click="addSlot" class="text-[10px] font-medium text-brand-600 hover:text-brand-700">+ Add Slot</button>
+                            <button v-if="displaySlots.length" type="button" @click="clearSelectedDays" class="text-[10px] text-red-400 hover:text-red-600">Clear selected days</button>
                         </div>
+
+                        <p v-if="selectedSlotDays.length > 1" class="text-[9px] text-amber-600">
+                            Changes apply to: {{ selectedSlotDays.map(d => dayNames[d]).join(', ') }}
+                        </p>
+                    </div>
+                    <div v-else class="py-2 text-center text-[10px] text-gray-400">
+                        Select one or more days above to manage slots
                     </div>
                 </div>
             </div>
