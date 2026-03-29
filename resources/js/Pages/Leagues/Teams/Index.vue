@@ -19,12 +19,18 @@ const saved = ref({});
 const colorPickerOpen = ref(null);
 
 const presetColors = [
-    '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16',
-    '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9',
-    '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF',
-    '#EC4899', '#F43F5E', '#78716C', '#57534E', '#1E293B',
-    '#DC2626', '#EA580C', '#D97706', '#65A30D', '#059669',
-    '#0891B2', '#2563EB', '#4F46E5', '#7C3AED', '#9333EA',
+    // Row 1: Reds & Oranges
+    '#CC0000', '#8B0000', '#DC143C', '#FF4500', '#FF6600',
+    // Row 2: Yellows & Golds
+    '#FFD700', '#DAA520', '#FFA500', '#F4A460', '#CD853F',
+    // Row 3: Greens
+    '#006400', '#228B22', '#2E8B57', '#32CD32', '#00A550',
+    // Row 4: Blues
+    '#000080', '#00308F', '#0057B7', '#1E90FF', '#4169E1',
+    // Row 5: Purples & Pinks
+    '#4B0082', '#6A0DAD', '#800080', '#C71585', '#FF1493',
+    // Row 6: Neutrals & Classics
+    '#000000', '#333333', '#708090', '#C0C0C0', '#FFFFFF',
 ];
 
 const filteredTeams = computed(() => {
@@ -129,7 +135,10 @@ function isDirty(team) {
                             <button v-for="c in presetColors" :key="c"
                                 @click="pickColor(team.id, c)"
                                 class="h-6 w-6 rounded-full border transition hover:scale-110"
-                                :class="edits[team.id].color_code === c ? 'border-gray-900 ring-2 ring-brand-500' : 'border-gray-200'"
+                                :class="[
+                                    edits[team.id].color_code === c ? 'ring-2 ring-brand-500 border-gray-900' : '',
+                                    c === '#FFFFFF' || c === '#C0C0C0' ? 'border-gray-300' : 'border-gray-200'
+                                ]"
                                 :style="{ backgroundColor: c }">
                             </button>
                         </div>
@@ -173,7 +182,10 @@ function isDirty(team) {
                                 <button v-for="c in presetColors" :key="c"
                                     @click="pickColor(team.id, c)"
                                     class="h-6 w-6 rounded-full border transition hover:scale-110"
-                                    :class="edits[team.id].color_code === c ? 'border-gray-900 ring-2 ring-brand-500' : 'border-gray-200'"
+                                    :class="[
+                                        edits[team.id].color_code === c ? 'ring-2 ring-brand-500 border-gray-900' : '',
+                                        c === '#FFFFFF' || c === '#C0C0C0' ? 'border-gray-300' : 'border-gray-200'
+                                    ]"
                                     :style="{ backgroundColor: c }">
                                 </button>
                             </div>
