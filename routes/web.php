@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AcceptInvitationController;
+use App\Http\Controllers\Admin\AdminAuditLogController;
+use App\Http\Controllers\Admin\AdminLeagueController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\SettingsController;
-use App\Http\Controllers\Admin\UserApprovalController;
 use App\Http\Controllers\IcalController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\League\BlackoutRuleController;
@@ -55,13 +57,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
 
-    // Admin settings (superadmin)
+    // Admin (superadmin)
+    Route::get('/admin/leagues', [AdminLeagueController::class, 'index'])->name('admin.leagues');
+    Route::post('/admin/leagues/{league}/approve', [AdminLeagueController::class, 'approve'])->name('admin.leagues.approve');
+    Route::delete('/admin/leagues/{league}/reject', [AdminLeagueController::class, 'reject'])->name('admin.leagues.reject');
+    Route::post('/admin/leagues/{league}/toggle-active', [AdminLeagueController::class, 'toggleActive'])->name('admin.leagues.toggle-active');
+    Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users');
+    Route::post('/admin/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('admin.users.toggle-active');
+    Route::get('/admin/audit-log', [AdminAuditLogController::class, 'index'])->name('admin.audit-log');
     Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
     Route::post('/admin/settings/test-email', [SettingsController::class, 'testEmail'])->name('admin.settings.test-email');
-    Route::get('/admin/approvals', [UserApprovalController::class, 'index'])->name('admin.approvals');
-    Route::post('/admin/approvals/{user}/approve', [UserApprovalController::class, 'approve'])->name('admin.approvals.approve');
-    Route::delete('/admin/approvals/{user}/reject', [UserApprovalController::class, 'reject'])->name('admin.approvals.reject');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

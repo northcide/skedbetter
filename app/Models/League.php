@@ -13,7 +13,7 @@ class League extends Model
 
     protected $fillable = [
         'name', 'slug', 'description', 'timezone', 'logo_path',
-        'contact_email', 'settings', 'is_active',
+        'contact_email', 'settings', 'is_active', 'approved_at', 'requested_by',
     ];
 
     protected function casts(): array
@@ -21,7 +21,23 @@ class League extends Model
         return [
             'settings' => 'array',
             'is_active' => 'boolean',
+            'approved_at' => 'datetime',
         ];
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approved_at !== null;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->approved_at === null;
+    }
+
+    public function requester()
+    {
+        return $this->belongsTo(User::class, 'requested_by');
     }
 
     protected static function booted(): void

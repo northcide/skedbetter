@@ -14,11 +14,11 @@ import { Head, Link } from '@inertiajs/vue3';
                 </svg>
             </div>
 
-            <h2 class="text-lg font-semibold text-gray-900">Account Pending Approval</h2>
+            <h2 class="text-lg font-semibold text-gray-900">Account Pending</h2>
 
             <p class="mt-2 text-sm text-gray-600">
-                Your account has been created but requires administrator approval before you can access the platform.
-                You'll receive a notification once your account has been approved.
+                Your account is pending activation. Once a league you're associated with is approved,
+                or an administrator activates your account, you'll be able to sign in and use the platform.
             </p>
 
             <div class="mt-6">

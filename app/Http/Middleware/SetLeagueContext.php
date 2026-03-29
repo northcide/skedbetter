@@ -29,6 +29,11 @@ class SetLeagueContext
                 return $next($request);
             }
 
+            // Block access to unapproved leagues
+            if (!$league->isApproved()) {
+                abort(403, 'This league is pending approval.');
+            }
+
             // Check league membership — pick highest-level role
             if ($user) {
                 $roles = $user->leagues()

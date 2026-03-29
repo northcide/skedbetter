@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\User;
+use App\Models\League;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -39,8 +39,8 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
-            'pendingApprovalCount' => fn () => $request->user()?->isSuperadmin()
-                ? User::whereNull('approved_at')->where('is_superadmin', false)->count()
+            'pendingLeagueCount' => fn () => $request->user()?->isSuperadmin()
+                ? League::whereNull('approved_at')->count()
                 : 0,
         ];
     }

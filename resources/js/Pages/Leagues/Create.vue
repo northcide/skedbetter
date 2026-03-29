@@ -6,6 +6,10 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 
+const props = defineProps({
+    isSuperadmin: { type: Boolean, default: false },
+});
+
 const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 const form = useForm({
@@ -21,14 +25,18 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Create League" />
+    <Head :title="isSuperadmin ? 'Create League' : 'Request a League'" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-lg font-semibold text-gray-900">Create League</h2>
+            <h2 class="text-lg font-semibold text-gray-900">{{ isSuperadmin ? 'Create League' : 'Request a League' }}</h2>
         </template>
 
         <div class="mx-auto max-w-2xl px-4 py-4">
+            <div v-if="!isSuperadmin" class="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                Your league request will be reviewed by an administrator. You'll be notified once it's approved.
+            </div>
+
             <div class="rounded-lg border border-gray-200 bg-white p-4">
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
@@ -55,7 +63,7 @@ const submit = () => {
                         </select>
                     </div>
 
-                    <div>
+                    <div v-if="isSuperadmin">
                         <InputLabel for="admin_email" value="League Admin Email" class="text-xs" />
                         <TextInput id="admin_email" v-model="form.admin_email" type="email" class="mt-1 block w-full" required placeholder="admin@example.com" />
                         <p class="mt-1 text-[11px] text-gray-400">This person will be invited as the League Admin after setup.</p>
@@ -64,7 +72,7 @@ const submit = () => {
 
                     <div class="flex items-center justify-end gap-4">
                         <Link :href="route('leagues.index')" class="text-xs text-gray-500 hover:text-gray-700">Cancel</Link>
-                        <PrimaryButton :disabled="form.processing">Create League</PrimaryButton>
+                        <PrimaryButton :disabled="form.processing">{{ isSuperadmin ? 'Create League' : 'Submit Request' }}</PrimaryButton>
                     </div>
                 </form>
             </div>

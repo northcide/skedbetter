@@ -8,9 +8,10 @@ const currentRoute = computed(() => page.url);
 const mobileMenuOpen = ref(false);
 
 const navItems = [
-    { label: 'User Approvals', route: 'admin.approvals', match: 'admin/approvals' },
-    { label: 'Leagues', route: 'leagues.index', match: '/leagues' },
-    { label: 'Platform Settings', route: 'admin.settings', match: 'admin/settings' },
+    { label: 'Leagues', route: 'admin.leagues', match: 'admin/leagues' },
+    { label: 'Users', route: 'admin.users', match: 'admin/users' },
+    { label: 'Audit Log', route: 'admin.audit-log', match: 'admin/audit-log' },
+    { label: 'Settings', route: 'admin.settings', match: 'admin/settings' },
 ];
 
 function isActive(item) {
@@ -46,9 +47,9 @@ function isActive(item) {
                                     @click="mobileMenuOpen = false"
                                 >
                                     {{ item.label }}
-                                    <span v-if="item.route === 'admin.approvals' && $page.props.pendingApprovalCount"
+                                    <span v-if="item.route === 'admin.leagues' && $page.props.pendingLeagueCount"
                                         class="ml-auto rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                                        {{ $page.props.pendingApprovalCount }}
+                                        {{ $page.props.pendingLeagueCount }}
                                     </span>
                                 </Link>
                             </li>

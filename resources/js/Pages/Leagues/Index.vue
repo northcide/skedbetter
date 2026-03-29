@@ -6,7 +6,9 @@ import { Head, Link, router } from '@inertiajs/vue3';
 
 const props = defineProps({
     leagues: Array,
+    pendingLeagues: { type: Array, default: () => [] },
     canCreateLeague: Boolean,
+    canRequestLeague: Boolean,
     isSuperadmin: Boolean,
 });
 
@@ -26,16 +28,33 @@ const deleteLeague = (league) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-gray-900">My Leagues</h2>
-                <Link v-if="canCreateLeague" :href="route('leagues.create')">
-                    <PrimaryButton>Create League</PrimaryButton>
-                </Link>
+                <div class="flex gap-2">
+                    <Link v-if="canRequestLeague" :href="route('leagues.create')">
+                        <PrimaryButton>Request a League</PrimaryButton>
+                    </Link>
+                    <Link v-if="canCreateLeague" :href="route('leagues.create')">
+                        <PrimaryButton>Create League</PrimaryButton>
+                    </Link>
+                </div>
             </div>
         </template>
 
         <FlashMessage />
 
         <div class="mx-auto max-w-screen-2xl px-3 py-4 sm:px-4 lg:px-6">
-            <div v-if="leagues.length === 0" class="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
+            <!-- Pending league requests -->
+            <div v-if="pendingLeagues.length" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <h3 class="text-sm font-semibold text-amber-800">Pending League Requests</h3>
+                <div v-for="pl in pendingLeagues" :key="pl.id" class="mt-2 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ pl.name }}</p>
+                        <p class="text-xs text-amber-600">Waiting for admin approval</p>
+                    </div>
+                    <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Pending</span>
+                </div>
+            </div>
+
+            <div v-if="leagues.length === 0 && pendingLeagues.length === 0" class="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
                 <p class="text-sm text-gray-500">No leagues yet.</p>
                 <p v-if="canCreateLeague" class="mt-1 text-sm text-gray-400">Create your first league to get started.</p>
             </div>
