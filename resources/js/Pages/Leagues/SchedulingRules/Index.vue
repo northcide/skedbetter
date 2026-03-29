@@ -176,7 +176,10 @@ function save() {
                             <template v-if="r(field.id)?.enabled">
                                 <select v-model="r(field.id).priority" title="Priority override"
                                     :key="'pri-' + field.id + '-' + divPriority[selectedDivisionId]"
-                                    class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px] focus:border-brand-500 focus:ring-brand-500">
+                                    class="rounded py-0.5 pl-1.5 pr-6 text-[11px] focus:border-brand-500 focus:ring-brand-500"
+                                    :class="[r(field.id).priority && r(field.id).priority !== divPriority[selectedDivisionId]
+                                        ? 'border-amber-400 bg-amber-50 text-amber-700'
+                                        : 'border-gray-200']">
                                     <option value="">{{ divPriority[selectedDivisionId] ? 'Pri ' + divPriority[selectedDivisionId] : 'Pri -' }}</option>
                                     <option value="1">Pri 1</option>
                                     <option value="2">Pri 2</option>
