@@ -277,17 +277,18 @@ class TeamController extends Controller
         $blackouts = BlackoutRule::where('league_id', $league->id)
             ->where('is_active', true)
             ->orderBy('start_date')
+            ->with('scopeEntries')
             ->get();
 
         foreach ($blackouts as $bo) {
             $scope = match ($bo->scope_type) {
                 'league' => 'All fields',
-                'location' => DB::table('locations')->where('id', $bo->scope_id)->value('name') ?? 'Location',
-                'field' => DB::table('fields')
+                'location' => $bo->scopeEntries->map(fn($s) => DB::table('locations')->where('id', $s->scope_id)->value('name') ?? 'Location')->join(', '),
+                'field' => $bo->scopeEntries->map(fn($s) => DB::table('fields')
                     ->join('locations', 'locations.id', '=', 'fields.location_id')
-                    ->where('fields.id', $bo->scope_id)
+                    ->where('fields.id', $s->scope_id)
                     ->selectRaw("CONCAT(fields.name, ' @ ', locations.name) as label")
-                    ->value('label') ?? 'Field',
+                    ->value('label') ?? 'Field')->join(', '),
                 default => 'Unknown',
             };
 

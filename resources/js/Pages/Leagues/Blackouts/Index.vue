@@ -56,7 +56,10 @@ const deleteRule = (rule) => {
                                     <div class="font-medium text-gray-900">{{ rule.name }}</div>
                                     <div v-if="rule.reason" class="text-sm text-gray-500">{{ rule.reason }}</div>
                                 </td>
-                                <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500 capitalize">{{ rule.scope_type }}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">
+                                    <span class="capitalize">{{ rule.scope_type }}</span>
+                                    <span v-if="rule.scope_label && rule.scope_type !== 'league'" class="block text-[10px] text-gray-400 truncate max-w-[200px]" :title="rule.scope_label">{{ rule.scope_label }}</span>
+                                </td>
                                 <td class="whitespace-nowrap px-3 py-2 text-sm text-gray-500">
                                     {{ new Date(rule.start_date).toLocaleDateString() }} &ndash; {{ new Date(rule.end_date).toLocaleDateString() }}
                                     <span v-if="rule.start_time" class="block text-gray-400">{{ rule.start_time?.slice(0,5) }} - {{ rule.end_time?.slice(0,5) }}</span>

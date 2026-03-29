@@ -335,6 +335,7 @@ class ScheduleEntryController extends Controller
                 ->where('league_id', $context->league()->id)
                 ->where('is_active', true)
                 ->whereNull('deleted_at')
+                ->with('scopeEntries')
                 ->get();
 
             $startDate = $request->has('start') ? \Carbon\Carbon::parse($request->start) : now()->startOfMonth();

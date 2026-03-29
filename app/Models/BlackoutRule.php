@@ -13,7 +13,7 @@ class BlackoutRule extends Model
     use BelongsToLeague, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'league_id', 'scope_type', 'scope_id', 'name', 'reason',
+        'league_id', 'scope_type', 'name', 'reason',
         'start_date', 'end_date', 'start_time', 'end_time',
         'recurrence', 'day_of_week', 'is_active',
     ];
@@ -31,5 +31,33 @@ class BlackoutRule extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeEntries()
+    {
+        return $this->hasMany(BlackoutRuleScope::class);
+    }
+
+    public function scopeIds(): array
+    {
+        return $this->scopeEntries()->pluck('scope_id')->toArray();
+    }
+
+    public function appliesToField(int $fieldId): bool
+    {
+        if ($this->scope_type === 'league') return true;
+
+        $scopeIds = $this->scopeIds();
+
+        if ($this->scope_type === 'field') {
+            return in_array($fieldId, $scopeIds);
+        }
+
+        if ($this->scope_type === 'location') {
+            $locationId = \DB::table('fields')->where('id', $fieldId)->value('location_id');
+            return in_array($locationId, $scopeIds);
+        }
+
+        return false;
     }
 }

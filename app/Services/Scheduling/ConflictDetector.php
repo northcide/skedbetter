@@ -129,15 +129,7 @@ class ConflictDetector
 
     protected function ruleAppliesToScope(BlackoutRule $rule, ScheduleRequest $request): bool
     {
-        return match ($rule->scope_type) {
-            'league' => true,
-            'location' => DB::table('fields')
-                ->where('id', $request->fieldId)
-                ->where('location_id', $rule->scope_id)
-                ->exists(),
-            'field' => $rule->scope_id === $request->fieldId,
-            default => false,
-        };
+        return $rule->appliesToField($request->fieldId);
     }
 
     protected function ruleAppliesToDate(BlackoutRule $rule, Carbon $date): bool
