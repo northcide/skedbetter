@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, router } from '@inertiajs/vue3';
@@ -38,12 +38,10 @@ function fmtDate(d) {
 <template>
     <Head title="User Approvals" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-lg font-semibold text-gray-900">User Approvals</h2>
-        </template>
+    <AdminLayout>
+        <h2 class="text-base font-semibold text-gray-900">User Approvals</h2>
 
-        <div class="mx-auto max-w-3xl px-3 py-4 sm:px-4 lg:px-6">
+        <div class="mt-3 max-w-3xl">
             <FlashMessage />
 
             <!-- Pending -->
@@ -93,5 +91,5 @@ function fmtDate(d) {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </AdminLayout>
 </template>

@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
@@ -34,14 +34,12 @@ const sendTest = () => testForm.post(route('admin.settings.test-email'));
 <template>
     <Head title="Platform Settings" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-lg font-semibold text-gray-900">Platform Settings</h2>
-        </template>
+    <AdminLayout>
+        <h2 class="text-base font-semibold text-gray-900">Platform Settings</h2>
 
         <FlashMessage />
 
-        <div class="mx-auto max-w-3xl px-4 py-4 sm:px-6">
+        <div class="mt-3 max-w-3xl">
             <form @submit.prevent="save" class="space-y-5">
                 <!-- General -->
                 <div class="rounded-lg border border-gray-200 bg-white p-4">
@@ -151,5 +149,5 @@ const sendTest = () => testForm.post(route('admin.settings.test-email'));
                 </form>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </AdminLayout>
 </template>

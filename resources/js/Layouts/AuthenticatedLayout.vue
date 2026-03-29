@@ -26,6 +26,10 @@ const showingNavigationDropdown = ref(false);
                             <div class="hidden space-x-4 sm:-my-px sm:ms-6 sm:flex">
                                 <NavLink :href="route('leagues.index')" :active="route().current('leagues.*')">Leagues</NavLink>
                                 <NavLink :href="route('notifications.index')" :active="route().current('notifications.*')">Notifications</NavLink>
+                                <NavLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.approvals')" :active="route().current('admin.*')">
+                                    Admin
+                                    <span v-if="$page.props.pendingApprovalCount" class="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">{{ $page.props.pendingApprovalCount }}</span>
+                                </NavLink>
                             </div>
                         </div>
 
@@ -45,11 +49,6 @@ const showingNavigationDropdown = ref(false);
                                     </template>
                                     <template #content>
                                         <DropdownLink :href="route('profile.edit')">Profile</DropdownLink>
-                                        <DropdownLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.approvals')">
-                                            User Approvals
-                                            <span v-if="$page.props.pendingApprovalCount" class="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">{{ $page.props.pendingApprovalCount }}</span>
-                                        </DropdownLink>
-                                        <DropdownLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.settings')">Platform Settings</DropdownLink>
                                         <DropdownLink :href="route('logout')" method="post" as="button">Sign Out</DropdownLink>
                                     </template>
                                 </Dropdown>
@@ -71,6 +70,10 @@ const showingNavigationDropdown = ref(false);
                     <div class="space-y-1 pb-2 pt-1">
                         <ResponsiveNavLink :href="route('leagues.index')" :active="route().current('leagues.*')">Leagues</ResponsiveNavLink>
                         <ResponsiveNavLink :href="route('notifications.index')" :active="route().current('notifications.*')">Notifications</ResponsiveNavLink>
+                        <ResponsiveNavLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.approvals')" :active="route().current('admin.*')">
+                            Admin
+                            <span v-if="$page.props.pendingApprovalCount" class="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">{{ $page.props.pendingApprovalCount }}</span>
+                        </ResponsiveNavLink>
                     </div>
                     <div class="border-t border-gray-200 py-2">
                         <div class="px-4 py-1">
@@ -79,11 +82,6 @@ const showingNavigationDropdown = ref(false);
                         </div>
                         <div class="mt-1 space-y-1">
                             <ResponsiveNavLink :href="route('profile.edit')">Profile</ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.approvals')">
-                                User Approvals
-                                <span v-if="$page.props.pendingApprovalCount" class="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">{{ $page.props.pendingApprovalCount }}</span>
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$page.props.auth.user.is_superadmin" :href="route('admin.settings')">Platform Settings</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('logout')" method="post" as="button">Sign Out</ResponsiveNavLink>
                         </div>
                     </div>
