@@ -104,6 +104,16 @@ function saveTeam(team) {
         division_id: team.division_id,
         send_invite: sendInvite.value[team.id] || false,
     }).then((res) => {
+        // Sync team props with saved edits so isDirty() clears
+        team.name = edits.value[team.id].name;
+        team.contact_name = edits.value[team.id].contact_name || null;
+        team.contact_email = edits.value[team.id].contact_email || null;
+        team.contact_name_2 = edits.value[team.id].contact_name_2 || null;
+        team.contact_email_2 = edits.value[team.id].contact_email_2 || null;
+        team.contact_name_3 = edits.value[team.id].contact_name_3 || null;
+        team.contact_email_3 = edits.value[team.id].contact_email_3 || null;
+        team.color_code = edits.value[team.id].color_code || null;
+
         saved.value[team.id] = true;
         if (res.data.invite_sent) invited.value[team.id] = true;
         sendInvite.value[team.id] = false;
@@ -137,14 +147,15 @@ function deleteTeam(team) {
 
 function isDirty(team) {
     const e = edits.value[team.id];
-    return e.name !== team.name
-        || e.contact_name !== (team.contact_name || '')
-        || e.contact_email !== (team.contact_email || '')
-        || e.contact_name_2 !== (team.contact_name_2 || '')
-        || e.contact_email_2 !== (team.contact_email_2 || '')
-        || e.contact_name_3 !== (team.contact_name_3 || '')
-        || e.contact_email_3 !== (team.contact_email_3 || '')
-        || e.color_code !== (team.color_code || '');
+    const n = (v) => v || ''; // normalize null/undefined to empty string
+    return n(e.name) !== n(team.name)
+        || n(e.contact_name) !== n(team.contact_name)
+        || n(e.contact_email) !== n(team.contact_email)
+        || n(e.contact_name_2) !== n(team.contact_name_2)
+        || n(e.contact_email_2) !== n(team.contact_email_2)
+        || n(e.contact_name_3) !== n(team.contact_name_3)
+        || n(e.contact_email_3) !== n(team.contact_email_3)
+        || n(e.color_code) !== n(team.color_code);
 }
 
 function assistantCount(team) {
