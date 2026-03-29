@@ -748,14 +748,17 @@ function confirmSchedule() {
 
     const headers = { Accept: 'application/json' };
 
-    const request = editingEntryId.value
+    const isEdit = !!editingEntryId.value;
+    console.log('confirmSchedule:', isEdit ? 'UPDATE ' + editingEntryId.value : 'CREATE', payload);
+
+    const request = isEdit
         ? axios.put(route('leagues.schedule.update', [props.league.slug, editingEntryId.value]), { ...payload, status: 'confirmed', notes: '' }, { headers })
         : axios.post(route('leagues.schedule.store', props.league.slug), payload, { headers });
 
     request.then((res) => {
+        console.log('Schedule save success:', res.data);
         showConfirmation.value = false;
         editingEntryId.value = null;
-        // Small delay to ensure DB write completes before refetch
         setTimeout(() => calendarRef.value?.getApi()?.refetchEvents(), 200);
     }).catch((error) => {
         console.error('Schedule save error:', error.response?.status, error.response?.data);
