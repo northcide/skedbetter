@@ -132,15 +132,13 @@ function isDirty(team) {
     <Head :title="`${league.name} - Team Roster`" />
 
     <LeagueLayout :league="league" :userRole="userRole || ''">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-3">
             <h2 class="text-base font-semibold text-gray-900">Team Roster</h2>
-            <div class="flex items-center gap-2">
-                <input v-model="filterSearch" type="text" placeholder="Search..." class="w-36 rounded-md border-gray-300 text-xs" />
-                <select v-model="filterDiv" class="w-36">
-                    <option value="">All Divisions</option>
-                    <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
-                </select>
-            </div>
+            <input v-model="filterSearch" type="text" placeholder="Search..." class="w-32 rounded-md border-gray-300 text-xs" />
+            <select v-model="filterDiv" class="w-32">
+                <option value="">All Divisions</option>
+                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+            </select>
         </div>
 
         <FlashMessage />
