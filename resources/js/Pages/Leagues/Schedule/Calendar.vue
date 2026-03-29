@@ -755,7 +755,8 @@ function confirmSchedule() {
     request.then((res) => {
         showConfirmation.value = false;
         editingEntryId.value = null;
-        calendarRef.value?.getApi()?.refetchEvents();
+        // Small delay to ensure DB write completes before refetch
+        setTimeout(() => calendarRef.value?.getApi()?.refetchEvents(), 200);
     }).catch((error) => {
         console.error('Schedule save error:', error.response?.status, error.response?.data);
         showConfirmation.value = false;
