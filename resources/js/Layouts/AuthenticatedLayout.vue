@@ -20,7 +20,7 @@ const showingNavigationDropdown = ref(false);
                             <div class="flex shrink-0 items-center gap-1.5">
                                 <Link :href="route('dashboard')" class="flex items-center gap-1.5">
                                     <ApplicationLogo class="block h-6 w-6 text-brand-600" />
-                                    <span class="hidden text-sm font-bold tracking-tight text-brand-950 sm:block">SkedBetter</span>
+                                    <span class="text-sm font-bold tracking-tight text-brand-950">SkedBetter</span>
                                 </Link>
                             </div>
                             <div class="hidden space-x-4 sm:-my-px sm:ms-6 sm:flex">

@@ -39,7 +39,32 @@ const deleteLeague = (league) => {
             </div>
 
             <div v-else class="rounded-lg border border-gray-200 bg-white">
-                <table class="min-w-full divide-y divide-gray-100">
+                <!-- Mobile: card layout -->
+                <div class="divide-y divide-gray-100 sm:hidden">
+                    <div v-for="league in leagues" :key="'m-' + league.id" class="px-4 py-3">
+                        <Link :href="route('leagues.show', league.slug)" class="block">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-semibold text-gray-900">{{ league.name }}</span>
+                                <span v-if="league.is_active" class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">Active</span>
+                                <span v-else class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500">Inactive</span>
+                            </div>
+                            <p v-if="league.description" class="mt-0.5 text-xs text-gray-500 line-clamp-1">{{ league.description }}</p>
+                            <div class="mt-1.5 flex gap-3 text-xs text-gray-400">
+                                <span>{{ league.divisions_count }} divisions</span>
+                                <span>{{ league.teams_count }} teams</span>
+                                <span>{{ league.locations_count }} locations</span>
+                            </div>
+                        </Link>
+                        <div class="mt-2 flex gap-4">
+                            <Link :href="route('leagues.show', league.slug)" class="py-1 text-sm font-medium text-brand-600">Open</Link>
+                            <Link :href="route('leagues.edit', league.slug)" class="py-1 text-sm font-medium text-gray-500">Edit</Link>
+                            <button v-if="isSuperadmin" @click="deleteLeague(league)" class="py-1 text-sm font-medium text-red-500">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop: table -->
+                <table class="hidden sm:table min-w-full divide-y divide-gray-100">
                     <thead>
                         <tr class="text-left text-[11px] font-semibold uppercase tracking-wider text-gray-400">
                             <th class="px-4 py-2.5">League</th>

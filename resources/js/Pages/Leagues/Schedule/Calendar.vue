@@ -471,6 +471,15 @@ function handleExternalDrop(info) {
 
 function handleSelect(info) {
     if (!canSchedule) return;
+    // In month view, navigate to day view instead of opening modal
+    if (info.view.type === 'dayGridMonth') {
+        const api = calendarRef.value?.getApi();
+        if (api) {
+            api.changeView('timeGridDay', info.start.toISOString().slice(0, 10));
+            api.unselect();
+        }
+        return;
+    }
     const resource = info.resource;
     const fieldId = resource?.id != null ? String(resource.id) : null;
     const date = info.start.toISOString().slice(0, 10);
