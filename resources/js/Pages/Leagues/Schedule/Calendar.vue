@@ -72,6 +72,12 @@ function liveValidate() {
     if (!modalForm.team_id || !modalForm.field_id || !modalForm.date || !modalForm.start_time || !modalForm.end_time) return;
     if (modalForm.start_time >= modalForm.end_time) return;
 
+    // Skip validation if field has fixed slots but times don't match a slot yet (auto-select pending)
+    if (fieldHasFixedSlots.value) {
+        const matched = fixedSlots.value.some(s => s.start === modalForm.start_time && s.end === modalForm.end_time);
+        if (!matched) return;
+    }
+
     validateTimeout = setTimeout(() => {
         validating.value = true;
         axios.post(route('leagues.schedule.validate', props.league.slug), {
