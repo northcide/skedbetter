@@ -769,45 +769,6 @@ function showError(messages) {
             </div>
         </div>
 
-        <!-- Filter Bar -->
-        <div class="mt-1 sm:mt-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5 sm:px-3 sm:py-2">
-            <!-- Mobile: collapsible toggle -->
-            <button @click="filtersOpen = !filtersOpen" class="flex w-full items-center justify-between lg:hidden">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Filters</span>
-                <div class="flex items-center gap-2">
-                    <span v-if="hasFilters" class="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-medium text-brand-700">Active</span>
-                    <svg class="h-4 w-4 text-gray-400 transition-transform" :class="{ 'rotate-180': filtersOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                </div>
-            </button>
-
-            <!-- Filters: always visible on lg, collapsible on mobile -->
-            <div :class="filtersOpen ? 'mt-2' : 'hidden'" class="lg:!block">
-                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-center lg:gap-2">
-                    <select v-model="filters.division_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                        <option value="">All Divisions</option>
-                        <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
-                    </select>
-
-                    <select v-model="filters.team_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                        <option value="">All Teams</option>
-                        <option v-for="t in viewFilteredTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
-                    </select>
-
-                    <select v-model="filters.location_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                        <option value="">All Locations</option>
-                        <option v-for="l in locations" :key="l.id" :value="l.id">{{ l.name }}</option>
-                    </select>
-
-                    <select v-model="filters.field_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                        <option value="">All Fields</option>
-                        <option v-for="f in availableFields" :key="f.id" :value="f.id">{{ f.name }}</option>
-                    </select>
-
-                    <button v-if="hasFilters" @click="clearFilters" class="text-[11px] font-medium text-brand-600 hover:text-brand-700 py-2 lg:py-0">Clear</button>
-                </div>
-            </div>
-        </div>
-
         <div v-if="errorMessages.length" class="fixed top-3 right-3 z-50 max-w-sm rounded-lg bg-red-500 px-3 py-2 text-xs text-white shadow-lg">
             <p class="font-semibold">Conflict:</p>
             <ul class="mt-1 list-disc pl-4"><li v-for="msg in errorMessages" :key="msg">{{ msg }}</li></ul>
@@ -844,9 +805,44 @@ function showError(messages) {
                 </div>
             </div>
 
-            <!-- Calendar -->
-            <div class="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-1 sm:p-2">
-                <FullCalendar ref="calendarRef" :options="calendarOptions" />
+            <!-- Calendar + Filter -->
+            <div class="min-w-0 flex-1">
+                <!-- Filter Bar -->
+                <div class="rounded-t-lg border border-gray-200 bg-white px-2 py-1.5 sm:px-3 sm:py-2">
+                    <!-- Mobile: collapsible toggle -->
+                    <button @click="filtersOpen = !filtersOpen" class="flex w-full items-center justify-between lg:hidden">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Filters</span>
+                        <div class="flex items-center gap-2">
+                            <span v-if="hasFilters" class="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-medium text-brand-700">Active</span>
+                            <svg class="h-4 w-4 text-gray-400 transition-transform" :class="{ 'rotate-180': filtersOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                    </button>
+                    <div :class="filtersOpen ? 'mt-2' : 'hidden'" class="lg:!block">
+                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-center lg:gap-2">
+                            <select v-model="filters.division_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                                <option value="">All Divisions</option>
+                                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
+                            </select>
+                            <select v-model="filters.team_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                                <option value="">All Teams</option>
+                                <option v-for="t in viewFilteredTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
+                            </select>
+                            <select v-model="filters.location_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                                <option value="">All Locations</option>
+                                <option v-for="l in locations" :key="l.id" :value="l.id">{{ l.name }}</option>
+                            </select>
+                            <select v-model="filters.field_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
+                                <option value="">All Fields</option>
+                                <option v-for="f in availableFields" :key="f.id" :value="f.id">{{ f.name }}</option>
+                            </select>
+                            <button v-if="hasFilters" @click="clearFilters" class="text-[11px] font-medium text-brand-600 hover:text-brand-700 py-2 lg:py-0">Clear</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Calendar -->
+                <div class="rounded-b-lg border border-t-0 border-gray-200 bg-white p-1 sm:p-2">
+                    <FullCalendar ref="calendarRef" :options="calendarOptions" />
+                </div>
             </div>
         </div>
 
