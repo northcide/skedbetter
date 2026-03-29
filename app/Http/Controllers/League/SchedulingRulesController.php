@@ -76,12 +76,14 @@ class SchedulingRulesController extends Controller
             'rules.*.booking_opens_date' => 'nullable|date',
             'rules.*.booking_opens_days' => 'nullable|integer|min:1',
             'division_id' => 'nullable|exists:divisions,id',
+            'scheduling_priority' => 'nullable|integer|min:1|max:5',
             'max_weekly_events_per_team' => 'nullable|integer|min:1|max:20',
         ]);
 
-        // Save division-level weekly limit
+        // Save division-level settings
         if (!empty($validated['division_id'])) {
             Division::where('id', $validated['division_id'])->update([
+                'scheduling_priority' => $validated['scheduling_priority'] ?? null,
                 'max_weekly_events_per_team' => $validated['max_weekly_events_per_team'] ?? null,
             ]);
         }

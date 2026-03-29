@@ -22,8 +22,10 @@ const selectedDivision = computed(() =>
 );
 
 const divMaxWeekly = ref({});
+const divPriority = ref({});
 props.divisions.forEach(d => {
     divMaxWeekly.value[d.id] = d.max_weekly_events_per_team || '';
+    divPriority.value[d.id] = d.scheduling_priority ? String(d.scheduling_priority) : '';
 });
 
 const rules = ref({});
@@ -84,6 +86,7 @@ function save() {
     axios.post(route('leagues.scheduling-rules.update', props.league.slug), {
         rules: payload,
         division_id: divId,
+        scheduling_priority: divPriority.value[divId] || null,
         max_weekly_events_per_team: divMaxWeekly.value[divId] || null,
     }, {
         headers: { Accept: 'application/json' },
@@ -130,8 +133,14 @@ function save() {
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-gray-100 px-3 py-1.5">
                     <div class="flex items-center gap-1.5">
                         <span class="text-[10px] text-gray-500">Priority:</span>
-                        <span v-if="selectedDivision?.scheduling_priority" class="rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">{{ selectedDivision.scheduling_priority }}</span>
-                        <span v-else class="text-[10px] text-gray-400">none</span>
+                        <select v-model="divPriority[selectedDivisionId]" class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px] focus:border-brand-500 focus:ring-brand-500">
+                            <option value="">None</option>
+                            <option value="1">1 (Highest)</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5 (Lowest)</option>
+                        </select>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <span class="text-[10px] text-gray-500">Max/wk:</span>
@@ -167,7 +176,7 @@ function save() {
                             <template v-if="r(field.id)?.enabled">
                                 <select v-model="r(field.id).priority" title="Priority override"
                                     class="rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px] focus:border-brand-500 focus:ring-brand-500">
-                                    <option value="">{{ selectedDivision?.scheduling_priority ? 'Pri ' + selectedDivision.scheduling_priority : 'Pri -' }}</option>
+                                    <option value="">{{ divPriority[selectedDivisionId] ? 'Pri ' + divPriority[selectedDivisionId] : 'Pri -' }}</option>
                                     <option value="1">Pri 1</option>
                                     <option value="2">Pri 2</option>
                                     <option value="3">Pri 3</option>
