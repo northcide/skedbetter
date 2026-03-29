@@ -107,27 +107,27 @@ function save() {
         <FlashMessage />
 
         <!-- Main layout: side tabs + content -->
-        <div class="mt-3 flex gap-3">
-            <!-- Division tabs (left side) -->
-            <nav class="w-44 shrink-0 space-y-px">
+        <div class="mt-3 flex items-start">
+            <!-- Division tabs (left side, file-folder style) -->
+            <nav class="w-40 shrink-0 -mr-px relative z-10 pt-1">
                 <button v-for="d in divisions" :key="d.id"
                     @click="selectedDivisionId = d.id"
-                    class="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left text-xs transition-colors"
+                    class="relative flex w-full items-center justify-between pl-3 pr-2 py-2 text-left text-xs transition-colors border border-gray-200"
                     :class="selectedDivisionId === d.id
-                        ? 'bg-brand-50 font-semibold text-brand-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'">
+                        ? 'bg-white font-semibold text-brand-700 border-r-white rounded-l-lg z-20'
+                        : 'bg-gray-50 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-l-md -my-px'">
                     <span class="truncate">{{ d.name }}</span>
-                    <span class="ml-1 shrink-0 text-[10px] tabular-nums"
-                        :class="selectedDivisionId === d.id ? 'text-brand-500' : 'text-gray-400'">
-                        {{ divEnabledCount(d.id) }}/{{ fields.length }}
+                    <span class="ml-1 shrink-0 rounded-full px-1.5 py-px text-[9px] tabular-nums"
+                        :class="selectedDivisionId === d.id ? 'bg-brand-50 text-brand-600' : 'text-gray-400'">
+                        {{ divEnabledCount(d.id) }}
                     </span>
                 </button>
             </nav>
 
-            <!-- Right content -->
-            <div v-if="selectedDivisionId" class="min-w-0 flex-1">
+            <!-- Right content (the "folder" body) -->
+            <div v-if="selectedDivisionId" class="min-w-0 flex-1 rounded-lg rounded-tl-none border border-gray-200 bg-white">
                 <!-- Division settings bar -->
-                <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-gray-100 bg-gray-50 px-3 py-1.5">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-gray-100 px-3 py-1.5">
                     <div class="flex items-center gap-1.5">
                         <span class="text-[10px] text-gray-500">Priority:</span>
                         <span v-if="selectedDivision?.scheduling_priority" class="rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">{{ selectedDivision.scheduling_priority }}</span>
@@ -147,7 +147,7 @@ function save() {
                 </div>
 
                 <!-- Field rows grouped by location -->
-                <div class="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
+                <div class="divide-y divide-gray-100">
                     <template v-for="loc in fieldsByLocation" :key="loc.name">
                         <div class="bg-gray-50 px-3 py-1">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">{{ loc.name }}</span>
@@ -197,7 +197,7 @@ function save() {
                 </div>
 
                 <!-- Legend -->
-                <div class="mt-2 flex flex-wrap gap-x-4 gap-y-0.5 px-1 text-[10px] text-gray-400">
+                <div class="border-t border-gray-100 px-3 py-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-gray-400">
                     <span><strong>Pri:</strong> 1=highest, default from division unless overridden</span>
                     <span><strong>Max/wk:</strong> total events per team per week across all fields</span>
                     <span><strong>Window:</strong> when this division can start booking a field</span>
