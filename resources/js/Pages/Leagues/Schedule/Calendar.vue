@@ -516,6 +516,10 @@ function clearTooltips() {
     document.querySelectorAll('.fc-hover-tooltip').forEach(el => el.remove());
 }
 
+// Clear tooltips whenever modals open/close
+watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
+}
+
 function handleEventResize(info) {
     clearTooltips();
     const event = info.event;
