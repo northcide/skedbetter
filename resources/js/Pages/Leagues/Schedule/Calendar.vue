@@ -371,6 +371,10 @@ const calendarOptions = ref({
             if (api) {
                 api.changeView('timeGridDay', info.dateStr);
             }
+        } else if (canSchedule && (info.view.type === 'timeGridDay' || info.view.type === 'timeGridWeek')) {
+            const date = info.date.toISOString().slice(0, 10);
+            const startTime = info.date.toTimeString().slice(0, 5);
+            openModal({ date, startTime });
         }
     },
     eventContent: (arg) => {
@@ -510,6 +514,10 @@ function openModal({ entryId, teamId, date, startTime, endTime, fieldId, fieldNa
     }
     if (!resolvedTeamId && filters.value.team_id) {
         resolvedTeamId = filters.value.team_id;
+    }
+    // Auto-select if coach has only one schedulable team
+    if (!resolvedTeamId && schedulableTeams.value.length === 1) {
+        resolvedTeamId = schedulableTeams.value[0].id;
     }
 
     modalForm.team_id = resolvedTeamId;
