@@ -7,6 +7,7 @@ use App\Models\Division;
 use App\Models\Field;
 use App\Models\League;
 use App\Models\Location;
+use App\Models\ScheduleEntry;
 use App\Models\Season;
 use App\Models\Team;
 use App\Models\User;
@@ -38,6 +39,8 @@ class DemoLeagueController extends Controller
             'teams_per_division' => 'required|integer|min:1|max:30',
             'locations' => 'required|integer|min:1|max:10',
             'fields_per_location' => 'required|integer|min:1|max:10',
+            'populate_schedule' => 'boolean',
+            'weeks_to_schedule' => 'integer|min:1|max:12',
         ]);
 
         $league = DB::transaction(function () use ($validated, $request) {
@@ -135,12 +138,148 @@ class DemoLeagueController extends Controller
 
             $league->update(['settings' => ['onboarding_completed' => true]]);
 
+            // Populate schedule if requested
+            if ($validated['populate_schedule'] ?? false) {
+                $this->populateSchedule($league, $season, $validated['weeks_to_schedule'] ?? 4, $request->user()->id);
+            }
+
             return $league;
         });
 
-        return back()->with('success', "Demo league \"{$league->name}\" created with {$validated['divisions']} divisions, " .
+        $entryCount = $league->scheduleEntries()->count();
+        $msg = "Demo league \"{$league->name}\" created with {$validated['divisions']} divisions, " .
             ($validated['divisions'] * $validated['teams_per_division']) . " teams, {$validated['locations']} locations, and " .
-            ($validated['locations'] * $validated['fields_per_location']) . " fields.");
+            ($validated['locations'] * $validated['fields_per_location']) . " fields.";
+        if ($entryCount > 0) {
+            $msg .= " {$entryCount} schedule entries populated.";
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    private function populateSchedule(League $league, Season $season, int $weeks, int $userId): void
+    {
+        $fields = $league->fields()->where('is_active', true)->get();
+        $teams = $league->teams()->get();
+
+        if ($fields->isEmpty() || $teams->isEmpty()) return;
+
+        $types = ['practice', 'practice', 'practice', 'game', 'game', 'scrimmage'];
+        $titles = [
+            'practice' => ['Practice', 'Team Practice', 'Hitting Practice', 'Fielding Practice', 'Skills Session', 'Conditioning'],
+            'game' => ['League Game', 'Regular Season Game', 'Division Game', 'Matchup'],
+            'scrimmage' => ['Scrimmage', 'Inter-squad Scrimmage', 'Practice Game'],
+        ];
+
+        // Weekday practice slots (Mon-Thu)
+        $weekdaySlots = [
+            ['17:00', '18:30'],
+            ['17:30', '19:00'],
+            ['18:00', '19:30'],
+            ['18:30', '20:00'],
+            ['19:00', '20:30'],
+        ];
+
+        // Weekend game slots (Sat-Sun)
+        $weekendSlots = [
+            ['08:00', '09:30'],
+            ['09:00', '10:30'],
+            ['09:30', '11:00'],
+            ['10:00', '11:30'],
+            ['10:30', '12:00'],
+            ['11:00', '12:30'],
+            ['12:00', '13:30'],
+            ['13:00', '14:30'],
+            ['14:00', '15:30'],
+            ['15:00', '16:30'],
+        ];
+
+        $startDate = now()->startOfWeek();
+        $entries = [];
+        $now = now();
+
+        for ($week = 0; $week < $weeks; $week++) {
+            $weekStart = $startDate->copy()->addWeeks($week);
+
+            // Weekday practices — spread teams across fields
+            foreach ([1, 2, 3, 4] as $dayOffset) { // Mon-Thu
+                $date = $weekStart->copy()->addDays($dayOffset);
+                if ($date->lt($season->start_date) || $date->gt($season->end_date)) continue;
+
+                $slotIdx = 0;
+                foreach ($fields as $field) {
+                    // 1-2 entries per field per weekday
+                    $entriesPerField = rand(1, 2);
+                    for ($e = 0; $e < $entriesPerField; $e++) {
+                        if ($slotIdx >= count($weekdaySlots)) break;
+                        $team = $teams->random();
+                        $slot = $weekdaySlots[$slotIdx];
+                        $type = 'practice';
+                        $titleOptions = $titles[$type];
+
+                        $entries[] = [
+                            'league_id' => $league->id,
+                            'season_id' => $season->id,
+                            'field_id' => $field->id,
+                            'team_id' => $team->id,
+                            'date' => $date->toDateString(),
+                            'start_time' => $slot[0],
+                            'end_time' => $slot[1],
+                            'type' => $type,
+                            'title' => $titleOptions[array_rand($titleOptions)],
+                            'status' => 'confirmed',
+                            'created_by' => $userId,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                        $slotIdx++;
+                    }
+                }
+            }
+
+            // Weekend games — Saturday and Sunday
+            foreach ([5, 6] as $dayOffset) { // Sat, Sun
+                $date = $weekStart->copy()->addDays($dayOffset);
+                if ($date->lt($season->start_date) || $date->gt($season->end_date)) continue;
+
+                $slotIdx = 0;
+                foreach ($fields as $field) {
+                    // 2-3 games per field per weekend day
+                    $entriesPerField = rand(2, 3);
+                    for ($e = 0; $e < $entriesPerField; $e++) {
+                        if ($slotIdx >= count($weekendSlots)) break;
+                        $team = $teams->random();
+                        $slot = $weekendSlots[$slotIdx];
+                        $type = $types[array_rand($types)];
+                        $titleOptions = $titles[$type];
+
+                        $entries[] = [
+                            'league_id' => $league->id,
+                            'season_id' => $season->id,
+                            'field_id' => $field->id,
+                            'team_id' => $team->id,
+                            'date' => $date->toDateString(),
+                            'start_time' => $slot[0],
+                            'end_time' => $slot[1],
+                            'type' => $type,
+                            'title' => $titleOptions[array_rand($titleOptions)],
+                            'status' => rand(1, 20) === 1 ? 'cancelled' : 'confirmed',
+                            'created_by' => $userId,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                        $slotIdx++;
+                    }
+                }
+            }
+        }
+
+        // Bulk insert without triggering observer (no notification spam)
+        foreach (array_chunk($entries, 100) as $chunk) {
+            ScheduleEntry::withoutEvents(function () use ($chunk) {
+                ScheduleEntry::insert($chunk);
+            });
+        }
     }
 
     private function randomSport(): array

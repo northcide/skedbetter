@@ -11,10 +11,19 @@ const form = useForm({
     teams_per_division: 6,
     locations: 2,
     fields_per_location: 3,
+    populate_schedule: true,
+    weeks_to_schedule: 4,
 });
 
 const totalTeams = computed(() => form.divisions * form.teams_per_division);
 const totalFields = computed(() => form.locations * form.fields_per_location);
+const estimatedEntries = computed(() => {
+    if (!form.populate_schedule) return 0;
+    const fields = totalFields.value;
+    // ~1.5 entries per field per weekday (4 days) + ~2.5 per field per weekend day (2 days)
+    const perWeek = Math.round(fields * 1.5 * 4 + fields * 2.5 * 2);
+    return perWeek * form.weeks_to_schedule;
+});
 
 const generate = () => {
     if (!confirm(`This will create a demo league with ${form.divisions} divisions, ${totalTeams.value} teams, ${form.locations} locations, and ${totalFields.value} fields. Continue?`)) return;
@@ -62,6 +71,23 @@ const generate = () => {
                     </div>
                 </div>
 
+                <!-- Schedule Population -->
+                <div class="rounded-lg border border-gray-100 bg-gray-50 p-4">
+                    <label class="flex items-start gap-2.5 cursor-pointer">
+                        <input type="checkbox" v-model="form.populate_schedule" class="mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
+                        <div>
+                            <span class="text-sm font-medium text-gray-900">Populate schedule with entries</span>
+                            <p class="text-[10px] text-gray-400">Fills the calendar with practices (weekdays) and games (weekends). No notifications sent.</p>
+                        </div>
+                    </label>
+                    <div v-if="form.populate_schedule" class="mt-3 pl-6">
+                        <InputLabel value="Weeks to schedule" class="text-xs" />
+                        <input v-model.number="form.weeks_to_schedule" type="number" min="1" max="12"
+                            class="mt-1 block w-32 rounded-md border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500" />
+                        <p class="mt-0.5 text-[10px] text-gray-400">Starting from this week. ~{{ estimatedEntries }} entries estimated.</p>
+                    </div>
+                </div>
+
                 <!-- Preview -->
                 <div class="rounded-lg bg-gray-50 p-4">
                     <p class="text-xs font-semibold text-gray-500">Preview</p>
@@ -83,7 +109,10 @@ const generate = () => {
                             <p class="text-[10px] text-gray-400">Fields</p>
                         </div>
                     </div>
-                    <p class="mt-3 text-[10px] text-gray-400 text-center">
+                    <p v-if="form.populate_schedule" class="mt-2 text-center text-xs font-medium text-brand-600">
+                        + ~{{ estimatedEntries }} schedule entries over {{ form.weeks_to_schedule }} week{{ form.weeks_to_schedule > 1 ? 's' : '' }}
+                    </p>
+                    <p class="mt-2 text-[10px] text-gray-400 text-center">
                         Each team gets a random coach name and demo email. League is auto-approved and ready to use.
                         Sport is randomly selected (Baseball, Soccer, Softball, or Lacrosse).
                     </p>
