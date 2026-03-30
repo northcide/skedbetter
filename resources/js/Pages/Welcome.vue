@@ -99,13 +99,16 @@ const isVisible = (id) => observed.value.has(id);
                             <span class="ml-3 rounded bg-brand-800/60 px-8 py-0.5 text-[10px] text-brand-400">skedbetter.com</span>
                         </div>
                         <!-- Screenshot area -->
-                        <div class="flex aspect-[4/3] items-center justify-center rounded-b-lg bg-brand-900/40 p-8">
-                            <div class="text-center">
-                                <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-800/60">
-                                    <svg class="h-6 w-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="9" y1="4" x2="9" y2="10" /><line x1="15" y1="4" x2="15" y2="10" /></svg>
+                        <div class="rounded-b-lg bg-brand-900/40 overflow-hidden">
+                            <img src="/images/calendar-week-view.webp" alt="SkedBetter calendar week view with color-coded team bookings across multiple fields" class="w-full h-auto" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                            <div class="hidden aspect-[4/3] items-center justify-center p-8" style="display:none;">
+                                <div class="text-center">
+                                    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-800/60">
+                                        <svg class="h-6 w-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="9" y1="4" x2="9" y2="10" /><line x1="15" y1="4" x2="15" y2="10" /></svg>
+                                    </div>
+                                    <p class="text-sm font-medium text-brand-300">Screenshot coming soon</p>
+                                    <p class="mt-1 text-xs text-brand-500">Color-coded team bookings across multiple fields</p>
                                 </div>
-                                <p class="text-sm font-medium text-brand-300">Screenshot: Calendar day view</p>
-                                <p class="mt-1 text-xs text-brand-500">Color-coded team bookings across multiple fields</p>
                             </div>
                         </div>
                     </div>
@@ -126,14 +129,23 @@ const isVisible = (id) => observed.value.has(id);
                     <div class="rounded-2xl bg-brand-50 p-7">
                         <p class="text-2xl font-bold text-brand-700">League Admins</p>
                         <p class="mt-3 text-sm leading-relaxed text-gray-600">You're juggling 40 teams across 12 fields and 3 divisions. You need a bird's-eye view and the power to set rules that coaches actually follow.</p>
+                        <div class="mt-4 rounded-lg bg-white/60 overflow-hidden">
+                            <img src="/images/admin-dashboard.webp" alt="League admin dashboard showing teams, fields, and divisions" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
                     <div class="rounded-2xl bg-field-50 p-7">
                         <p class="text-2xl font-bold text-field-700">Facility Managers</p>
                         <p class="mt-3 text-sm leading-relaxed text-gray-600">You manage the fields, not the league politics. Blackout rain-soaked fields, set available hours, and let the system handle who books what.</p>
+                        <div class="mt-4 rounded-lg bg-white/60 overflow-hidden">
+                            <img src="/images/field-management.webp" alt="Field management with blackout rules and time slots" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
                     <div class="rounded-2xl bg-accent-50 p-7">
                         <p class="text-2xl font-bold text-accent-700">Coaches</p>
                         <p class="mt-3 text-sm leading-relaxed text-gray-600">You just want to grab a field for Tuesday practice without calling anyone. Open the app, tap a time slot, done. It syncs to your phone calendar.</p>
+                        <div class="mt-4 rounded-lg bg-white/60 overflow-hidden">
+                            <img src="/images/coach-mobile-view.webp" alt="Coach booking a field from a mobile device" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -155,10 +167,13 @@ const isVisible = (id) => observed.value.has(id);
                                 <h3 class="text-xl font-bold text-gray-900">Drag-and-drop calendar</h3>
                                 <p class="mt-2 text-sm leading-relaxed text-gray-600">See every field side-by-side in a resource timeline. Click to book, drag to move, resize to adjust. Day, week, and month views. Color-coded by team.</p>
                             </div>
-                            <div class="flex aspect-video items-center justify-center rounded-xl bg-gray-100 p-4">
-                                <div class="text-center">
-                                    <p class="text-xs font-semibold text-gray-400">Screenshot: Drag-and-drop calendar</p>
-                                    <p class="mt-0.5 text-[10px] text-gray-300">with conflict warning overlay</p>
+                            <div class="rounded-xl bg-gray-100 overflow-hidden">
+                                <img src="/images/drag-drop-calendar.webp" alt="Drag-and-drop calendar with conflict warning overlay" class="w-full h-auto rounded-xl" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                <div class="hidden aspect-video items-center justify-center p-4" style="display:none;">
+                                    <div class="text-center">
+                                        <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="9" y1="4" x2="9" y2="10" /><line x1="15" y1="4" x2="15" y2="10" /></svg>
+                                        <p class="text-xs font-semibold text-gray-400">Screenshot coming soon</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -168,6 +183,9 @@ const isVisible = (id) => observed.value.has(id);
                     <div class="rounded-2xl border border-gray-200 bg-white p-6">
                         <h3 class="text-lg font-bold text-gray-900">Conflict prevention</h3>
                         <p class="mt-2 text-sm leading-relaxed text-gray-600">Five layers of detection: field overlaps, team overlaps, blackout periods, weekly limits, and custom rules. Catches problems before they happen.</p>
+                        <div class="mt-3 rounded-lg bg-gray-50 overflow-hidden">
+                            <img src="/images/conflict-detection.webp" alt="Conflict detection warning preventing a double-booking" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
 
                     <!-- Small card -->
@@ -180,6 +198,9 @@ const isVisible = (id) => observed.value.has(id);
                     <div class="rounded-2xl border border-gray-200 bg-white p-6">
                         <h3 class="text-lg font-bold text-gray-900">Recurring schedules</h3>
                         <p class="mt-2 text-sm leading-relaxed text-gray-600">Bulk schedule weekly practices in one click. The system skips blackout dates and catches conflicts automatically.</p>
+                        <div class="mt-3 rounded-lg bg-gray-50 overflow-hidden">
+                            <img src="/images/recurring-schedules.webp" alt="Bulk recurring schedule setup form" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
 
                     <!-- Large card: Notifications -->
@@ -210,6 +231,9 @@ const isVisible = (id) => observed.value.has(id);
                         <div class="hidden lg:block absolute top-5 left-[calc(50%+28px)] w-[calc(100%-56px)] border-t-2 border-dashed border-brand-200"></div>
                         <h3 class="mt-4 text-lg font-bold text-gray-900">Set up your league</h3>
                         <p class="mt-2 text-sm text-gray-600 max-w-xs mx-auto">Add your fields, divisions, and teams. Import from a spreadsheet or type them in. Takes about 5 minutes.</p>
+                        <div class="mt-4 mx-auto max-w-xs rounded-lg bg-gray-50 overflow-hidden shadow-sm">
+                            <img src="/images/team-setup.webp" alt="Team list showing a populated division with coaches" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
 
                     <!-- Step 2 -->
@@ -218,6 +242,9 @@ const isVisible = (id) => observed.value.has(id);
                         <div class="hidden lg:block absolute top-5 left-[calc(50%+28px)] w-[calc(100%-56px)] border-t-2 border-dashed border-brand-200"></div>
                         <h3 class="mt-4 text-lg font-bold text-gray-900">Configure your rules</h3>
                         <p class="mt-2 text-sm text-gray-600 max-w-xs mx-auto">Booking windows, field time slots, blackout dates, weekly limits. Set it once, the system enforces it.</p>
+                        <div class="mt-4 mx-auto max-w-xs rounded-lg bg-gray-50 overflow-hidden shadow-sm">
+                            <img src="/images/blackout-rules.webp" alt="Blackout rules and field time slot configuration" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
 
                     <!-- Step 3 -->
@@ -225,6 +252,9 @@ const isVisible = (id) => observed.value.has(id);
                         <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-500 text-lg font-bold text-brand-950">3</div>
                         <h3 class="mt-4 text-lg font-bold text-gray-900">Coaches start booking</h3>
                         <p class="mt-2 text-sm text-gray-600 max-w-xs mx-auto">Invite your coaches. They pick a field and time from their phone. Conflicts are blocked automatically. Done.</p>
+                        <div class="mt-4 mx-auto max-w-xs rounded-lg bg-gray-50 overflow-hidden shadow-sm">
+                            <img src="/images/coach-booking.webp" alt="Coach selecting a field and time slot to book" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
                 </div>
             </div>

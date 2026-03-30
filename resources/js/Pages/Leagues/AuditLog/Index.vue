@@ -34,7 +34,19 @@ function fmtDate(d) {
 }
 
 function fmtType(type) {
-    return type?.replace('App\\Models\\', '') || '';
+    const raw = type?.replace('App\\Models\\', '') || '';
+    const typeLabels = {
+        ScheduleEntry: 'Schedule Entry',
+        Field: 'Field',
+        Team: 'Team',
+        Division: 'Division',
+        Location: 'Location',
+        BlackoutRule: 'Blackout Rule',
+        BookingWindow: 'Booking Window',
+        Season: 'Season',
+        LeagueInvitation: 'Invitation',
+    };
+    return typeLabels[raw] || raw.replace(/([A-Z])/g, ' $1').trim();
 }
 
 const actionColors = {
@@ -91,13 +103,23 @@ const actionColors = {
                     </span>
 
                     <div class="min-w-0">
-                        <span class="text-[11px] text-gray-900">{{ fmtType(log.auditable_type) }} #{{ log.auditable_id }}</span>
-                        <div v-if="log.new_values" class="mt-0.5 text-[10px] text-gray-500 truncate" :title="JSON.stringify(log.new_values)">
-                            <template v-for="(val, key) in (typeof log.new_values === 'string' ? JSON.parse(log.new_values) : log.new_values)" :key="key">
-                                <span v-if="!['updated_at','created_at','created_by','updated_by','league_id'].includes(key)" class="mr-2">
-                                    <strong>{{ key }}:</strong> {{ val }}
-                                </span>
-                            </template>
+                        <span class="text-[11px] font-medium text-gray-900">{{ fmtType(log.auditable_type) }}</span>
+
+                        <!-- Updated: show old → new for each changed field -->
+                        <div v-if="log.action === 'updated' && log.old_values && log.new_values" class="mt-0.5 space-y-0.5">
+                            <div v-for="(newVal, key) in (typeof log.new_values === 'string' ? JSON.parse(log.new_values) : log.new_values)" :key="key" class="text-[10px] text-gray-500">
+                                <strong>{{ key }}:</strong>
+                                <span class="text-red-400 line-through">{{ (typeof log.old_values === 'string' ? JSON.parse(log.old_values) : log.old_values)[key] }}</span>
+                                <span class="mx-0.5">&rarr;</span>
+                                <span class="text-green-600">{{ newVal }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Created / deleted / cancelled: show values -->
+                        <div v-else-if="log.new_values" class="mt-0.5 text-[10px] text-gray-500">
+                            <span v-for="(val, key) in (typeof log.new_values === 'string' ? JSON.parse(log.new_values) : log.new_values)" :key="key" class="mr-2">
+                                <strong>{{ key }}:</strong> {{ val }}
+                            </span>
                         </div>
                     </div>
 
