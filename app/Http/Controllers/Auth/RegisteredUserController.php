@@ -135,6 +135,16 @@ class RegisteredUserController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
+        // Send verification magic link
+        if (!$user->email_verified_at) {
+            try {
+                $magicLink = MagicLink::generate($email);
+                Mail::to($email)->send(new MagicLinkMail($magicLink));
+            } catch (\Exception $e) {
+                // Don't fail registration if email can't be sent
+            }
+        }
+
         // Log user in so they have a session when returning from Stripe
         auth()->login($user);
 
