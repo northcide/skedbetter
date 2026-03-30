@@ -5,6 +5,7 @@ use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminLeagueController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\DemoLeagueController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\League\DataImportController;
 use App\Http\Controllers\IcalController;
@@ -84,6 +85,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
     Route::post('/admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
     Route::post('/admin/settings/test-email', [SettingsController::class, 'testEmail'])->name('admin.settings.test-email');
+    Route::get('/admin/demo-league', [DemoLeagueController::class, 'index'])->name('admin.demo-league');
+    Route::post('/admin/demo-league', [DemoLeagueController::class, 'store'])->name('admin.demo-league.store');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

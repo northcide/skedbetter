@@ -12,6 +12,7 @@ const navItems = [
     { label: 'Users', route: 'admin.users', match: 'admin/users' },
     { label: 'Audit Log', route: 'admin.audit-log', match: 'admin/audit-log' },
     { label: 'Settings', route: 'admin.settings', match: 'admin/settings' },
+    { label: 'Demo League', route: 'admin.demo-league', match: 'admin/demo-league' },
 ];
 
 function isActive(item) {
