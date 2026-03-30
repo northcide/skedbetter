@@ -42,6 +42,29 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
+        // Apply database Stripe settings at runtime
+        $this->app->booted(function () {
+            try {
+                $stripeKey = Setting::get('stripe_key');
+                $stripeSecret = Setting::get('stripe_secret');
+                $stripeWebhookSecret = Setting::get('stripe_webhook_secret');
+
+                if ($stripeKey) config(['cashier.key' => $stripeKey]);
+                if ($stripeSecret) config(['cashier.secret' => $stripeSecret]);
+                if ($stripeWebhookSecret) config(['cashier.webhook.secret' => $stripeWebhookSecret]);
+
+                // Override plan price IDs from database settings
+                foreach (['starter', 'standard', 'pro'] as $plan) {
+                    $monthly = Setting::get("stripe_{$plan}_monthly_price");
+                    $annual = Setting::get("stripe_{$plan}_annual_price");
+                    if ($monthly) config(["plans.{$plan}.monthly_price_id" => $monthly]);
+                    if ($annual) config(["plans.{$plan}.annual_price_id" => $annual]);
+                }
+            } catch (\Exception $e) {
+                // Settings table may not exist yet during migrations
+            }
+        });
+
         // Apply database mail settings at runtime
         $this->app->booted(function () {
             try {

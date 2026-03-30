@@ -27,13 +27,20 @@ class SettingsController extends Controller
             'graph_tenant_id', 'graph_client_id', 'graph_client_secret',
             'magic_link_expiry_minutes',
             'turnstile_site_key', 'turnstile_secret_key',
+            'stripe_key', 'stripe_secret', 'stripe_webhook_secret',
+            'stripe_starter_monthly_price', 'stripe_starter_annual_price',
+            'stripe_standard_monthly_price', 'stripe_standard_annual_price',
+            'stripe_pro_monthly_price', 'stripe_pro_annual_price',
         ]);
 
-        // Mask the password and secret for display
+        // Mask secrets for display
         $settings['smtp_password_set'] = ! empty($settings['smtp_password']);
         $settings['graph_client_secret_set'] = ! empty($settings['graph_client_secret']);
         $settings['turnstile_secret_key_set'] = ! empty($settings['turnstile_secret_key']);
-        unset($settings['smtp_password'], $settings['graph_client_secret'], $settings['turnstile_secret_key']);
+        $settings['stripe_secret_set'] = ! empty($settings['stripe_secret']);
+        $settings['stripe_webhook_secret_set'] = ! empty($settings['stripe_webhook_secret']);
+        unset($settings['smtp_password'], $settings['graph_client_secret'], $settings['turnstile_secret_key'],
+            $settings['stripe_secret'], $settings['stripe_webhook_secret']);
 
         return Inertia::render('Admin/Settings', [
             'settings' => $settings,
@@ -61,6 +68,15 @@ class SettingsController extends Controller
             'magic_link_expiry_minutes' => 'required|integer|min:5|max:1440',
             'turnstile_site_key' => 'nullable|string|max:255',
             'turnstile_secret_key' => 'nullable|string|max:255',
+            'stripe_key' => 'nullable|string|max:255',
+            'stripe_secret' => 'nullable|string|max:255',
+            'stripe_webhook_secret' => 'nullable|string|max:255',
+            'stripe_starter_monthly_price' => 'nullable|string|max:255',
+            'stripe_starter_annual_price' => 'nullable|string|max:255',
+            'stripe_standard_monthly_price' => 'nullable|string|max:255',
+            'stripe_standard_annual_price' => 'nullable|string|max:255',
+            'stripe_pro_monthly_price' => 'nullable|string|max:255',
+            'stripe_pro_annual_price' => 'nullable|string|max:255',
         ]);
 
         // Don't overwrite secrets with empty values if they weren't changed
@@ -72,6 +88,12 @@ class SettingsController extends Controller
         }
         if (empty($validated['turnstile_secret_key'])) {
             unset($validated['turnstile_secret_key']);
+        }
+        if (empty($validated['stripe_secret'])) {
+            unset($validated['stripe_secret']);
+        }
+        if (empty($validated['stripe_webhook_secret'])) {
+            unset($validated['stripe_webhook_secret']);
         }
 
         Setting::setMany($validated);
