@@ -78,6 +78,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/leagues/{league}/approve', [AdminLeagueController::class, 'approve'])->name('admin.leagues.approve');
     Route::delete('/admin/leagues/{league}/reject', [AdminLeagueController::class, 'reject'])->name('admin.leagues.reject');
     Route::post('/admin/leagues/{league}/toggle-active', [AdminLeagueController::class, 'toggleActive'])->name('admin.leagues.toggle-active');
+    Route::delete('/admin/leagues/{league}', [AdminLeagueController::class, 'destroy'])->name('admin.leagues.destroy');
     Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users');
     Route::post('/admin/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('admin.users.toggle-active');
     Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');

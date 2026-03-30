@@ -36,6 +36,11 @@ function toggleActive(league) {
     router.post(route('admin.leagues.toggle-active', league.id), {}, { preserveScroll: true });
 }
 
+function deleteLeague(league) {
+    if (!confirm(`Permanently delete "${league.name}"? This cannot be undone. All teams, fields, schedules, and data will be removed.`)) return;
+    router.delete(route('admin.leagues.destroy', league.id), { preserveScroll: true });
+}
+
 function fmtDate(d) {
     if (!d) return '';
     return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -116,7 +121,10 @@ function fmtDate(d) {
                     <div>
                         <Link :href="route('leagues.show', league.slug)" class="text-sm font-medium text-gray-900 hover:text-brand-600">{{ league.name }}</Link>
                     </div>
-                    <button @click="toggleActive(league)" class="text-[10px] text-brand-600 hover:text-brand-700">Reactivate</button>
+                    <div class="flex items-center gap-3">
+                        <button @click="toggleActive(league)" class="text-[10px] text-brand-600 hover:text-brand-700">Reactivate</button>
+                        <button @click="deleteLeague(league)" class="text-[10px] text-red-500 hover:text-red-700">Delete</button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -92,6 +92,33 @@ class AdminLeagueController extends Controller
         return back()->with('success', "League request \"{$leagueName}\" has been rejected.");
     }
 
+    public function destroy(Request $request, League $league)
+    {
+        if (! $request->user()->isSuperadmin()) {
+            abort(403);
+        }
+
+        if ($league->is_active) {
+            return back()->with('error', 'Deactivate the league before deleting it.');
+        }
+
+        $leagueName = $league->name;
+
+        AuditLog::withoutGlobalScopes()->create([
+            'league_id' => null,
+            'user_id' => $request->user()->id,
+            'action' => 'league_deleted',
+            'auditable_type' => null,
+            'auditable_id' => null,
+            'new_values' => ['league' => $leagueName, 'league_id' => $league->id],
+            'ip_address' => $request->ip(),
+        ]);
+
+        $league->forceDelete();
+
+        return back()->with('success', "League \"{$leagueName}\" has been permanently deleted.");
+    }
+
     public function toggleActive(Request $request, League $league)
     {
         if (! $request->user()->isSuperadmin()) {
