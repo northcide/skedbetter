@@ -35,7 +35,15 @@ class CheckoutController extends Controller
     {
         $league = League::where('slug', $league)->firstOrFail();
 
-        $priceId = $this->resolvePriceId($league->stripe_plan, 'monthly');
+        // Create Stripe customer if registration failed before this step
+        if (!$league->stripe_id) {
+            $league->createAsStripeCustomer([
+                'email' => $league->contact_email,
+                'name' => $league->name,
+            ]);
+        }
+
+        $priceId = $this->resolvePriceId($league->stripe_plan ?? 'starter', 'monthly');
 
         $checkout = $league->newSubscription('default', $priceId)
             ->trialDays(14)
