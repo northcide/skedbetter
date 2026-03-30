@@ -1,11 +1,16 @@
 <script setup>
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
+    plans: { type: Array, default: () => [] },
 });
+
+const billingAnnual = ref(false);
+const formatLimit = (val) => val === null ? 'Unlimited' : val;
 </script>
 
 <template>
@@ -44,7 +49,7 @@ defineProps({
                 </p>
                 <div class="mt-10 flex items-center justify-center gap-4">
                     <Link v-if="canRegister" :href="route('register')" class="rounded-lg bg-white px-6 py-3 text-base font-semibold text-brand-700 shadow-lg transition hover:bg-brand-50 hover:shadow-xl">
-                        Start for Free
+                        Start Your Free Trial
                     </Link>
                     <Link :href="route('login')" class="rounded-lg border border-brand-400/30 px-6 py-3 text-base font-semibold text-brand-200 transition hover:border-brand-300 hover:text-white">
                         Sign In
@@ -141,6 +146,66 @@ defineProps({
             </div>
         </div>
 
+        <!-- Pricing -->
+        <div class="bg-white py-24" id="pricing">
+            <div class="mx-auto max-w-7xl px-6">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900">Simple, transparent pricing</h2>
+                    <p class="mt-4 text-lg text-gray-500">Start with a 14-day free trial. No credit card required to sign up.</p>
+
+                    <div class="mt-6 flex items-center justify-center gap-3">
+                        <span class="text-sm font-medium" :class="!billingAnnual ? 'text-gray-900' : 'text-gray-400'">Monthly</span>
+                        <button type="button" @click="billingAnnual = !billingAnnual"
+                            class="relative h-6 w-11 rounded-full transition-colors" :class="billingAnnual ? 'bg-brand-600' : 'bg-gray-300'">
+                            <span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all" :class="billingAnnual ? 'left-[22px]' : 'left-0.5'" />
+                        </button>
+                        <span class="text-sm font-medium" :class="billingAnnual ? 'text-gray-900' : 'text-gray-400'">Annual</span>
+                        <span v-if="billingAnnual" class="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">Save ~17%</span>
+                    </div>
+                </div>
+
+                <div class="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    <div v-for="plan in plans" :key="plan.slug"
+                        class="relative rounded-2xl border p-8"
+                        :class="plan.slug === 'standard'
+                            ? 'border-brand-500 ring-2 ring-brand-500 shadow-xl'
+                            : 'border-gray-200 shadow-sm'">
+                        <span v-if="plan.slug === 'standard'" class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-4 py-1 text-xs font-semibold text-white">Most Popular</span>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ plan.name }}</h3>
+                        <div class="mt-4">
+                            <span class="text-4xl font-bold text-gray-900">${{ billingAnnual ? plan.annual_price : plan.monthly_price }}</span>
+                            <span class="text-sm text-gray-500">{{ billingAnnual ? '/yr' : '/mo' }}</span>
+                        </div>
+                        <ul class="mt-6 space-y-3">
+                            <li class="flex items-center gap-2 text-sm text-gray-600">
+                                <svg class="h-4 w-4 flex-shrink-0 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" /></svg>
+                                {{ formatLimit(plan.limits.teams) }} teams
+                            </li>
+                            <li class="flex items-center gap-2 text-sm text-gray-600">
+                                <svg class="h-4 w-4 flex-shrink-0 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" /></svg>
+                                {{ formatLimit(plan.limits.fields) }} fields
+                            </li>
+                            <li class="flex items-center gap-2 text-sm text-gray-600">
+                                <svg class="h-4 w-4 flex-shrink-0 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" /></svg>
+                                {{ formatLimit(plan.limits.divisions) }} divisions
+                            </li>
+                            <li class="flex items-center gap-2 text-sm text-gray-600">
+                                <svg class="h-4 w-4 flex-shrink-0 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" /></svg>
+                                All features included
+                            </li>
+                        </ul>
+                        <Link v-if="canRegister" :href="route('register')"
+                            class="mt-8 block w-full rounded-lg py-2.5 text-center text-sm font-semibold transition"
+                            :class="plan.slug === 'standard'
+                                ? 'bg-brand-600 text-white hover:bg-brand-700'
+                                : 'bg-gray-100 text-gray-900 hover:bg-gray-200'">
+                            Start Free Trial
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- CTA -->
         <div class="bg-brand-900 py-16">
             <div class="mx-auto max-w-4xl px-6 text-center">
@@ -148,7 +213,7 @@ defineProps({
                 <p class="mt-4 text-lg text-brand-200/80">Join leagues that have eliminated scheduling conflicts and spreadsheet chaos.</p>
                 <div class="mt-8">
                     <Link v-if="canRegister" :href="route('register')" class="rounded-lg bg-white px-8 py-3.5 text-base font-semibold text-brand-700 shadow-lg transition hover:bg-brand-50 hover:shadow-xl">
-                        Get Started Free
+                        Start Your Free Trial
                     </Link>
                 </div>
             </div>
@@ -170,9 +235,11 @@ defineProps({
             "operatingSystem": "Web",
             "description": "Field scheduling platform for sports leagues with conflict detection, booking windows, and mobile-friendly calendars.",
             "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD"
+                "@type": "AggregateOffer",
+                "lowPrice": "29",
+                "highPrice": "99",
+                "priceCurrency": "USD",
+                "offerCount": "3"
             }
         }
         </component>

@@ -34,6 +34,20 @@ class SetLeagueContext
                 abort(403, 'This league is pending approval.');
             }
 
+            // Handle lapsed subscriptions (has Stripe but inactive)
+            if ($league->stripe_id && !$league->is_active) {
+                $userRole = $user ? $user->leagues()
+                    ->where('leagues.id', $league->id)
+                    ->pluck('league_user.role')
+                    ->first() : null;
+
+                if ($userRole === 'league_admin') {
+                    return redirect()->route('leagues.billing', $league->slug);
+                }
+
+                abort(403, 'This league\'s subscription is inactive.');
+            }
+
             // Check league membership — pick highest-level role
             if ($user) {
                 $roles = $user->leagues()

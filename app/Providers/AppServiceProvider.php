@@ -2,14 +2,19 @@
 
 namespace App\Providers;
 
+use App\Listeners\StripeEventListener;
 use App\Mail\Transport\MicrosoftGraphTransport;
+use App\Models\League;
 use App\Models\ScheduleEntry;
 use App\Models\Setting;
 use App\Observers\ScheduleEntryObserver;
 use App\Services\LeagueContext;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Events\WebhookReceived;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
         ScheduleEntry::observe(ScheduleEntryObserver::class);
+        Cashier::useCustomerModel(League::class);
+        Event::listen(WebhookReceived::class, StripeEventListener::class);
 
         // Register Microsoft Graph mail transport
         Mail::extend('microsoft-graph', function () {

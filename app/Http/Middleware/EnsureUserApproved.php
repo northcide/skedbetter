@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\League;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,11 +16,23 @@ class EnsureUserApproved
 
         if ($user && !$user->isApproved() && !$user->isSuperadmin()) {
             // Allow logout and viewing leagues
-            if ($request->routeIs('logout', 'leagues.index')) {
+            if ($request->routeIs('logout', 'leagues.index', 'checkout.*')) {
                 return $next($request);
             }
 
-            return Inertia::render('Auth/PendingApproval')->toResponse($request);
+            // Check if user has a pending league with Stripe (payment incomplete)
+            $pendingLeague = League::where('requested_by', $user->id)
+                ->whereNull('approved_at')
+                ->whereNotNull('stripe_id')
+                ->first();
+
+            return Inertia::render('Auth/PendingApproval', [
+                'pendingLeague' => $pendingLeague ? [
+                    'slug' => $pendingLeague->slug,
+                    'stripe_id' => $pendingLeague->stripe_id,
+                    'has_active_plan' => $pendingLeague->hasActivePlan(),
+                ] : null,
+            ])->toResponse($request);
         }
 
         return $next($request);

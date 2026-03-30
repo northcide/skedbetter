@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminLeagueController;
@@ -33,6 +34,13 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'plans' => collect(config('plans'))->map(fn ($p, $k) => [
+            'slug' => $k,
+            'name' => $p['name'],
+            'monthly_price' => $p['monthly_price'],
+            'annual_price' => $p['annual_price'],
+            'limits' => $p['limits'],
+        ])->values(),
     ]);
 });
 
@@ -52,6 +60,12 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    // Checkout (allowed for unapproved users via EnsureUserApproved middleware)
+    Route::get('/checkout/{league}/success', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/{league}/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
+    Route::get('/checkout/{league}/retry', [CheckoutController::class, 'retry'])->name('checkout.retry');
+    Route::get('/checkout/{league}/status', [CheckoutController::class, 'status'])->name('checkout.status');
+
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
@@ -104,6 +118,8 @@ Route::middleware('auth')->group(function () {
 
             // Manager-only routes
             Route::middleware('league.manager')->group(function () {
+                Route::get('billing', [CheckoutController::class, 'portal'])->name('billing');
+
                 Route::resource('seasons', SeasonController::class)->except(['show']);
                 Route::resource('divisions', DivisionController::class)->except(['show']);
                 Route::post('divisions/bulk', [DivisionController::class, 'bulkStore'])->name('divisions.bulk');
@@ -159,5 +175,9 @@ Route::middleware('auth')->group(function () {
             });
         });
 });
+
+// Stripe webhook (no auth, CSRF excluded in bootstrap/app.php)
+Route::post('/stripe/webhook', [\Laravel\Cashier\Http\Controllers\WebhookController::class, 'handleWebhook'])
+    ->name('cashier.webhook');
 
 require __DIR__.'/auth.php';

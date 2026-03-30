@@ -25,10 +25,17 @@ class RegisteredUserController extends Controller
     {
         return Inertia::render('Auth/Register', [
             'turnstileSiteKey' => Setting::get('turnstile_site_key', ''),
+            'plans' => collect(config('plans'))->map(fn ($p, $k) => [
+                'slug' => $k,
+                'name' => $p['name'],
+                'monthly_price' => $p['monthly_price'],
+                'annual_price' => $p['annual_price'],
+                'limits' => $p['limits'],
+            ])->values(),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
         // Verify Turnstile CAPTCHA if configured
         $turnstileSecret = Setting::get('turnstile_secret_key', '');
@@ -60,6 +67,8 @@ class RegisteredUserController extends Controller
             'league_name' => 'required|string|max:255',
             'league_description' => 'nullable|string',
             'league_timezone' => 'required|string|timezone',
+            'plan' => 'required|string|in:starter,standard,pro',
+            'billing_period' => 'required|string|in:monthly,annual',
         ];
 
         if (!$existingUser) {
@@ -98,6 +107,12 @@ class RegisteredUserController extends Controller
             'timezone' => $request->league_timezone,
             'contact_email' => $email,
             'requested_by' => $user->id,
+            'stripe_plan' => $request->plan,
+        ]);
+
+        // Attach user as league_admin (pending activation via payment)
+        $user->leagues()->syncWithoutDetaching([
+            $league->id => ['role' => 'league_admin', 'accepted_at' => now()],
         ]);
 
         AuditLog::withoutGlobalScopes()->create([
@@ -106,19 +121,9 @@ class RegisteredUserController extends Controller
             'action' => 'league_requested',
             'auditable_type' => League::class,
             'auditable_id' => $league->id,
-            'new_values' => ['league' => $league->name],
+            'new_values' => ['league' => $league->name, 'plan' => $request->plan],
             'ip_address' => $request->ip(),
         ]);
-
-        // Send verification magic link
-        if (!$user->email_verified_at) {
-            try {
-                $magicLink = MagicLink::generate($email);
-                Mail::to($email)->send(new MagicLinkMail($magicLink));
-            } catch (\Exception $e) {
-                // Don't fail registration if email can't be sent
-            }
-        }
 
         AuditLog::withoutGlobalScopes()->create([
             'league_id' => null,
@@ -130,10 +135,28 @@ class RegisteredUserController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        if ($isLeagueAdmin) {
-            return redirect()->route('login')->with('status', 'Your account is ready. Sign in to get started.');
-        }
+        // Log user in so they have a session when returning from Stripe
+        auth()->login($user);
 
-        return redirect()->route('login')->with('status', 'Your account and league request have been created. Please check your email to verify your address.');
+        // Create Stripe Customer and redirect to Checkout
+        $plans = config('plans');
+        $plan = $plans[$request->plan];
+        $priceId = $request->billing_period === 'annual'
+            ? $plan['annual_price_id']
+            : $plan['monthly_price_id'];
+
+        $league->createAsStripeCustomer([
+            'email' => $email,
+            'name' => $league->name,
+        ]);
+
+        $checkout = $league->newSubscription('default', $priceId)
+            ->trialDays(14)
+            ->checkout([
+                'success_url' => route('checkout.success', $league->slug) . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('checkout.cancel', $league->slug),
+            ]);
+
+        return Inertia::location($checkout->url);
     }
 }

@@ -6,14 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Laravel\Cashier\Billable;
 
 class League extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Billable;
 
     protected $fillable = [
         'name', 'slug', 'description', 'timezone', 'logo_path',
         'contact_email', 'settings', 'is_active', 'approved_at', 'requested_by',
+        'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at', 'stripe_plan',
     ];
 
     protected function casts(): array
@@ -22,7 +24,30 @@ class League extends Model
             'settings' => 'array',
             'is_active' => 'boolean',
             'approved_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the plan limits for this league's current plan.
+     */
+    public function planLimits(): array
+    {
+        $plans = config('plans');
+        return $plans[$this->stripe_plan]['limits'] ?? $plans['pro']['limits'];
+    }
+
+    /**
+     * Check if the league has an active subscription or trial.
+     */
+    public function hasActivePlan(): bool
+    {
+        // Grandfathered leagues (approved without Stripe) always have access
+        if (!$this->stripe_id && $this->isApproved()) {
+            return true;
+        }
+
+        return $this->subscribed('default') || $this->onTrial();
     }
 
     public function isApproved(): bool
