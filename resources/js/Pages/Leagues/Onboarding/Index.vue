@@ -197,29 +197,33 @@ function saveAll() {
                         </li>
                     </ul>
                 </div>
-                <div class="rounded-lg border border-gray-200 bg-white p-4">
-                    <h3 class="text-sm font-semibold text-gray-900">Add Location</h3>
+                <div class="rounded-lg border-2 border-dashed border-brand-300 bg-brand-50/30 p-4">
+                    <h3 class="text-sm font-semibold text-gray-900">Add a Location</h3>
+                    <p class="mt-0.5 text-[11px] text-gray-500">Enter a location (park, complex, school) and its fields, then click <strong>Add Location</strong> below.</p>
                     <div class="mt-3 space-y-3">
-                        <div><InputLabel value="Name" class="text-xs" /><TextInput v-model="newLoc.name" class="mt-1 block w-full" placeholder="e.g. Central Park" /></div>
+                        <div><InputLabel value="Location Name" class="text-xs" /><TextInput v-model="newLoc.name" class="mt-1 block w-full" placeholder="e.g. Central Park" /></div>
                         <div class="grid grid-cols-4 gap-2">
-                            <TextInput v-model="newLoc.address" placeholder="Address" class="col-span-2" />
+                            <TextInput v-model="newLoc.address" placeholder="Address (optional)" class="col-span-2" />
                             <TextInput v-model="newLoc.city" placeholder="City" />
                             <TextInput v-model="newLoc.state" placeholder="ST" maxlength="2" />
                         </div>
                         <div>
-                            <InputLabel value="Fields" class="text-xs" />
+                            <InputLabel value="Fields at this location" class="text-xs" />
                             <div v-for="(f, i) in newLoc.fields" :key="i" class="mt-1.5 flex items-center gap-2">
-                                <TextInput v-model="f.name" class="flex-1" :placeholder="`Field ${i+1}`" />
+                                <TextInput v-model="f.name" class="flex-1" :placeholder="`Field ${i+1} name`" />
                                 <button v-if="newLoc.fields.length > 1" @click="removeLocField(i)" class="text-xs text-red-500">Remove</button>
                             </div>
-                            <button @click="addLocField" class="mt-1.5 text-xs text-brand-600">+ Add field</button>
+                            <button @click="addLocField" class="mt-1.5 text-xs text-brand-600">+ Add another field</button>
                         </div>
-                        <div class="flex justify-between">
-                            <SecondaryButton @click="addLocation" :disabled="!newLoc.name">Add Location</SecondaryButton>
-                            <PrimaryButton @click="nextStep" :disabled="!canProceed[2]">Next: Divisions</PrimaryButton>
-                        </div>
+                        <PrimaryButton @click="addLocation" :disabled="!newLoc.name" class="w-full justify-center">
+                            Add Location
+                        </PrimaryButton>
                     </div>
                 </div>
+                <div v-if="locations.length" class="flex justify-end">
+                    <PrimaryButton @click="nextStep">Next: Divisions</PrimaryButton>
+                </div>
+                <p v-else class="text-center text-xs text-gray-400">Add at least one location to continue.</p>
             </div>
 
             <!-- Step 3: Divisions -->
@@ -249,35 +253,40 @@ function saveAll() {
                         </li>
                     </ul>
                 </div>
-                <div class="rounded-lg border border-gray-200 bg-white p-4">
-                    <h3 class="text-sm font-semibold text-gray-900">Add Division</h3>
+                <div class="rounded-lg border-2 border-dashed border-brand-300 bg-brand-50/30 p-4">
+                    <h3 class="text-sm font-semibold text-gray-900">Add a Division</h3>
+                    <p class="mt-0.5 text-[11px] text-gray-500">Enter a division name and optional age group, then click <strong>Add Division</strong>.</p>
                     <div class="mt-3 space-y-3">
                         <div class="grid grid-cols-2 gap-3">
-                            <div><InputLabel value="Name" class="text-xs" /><TextInput v-model="newDiv.name" class="mt-1 block w-full" placeholder="e.g. U10 Boys" /></div>
-                            <div><InputLabel value="Age Group" class="text-xs" /><TextInput v-model="newDiv.age_group" class="mt-1 block w-full" placeholder="e.g. Under 10" /></div>
+                            <div><InputLabel value="Division Name" class="text-xs" /><TextInput v-model="newDiv.name" class="mt-1 block w-full" placeholder="e.g. U10 Boys" @keyup.enter="addDivision" /></div>
+                            <div><InputLabel value="Age Group (optional)" class="text-xs" /><TextInput v-model="newDiv.age_group" class="mt-1 block w-full" placeholder="e.g. Under 10" @keyup.enter="addDivision" /></div>
                         </div>
-                        <div class="flex justify-between">
-                            <SecondaryButton @click="addDivision" :disabled="!newDiv.name">Add Division</SecondaryButton>
-                            <PrimaryButton @click="nextStep" :disabled="!canProceed[3]">Next: Teams</PrimaryButton>
-                        </div>
+                        <PrimaryButton @click="addDivision" :disabled="!newDiv.name" class="w-full justify-center">
+                            Add Division
+                        </PrimaryButton>
                     </div>
                 </div>
+                <div v-if="divisions.length" class="flex justify-end">
+                    <PrimaryButton @click="nextStep">Next: Teams</PrimaryButton>
+                </div>
+                <p v-else class="text-center text-xs text-gray-400">Add at least one division to continue.</p>
             </div>
 
             <!-- Step 4: Teams -->
             <div v-if="activeStep === 4" class="space-y-4">
+                <p class="text-[11px] text-gray-500">Add teams to each division. Type a name and press <strong>Enter</strong> or click <strong>Add Team</strong>.</p>
                 <div v-for="(div, di) in divisions" :key="di" class="rounded-lg border border-gray-200 bg-white">
                     <div class="border-b border-gray-100 px-4 py-2">
-                        <h4 class="text-xs font-semibold text-gray-700">{{ div.name }} <span class="font-normal text-gray-400">({{ div.teams.length }} teams)</span></h4>
+                        <h4 class="text-xs font-semibold text-gray-700">{{ div.name }} <span class="font-normal text-gray-400">({{ div.teams.length }} team{{ div.teams.length !== 1 ? 's' : '' }})</span></h4>
                     </div>
-                    <div class="px-4 py-2">
+                    <div class="px-4 py-3">
                         <div v-for="(team, ti) in div.teams" :key="ti" class="flex items-center justify-between py-1">
                             <span class="text-sm text-gray-900">{{ team.name }}</span>
                             <button @click="removeTeam(di, ti)" class="text-[10px] text-red-500">Remove</button>
                         </div>
                         <div class="mt-2 flex items-center gap-2">
-                            <TextInput v-model="newTeamName[di]" class="flex-1" placeholder="Team name" @keyup.enter="addTeam(di)" />
-                            <button @click="addTeam(di)" class="rounded bg-brand-600 px-2 py-1 text-[10px] font-semibold text-white" :disabled="!newTeamName[di]">Add</button>
+                            <TextInput v-model="newTeamName[di]" class="flex-1" placeholder="Team name — press Enter to add" @keyup.enter="addTeam(di)" />
+                            <PrimaryButton @click="addTeam(di)" :disabled="!newTeamName[di]" class="whitespace-nowrap">Add Team</PrimaryButton>
                         </div>
                     </div>
                 </div>
