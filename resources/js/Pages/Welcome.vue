@@ -236,7 +236,7 @@ const formatLimit = (val) => val === null ? 'Unlimited' : val;
             "description": "Field scheduling platform for sports leagues with conflict detection, booking windows, and mobile-friendly calendars.",
             "offers": {
                 "@type": "AggregateOffer",
-                "lowPrice": "29",
+                "lowPrice": "19",
                 "highPrice": "99",
                 "priceCurrency": "USD",
                 "offerCount": "3"
