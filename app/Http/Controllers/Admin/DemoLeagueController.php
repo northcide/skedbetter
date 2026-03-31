@@ -171,32 +171,25 @@ class DemoLeagueController extends Controller
             'scrimmage' => ['Scrimmage', 'Inter-squad Scrimmage', 'Practice Game'],
         ];
 
-        // Weekday practice slots (Mon-Thu)
+        // Weekday practice slots (Mon-Thu) — non-overlapping
         $weekdaySlots = [
             ['17:00', '18:30'],
-            ['17:30', '19:00'],
-            ['18:00', '19:30'],
             ['18:30', '20:00'],
-            ['19:00', '20:30'],
         ];
 
-        // Weekend game slots (Sat-Sun)
+        // Weekend game slots (Sat-Sun) — non-overlapping
         $weekendSlots = [
             ['08:00', '09:30'],
-            ['09:00', '10:30'],
             ['09:30', '11:00'],
-            ['10:00', '11:30'],
-            ['10:30', '12:00'],
             ['11:00', '12:30'],
-            ['12:00', '13:30'],
-            ['13:00', '14:30'],
+            ['12:30', '14:00'],
             ['14:00', '15:30'],
-            ['15:00', '16:30'],
         ];
 
         $startDate = now()->startOfWeek();
         $entries = [];
         $now = now();
+        $teamBookedDates = []; // track team_id => [date => true]
 
         for ($week = 0; $week < $weeks; $week++) {
             $weekStart = $startDate->copy()->addWeeks($week);
@@ -206,14 +199,18 @@ class DemoLeagueController extends Controller
                 $date = $weekStart->copy()->addDays($dayOffset);
                 if ($date->lt($season->start_date) || $date->gt($season->end_date)) continue;
 
-                $slotIdx = 0;
                 foreach ($fields as $field) {
-                    // 1-2 entries per field per weekday
-                    $entriesPerField = rand(1, 2);
-                    for ($e = 0; $e < $entriesPerField; $e++) {
-                        if ($slotIdx >= count($weekdaySlots)) break;
-                        $team = $teams->random();
-                        $slot = $weekdaySlots[$slotIdx];
+                    $entriesPerField = rand(1, min(2, count($weekdaySlots)));
+                    $fieldSlots = $this->shuffled($weekdaySlots);
+                    $usedSlots = array_slice($fieldSlots, 0, $entriesPerField);
+
+                    foreach ($usedSlots as $slot) {
+                        $dateStr = $date->toDateString();
+                        $available = $teams->filter(fn($t) => empty($teamBookedDates[$t->id][$dateStr]));
+                        if ($available->isEmpty()) continue;
+                        $team = $available->random();
+                        $teamBookedDates[$team->id][$dateStr] = true;
+
                         $type = 'practice';
                         $titleOptions = $titles[$type];
 
@@ -222,7 +219,7 @@ class DemoLeagueController extends Controller
                             'season_id' => $season->id,
                             'field_id' => $field->id,
                             'team_id' => $team->id,
-                            'date' => $date->toDateString(),
+                            'date' => $dateStr,
                             'start_time' => $slot[0],
                             'end_time' => $slot[1],
                             'type' => $type,
@@ -232,7 +229,6 @@ class DemoLeagueController extends Controller
                             'created_at' => $now,
                             'updated_at' => $now,
                         ];
-                        $slotIdx++;
                     }
                 }
             }
@@ -242,14 +238,18 @@ class DemoLeagueController extends Controller
                 $date = $weekStart->copy()->addDays($dayOffset);
                 if ($date->lt($season->start_date) || $date->gt($season->end_date)) continue;
 
-                $slotIdx = 0;
                 foreach ($fields as $field) {
-                    // 2-3 games per field per weekend day
-                    $entriesPerField = rand(2, 3);
-                    for ($e = 0; $e < $entriesPerField; $e++) {
-                        if ($slotIdx >= count($weekendSlots)) break;
-                        $team = $teams->random();
-                        $slot = $weekendSlots[$slotIdx];
+                    $entriesPerField = rand(2, min(3, count($weekendSlots)));
+                    $fieldSlots = $this->shuffled($weekendSlots);
+                    $usedSlots = array_slice($fieldSlots, 0, $entriesPerField);
+
+                    foreach ($usedSlots as $slot) {
+                        $dateStr = $date->toDateString();
+                        $available = $teams->filter(fn($t) => empty($teamBookedDates[$t->id][$dateStr]));
+                        if ($available->isEmpty()) continue;
+                        $team = $available->random();
+                        $teamBookedDates[$team->id][$dateStr] = true;
+
                         $type = $types[array_rand($types)];
                         $titleOptions = $titles[$type];
 
@@ -258,7 +258,7 @@ class DemoLeagueController extends Controller
                             'season_id' => $season->id,
                             'field_id' => $field->id,
                             'team_id' => $team->id,
-                            'date' => $date->toDateString(),
+                            'date' => $dateStr,
                             'start_time' => $slot[0],
                             'end_time' => $slot[1],
                             'type' => $type,
@@ -268,7 +268,6 @@ class DemoLeagueController extends Controller
                             'created_at' => $now,
                             'updated_at' => $now,
                         ];
-                        $slotIdx++;
                     }
                 }
             }
