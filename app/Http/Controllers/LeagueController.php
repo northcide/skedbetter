@@ -152,10 +152,27 @@ class LeagueController extends Controller
         $this->authorizeSuperadmin();
 
         $league = League::where('slug', $league)->firstOrFail();
-        $league->delete();
+
+        if ($league->is_active) {
+            return back()->with('error', 'Deactivate the league before deleting it.');
+        }
+
+        $league->forceDelete();
 
         return redirect()->route('leagues.index')
-            ->with('success', 'League deleted successfully.');
+            ->with('success', 'League permanently deleted.');
+    }
+
+    public function toggleActive(Request $request, string $league)
+    {
+        $this->authorizeSuperadmin();
+
+        $league = League::where('slug', $league)->firstOrFail();
+        $league->update(['is_active' => ! $league->is_active]);
+
+        $status = $league->is_active ? 'activated' : 'deactivated';
+
+        return back()->with('success', "League \"{$league->name}\" has been {$status}.");
     }
 
     protected function authorizeSuperadmin(): void

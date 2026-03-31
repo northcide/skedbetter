@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
     // League management (top-level)
     Route::resource('leagues', LeagueController::class)->except(['show']);
     Route::get('/leagues/{league}', [LeagueController::class, 'show'])->name('leagues.show');
+    Route::post('/leagues/{league}/toggle-active', [LeagueController::class, 'toggleActive'])->name('leagues.toggle-active');
 
     // League-scoped routes (accessible by all league members including coaches)
     Route::prefix('leagues/{league}')
