@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\AcceptInvitationController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
@@ -35,6 +36,7 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'turnstileSiteKey' => config('services.turnstile.site_key'),
         'plans' => collect(config('plans'))->map(fn ($p, $k) => [
             'slug' => $k,
             'name' => $p['name'],
@@ -44,6 +46,11 @@ Route::get('/', function () {
         ])->values(),
     ]);
 });
+
+// Contact form (rate limited: 3 per minute per IP)
+Route::post('/contact', [ContactController::class, 'store'])
+    ->middleware('throttle:3,1')
+    ->name('contact.store');
 
 // Magic link auth (no auth required)
 Route::post('/auth/magic-link', [\App\Http\Controllers\Auth\MagicLinkController::class, 'request'])->name('auth.magic-link.request');

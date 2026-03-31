@@ -1,12 +1,13 @@
 <script setup>
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
 
-defineProps({
+const props = defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
     plans: { type: Array, default: () => [] },
+    turnstileSiteKey: { type: String, default: '' },
 });
 
 const billingAnnual = ref(false);
@@ -17,6 +18,54 @@ const lightboxSrc = ref(null);
 const lightboxAlt = ref('');
 const openLightbox = (src, alt) => { lightboxSrc.value = src; lightboxAlt.value = alt; };
 const closeLightbox = () => { lightboxSrc.value = null; };
+
+// Contact form
+const showContact = ref(false);
+const turnstileContainer = ref(null);
+const loadTurnstileScript = () => {
+    return new Promise((resolve) => {
+        if (window.turnstile) return resolve();
+        const s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        s.async = true;
+        s.onload = resolve;
+        document.head.appendChild(s);
+    });
+};
+const openContact = async () => {
+    showContact.value = true;
+    await loadTurnstileScript();
+    await nextTick();
+    if (turnstileContainer.value) {
+        window.turnstile.render(turnstileContainer.value, {
+            sitekey: props.turnstileSiteKey,
+            callback: onTurnstileVerify,
+        });
+    }
+};
+const contactForm = useForm({ name: '', email: '', message: '', honeypot: '', 'cf-turnstile-response': '' });
+const contactSuccess = computed(() => usePage().props.flash?.success);
+const turnstileToken = ref('');
+const onTurnstileVerify = (token) => {
+    turnstileToken.value = token;
+    contactForm['cf-turnstile-response'] = token;
+};
+const submitContact = () => {
+    contactForm.post(route('contact.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            contactForm.reset();
+            turnstileToken.value = '';
+            if (window.turnstile && turnstileContainer.value) {
+                turnstileContainer.value.innerHTML = '';
+                window.turnstile.render(turnstileContainer.value, {
+                    sitekey: props.turnstileSiteKey,
+                    callback: onTurnstileVerify,
+                });
+            }
+        },
+    });
+};
 
 // Scroll animation
 const observed = ref(new Set());
@@ -379,7 +428,7 @@ const isVisible = (id) => observed.value.has(id);
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Company</p>
                         <ul class="mt-3 space-y-2">
-                            <li><a href="mailto:support@skedbetter.com" class="text-sm text-gray-600 hover:text-gray-900">Contact</a></li>
+                            <li><button @click="openContact" class="text-sm text-gray-600 hover:text-gray-900">Contact</button></li>
                         </ul>
                     </div>
                     <!-- Legal -->
@@ -405,6 +454,62 @@ const isVisible = (id) => observed.value.has(id);
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                     <img :src="lightboxSrc" :alt="lightboxAlt" class="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl object-contain">
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Contact Modal -->
+        <Teleport to="body">
+            <Transition name="lightbox">
+                <div v-if="showContact" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" @click.self="showContact = false">
+                    <div class="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+                        <button @click="showContact = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+
+                        <h3 class="font-display text-2xl text-gray-900">Get in touch</h3>
+                        <p class="mt-1 text-sm text-gray-500">We'll get back to you as soon as we can.</p>
+
+                        <div v-if="contactSuccess" class="mt-6 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+                            {{ contactSuccess }}
+                        </div>
+
+                        <form v-else @submit.prevent="submitContact" class="mt-6 space-y-4">
+                            <input type="text" v-model="contactForm.honeypot" name="honeypot" class="absolute -left-[9999px]" tabindex="-1" autocomplete="off">
+
+                            <div>
+                                <label for="contact-name" class="block text-sm font-medium text-gray-700">Name</label>
+                                <input id="contact-name" v-model="contactForm.name" type="text" required maxlength="100"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+                                <p v-if="contactForm.errors.name" class="mt-1 text-xs text-red-600">{{ contactForm.errors.name }}</p>
+                            </div>
+
+                            <div>
+                                <label for="contact-email" class="block text-sm font-medium text-gray-700">Email</label>
+                                <input id="contact-email" v-model="contactForm.email" type="email" required maxlength="255"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm">
+                                <p v-if="contactForm.errors.email" class="mt-1 text-xs text-red-600">{{ contactForm.errors.email }}</p>
+                            </div>
+
+                            <div>
+                                <label for="contact-message" class="block text-sm font-medium text-gray-700">Message</label>
+                                <textarea id="contact-message" v-model="contactForm.message" rows="4" required maxlength="2000"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"></textarea>
+                                <p v-if="contactForm.errors.message" class="mt-1 text-xs text-red-600">{{ contactForm.errors.message }}</p>
+                            </div>
+
+                            <div>
+                                <div ref="turnstileContainer"></div>
+                                <p v-if="contactForm.errors.captcha" class="mt-1 text-xs text-red-600">{{ contactForm.errors.captcha }}</p>
+                                <p v-if="contactForm.errors['cf-turnstile-response']" class="mt-1 text-xs text-red-600">Please complete the captcha.</p>
+                            </div>
+
+                            <button type="submit" :disabled="contactForm.processing || !turnstileToken"
+                                class="w-full rounded-lg bg-brand-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-brand-500 disabled:opacity-50">
+                                {{ contactForm.processing ? 'Sending...' : 'Send Message' }}
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </Transition>
         </Teleport>
