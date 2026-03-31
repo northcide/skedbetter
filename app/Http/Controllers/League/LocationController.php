@@ -16,7 +16,7 @@ class LocationController extends Controller
         $context = app(LeagueContext::class);
 
         $locations = Location::with(['fields' => function ($q) {
-                $q->orderBy('sort_order')->with('allowedDivisions');
+                $q->orderBy('sort_order')->with(['allowedDivisions', 'fieldType']);
             }])
             ->withCount('fields')
             ->orderBy('name')
@@ -94,7 +94,7 @@ class LocationController extends Controller
 
         return Inertia::render('Leagues/Locations/Edit', [
             'league' => $context->league(),
-            'location' => $location->load('fields'),
+            'location' => $location->load('fields.fieldType'),
         ]);
     }
 

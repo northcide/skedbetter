@@ -431,7 +431,7 @@ class ScheduleEntryController extends Controller
                 'parentId' => 'loc-' . $field->location_id,
                 'extendedProps' => [
                     'location' => $field->location?->name ?? '',
-                    'surface_type' => $field->surface_type?->value,
+                    'field_type' => $field->fieldType?->name,
                     'is_lighted' => $field->is_lighted,
                 ],
             ];

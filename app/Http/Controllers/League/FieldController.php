@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\League;
 
 use App\Http\Controllers\Controller;
-use App\Enums\SurfaceType;
 use App\Models\Field;
+use App\Models\FieldType;
 use App\Models\Location;
 use App\Services\LeagueContext;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ class FieldController extends Controller
         return Inertia::render('Leagues/Fields/Create', [
             'league' => $context->league(),
             'location' => $location,
-            'surfaceTypes' => array_column(SurfaceType::cases(), 'value'),
+            'fieldTypes' => FieldType::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -29,7 +29,7 @@ class FieldController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'surface_type' => 'nullable|string',
+            'field_type_id' => 'nullable|exists:field_types,id',
             'capacity' => 'nullable|integer|min:0',
             'is_lighted' => 'boolean',
             'notes' => 'nullable|string',
@@ -58,7 +58,7 @@ class FieldController extends Controller
         return Inertia::render('Leagues/Fields/Edit', [
             'league' => $context->league(),
             'field' => $field,
-            'surfaceTypes' => array_column(SurfaceType::cases(), 'value'),
+            'fieldTypes' => FieldType::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
             'divisions' => \App\Models\Division::with('season')->orderBy('name')->get(),
             'fieldRules' => $fieldRules,
             'timeSlots' => $field->timeSlots,
@@ -71,7 +71,7 @@ class FieldController extends Controller
         $validated = $request->validate([
             // Field details
             'name' => 'required|string|max:255',
-            'surface_type' => 'nullable|string',
+            'field_type_id' => 'nullable|exists:field_types,id',
             'capacity' => 'nullable|integer|min:0',
             'is_lighted' => 'boolean',
             'is_active' => 'boolean',
@@ -100,7 +100,7 @@ class FieldController extends Controller
         // Field details + availability
         $field->update([
             'name' => $validated['name'],
-            'surface_type' => $validated['surface_type'] ?? null,
+            'field_type_id' => $validated['field_type_id'] ?? null,
             'capacity' => $validated['capacity'] ?? null,
             'is_lighted' => $validated['is_lighted'] ?? false,
             'is_active' => $validated['is_active'] ?? true,

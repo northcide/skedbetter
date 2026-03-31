@@ -1,1 +1,0 @@
-import{A as e,H as t,L as n,_ as r,b as i,d as a}from"./app-DnPLUnLG.js";var o={class:`text-sm text-red-600`},s={__name:`InputError`,props:{message:{type:String}},setup(s){return(c,l)=>n((e(),i(`div`,null,[r(`p`,o,t(s.message),1)],512)),[[a,s.message]])}};export{s as t};

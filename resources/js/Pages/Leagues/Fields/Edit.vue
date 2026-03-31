@@ -10,7 +10,7 @@ import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
-    league: Object, field: Object, surfaceTypes: Array,
+    league: Object, field: Object, fieldTypes: Array,
     divisions: { type: Array, default: () => [] },
     fieldRules: { type: Array, default: () => [] },
     timeSlots: { type: Array, default: () => [] },
@@ -32,7 +32,7 @@ const accessMode = ref(props.fieldRules.length > 0 ? 'restricted' : 'open');
 
 const form = useForm({
     name: props.field.name,
-    surface_type: props.field.surface_type || '',
+    field_type_id: props.field.field_type_id || '',
     capacity: props.field.capacity || '',
     is_lighted: props.field.is_lighted,
     is_active: props.field.is_active,
@@ -167,11 +167,11 @@ const submit = () => {
                             <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" required />
                             <InputError :message="form.errors.name" class="mt-1" />
                         </div>
-                        <div>
-                            <InputLabel for="surface_type" value="Surface" />
-                            <select id="surface_type" v-model="form.surface_type" class="mt-1 block w-full">
-                                <option value="">Select</option>
-                                <option v-for="st in surfaceTypes" :key="st" :value="st">{{ st.charAt(0).toUpperCase() + st.slice(1) }}</option>
+                        <div v-if="fieldTypes.length">
+                            <InputLabel for="field_type_id" value="Field Type" />
+                            <select id="field_type_id" v-model="form.field_type_id" class="mt-1 block w-full">
+                                <option value="">None</option>
+                                <option v-for="ft in fieldTypes" :key="ft.id" :value="ft.id">{{ ft.name }}</option>
                             </select>
                         </div>
                     </div>

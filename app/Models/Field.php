@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\SurfaceType;
 use App\Models\Traits\BelongsToLeague;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +12,7 @@ class Field extends Model
     use BelongsToLeague, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'location_id', 'league_id', 'name', 'surface_type',
+        'location_id', 'league_id', 'field_type_id', 'name',
         'capacity', 'is_lighted', 'is_active', 'sort_order', 'notes',
         'available_days', 'available_start_time', 'available_end_time',
         'slot_interval_minutes', 'min_event_minutes', 'max_event_minutes',
@@ -22,11 +21,15 @@ class Field extends Model
     protected function casts(): array
     {
         return [
-            'surface_type' => SurfaceType::class,
             'is_lighted' => 'boolean',
             'is_active' => 'boolean',
             'available_days' => 'array',
         ];
+    }
+
+    public function fieldType()
+    {
+        return $this->belongsTo(FieldType::class);
     }
 
     public function location()

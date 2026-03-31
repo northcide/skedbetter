@@ -123,7 +123,7 @@ const deleteField = (field) => {
                                 <div>
                                     <span class="text-sm font-medium text-gray-900">{{ field.name }}</span>
                                     <div class="flex items-center gap-2">
-                                        <span v-if="field.surface_type" class="text-xs text-gray-400">{{ field.surface_type }}</span>
+                                        <span v-if="field.field_type" class="text-xs text-gray-400">{{ field.field_type.name }}</span>
                                         <span v-if="field.is_lighted" class="text-xs text-amber-500">Lighted</span>
                                         <span v-if="!field.is_active" class="text-xs text-red-400">Inactive</span>
                                     </div>

@@ -101,7 +101,7 @@ const deleteField = (field) => {
                         <li v-for="field in location.fields" :key="field.id" class="flex items-center justify-between px-3 py-2">
                             <div>
                                 <span class="font-medium text-gray-900">{{ field.name }}</span>
-                                <span v-if="field.surface_type" class="ml-2 text-sm text-gray-500">{{ field.surface_type }}</span>
+                                <span v-if="field.field_type" class="ml-2 text-sm text-gray-500">{{ field.field_type.name }}</span>
                                 <span v-if="field.is_lighted" class="ml-2 text-xs text-yellow-600">Lighted</span>
                                 <span v-if="!field.is_active" class="ml-2 text-xs text-red-500">Inactive</span>
                             </div>

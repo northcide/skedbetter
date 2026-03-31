@@ -7,11 +7,11 @@ import TextInput from '@/Components/TextInput.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
 
-const props = defineProps({ league: Object, location: Object, surfaceTypes: Array });
+const props = defineProps({ league: Object, location: Object, fieldTypes: Array });
 
 const form = useForm({
     name: '',
-    surface_type: '',
+    field_type_id: '',
     capacity: '',
     is_lighted: false,
     notes: '',
@@ -41,11 +41,11 @@ const submit = () => {
                             <InputError :message="form.errors.name" class="mt-2" />
                         </div>
 
-                        <div>
-                            <InputLabel for="surface_type" value="Surface Type" />
-                            <select id="surface_type" v-model="form.surface_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500">
+                        <div v-if="fieldTypes.length">
+                            <InputLabel for="field_type_id" value="Field Type" />
+                            <select id="field_type_id" v-model="form.field_type_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500">
                                 <option value="">Select</option>
-                                <option v-for="st in surfaceTypes" :key="st" :value="st">{{ st.charAt(0).toUpperCase() + st.slice(1) }}</option>
+                                <option v-for="ft in fieldTypes" :key="ft.id" :value="ft.id">{{ ft.name }}</option>
                             </select>
                         </div>
 

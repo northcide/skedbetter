@@ -11,6 +11,7 @@ const navItems = [
     { label: 'Leagues', route: 'admin.leagues', match: 'admin/leagues' },
     { label: 'Users', route: 'admin.users', match: 'admin/users' },
     { label: 'Audit Log', route: 'admin.audit-log', match: 'admin/audit-log' },
+    { label: 'Field Types', route: 'admin.field-types', match: 'admin/field-types' },
     { label: 'Settings', route: 'admin.settings', match: 'admin/settings' },
     { label: 'Demo League', route: 'admin.demo-league', match: 'admin/demo-league' },
 ];
