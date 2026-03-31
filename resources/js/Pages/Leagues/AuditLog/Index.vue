@@ -1,5 +1,6 @@
 <script setup>
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
+import SearchSelect from '@/Components/SearchSelect.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -67,17 +68,13 @@ const actionColors = {
 
         <!-- Filters -->
         <div class="mt-2 flex items-center gap-2">
-            <select v-model="actionFilter" @change="applyFilters" class="w-28">
-                <option value="">All actions</option>
-                <option value="created">Created</option>
-                <option value="updated">Updated</option>
-                <option value="deleted">Deleted</option>
-                <option value="cancelled">Cancelled</option>
-            </select>
-            <select v-model="userFilter" @change="applyFilters" class="w-40">
-                <option value="">All users</option>
-                <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
-            </select>
+            <SearchSelect v-model="actionFilter" :options="[
+                { value: 'created', label: 'Created' },
+                { value: 'updated', label: 'Updated' },
+                { value: 'deleted', label: 'Deleted' },
+                { value: 'cancelled', label: 'Cancelled' },
+            ]" placeholder="All actions" class="w-36" @update:model-value="applyFilters" />
+            <SearchSelect v-model="userFilter" :options="users.map(u => ({ value: u.id, label: u.name }))" placeholder="All users" class="w-44" @update:model-value="applyFilters" />
             <button v-if="actionFilter || userFilter" @click="clearFilters" class="text-[10px] text-brand-600 hover:text-brand-700">Clear</button>
         </div>
 

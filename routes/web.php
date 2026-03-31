@@ -184,4 +184,16 @@ Route::middleware('auth')->group(function () {
 Route::post('/stripe/webhook', [\Laravel\Cashier\Http\Controllers\WebhookController::class, 'handleWebhook'])
     ->name('cashier.webhook');
 
+// Sitemap
+Route::get('/sitemap.xml', function () {
+    $urls = [
+        ['loc' => config('app.url'), 'changefreq' => 'weekly', 'priority' => '1.0'],
+        ['loc' => config('app.url') . '/login', 'changefreq' => 'monthly', 'priority' => '0.5'],
+        ['loc' => config('app.url') . '/register', 'changefreq' => 'monthly', 'priority' => '0.8'],
+    ];
+
+    return response()->view('sitemap', ['urls' => $urls])
+        ->header('Content-Type', 'application/xml');
+});
+
 require __DIR__.'/auth.php';

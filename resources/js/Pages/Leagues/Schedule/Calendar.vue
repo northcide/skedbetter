@@ -2,6 +2,7 @@
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SearchSelect from '@/Components/SearchSelect.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Modal from '@/Components/Modal.vue';
@@ -155,6 +156,13 @@ const viewFilteredTeams = computed(() => {
     }
     return props.teams;
 });
+
+// Options for SearchSelect components
+const divisionOptions = computed(() => props.divisions.map(d => ({ value: d.id, label: d.name })));
+const teamFilterOptions = computed(() => viewFilteredTeams.value.map(t => ({ value: t.id, label: t.name })));
+const locationOptions = computed(() => props.locations.map(l => ({ value: l.id, label: l.name })));
+const fieldFilterOptions = computed(() => availableFields.value.map(f => ({ value: f.id, label: f.name })));
+const sidebarDivisionOptions = computed(() => schedulableDivisions.value.length > 1 ? schedulableDivisions.value.map(d => ({ value: d.id, label: d.name })) : []);
 
 // Schedulable teams filtered by division (for drag sidebar — only user's teams)
 const filteredTeams = computed(() => {
@@ -955,10 +963,9 @@ watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
                 <div class="sticky top-3 rounded-lg border border-gray-200 bg-white">
                     <div class="border-b border-gray-100 px-2 py-1.5">
                         <h3 class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Drag to Schedule</h3>
-                        <select v-model="sidebarDivision" class="mt-1 w-full rounded border-gray-200 py-0.5 pl-1.5 pr-6 text-[11px]">
-                            <option value="">{{ schedulableDivisions.length === 1 ? schedulableDivisions[0].name : (isCoach ? 'My Teams' : 'All Divisions') }}</option>
-                            <option v-for="d in schedulableDivisions" :key="d.id" :value="d.id" v-show="schedulableDivisions.length > 1">{{ d.name }}</option>
-                        </select>
+                        <SearchSelect v-model="sidebarDivision" :options="sidebarDivisionOptions"
+                            :placeholder="schedulableDivisions.length === 1 ? schedulableDivisions[0].name : (isCoach ? 'My Teams' : 'All Divisions')"
+                            class="mt-1" />
                     </div>
                     <div ref="teamListRef" class="max-h-[490px] overflow-y-auto p-1">
                         <div
@@ -994,22 +1001,10 @@ watch([showModal, showConfirmation, showEventDetail], () => clearTooltips());
                     </button>
                     <div :class="filtersOpen ? 'mt-2' : 'hidden'" class="lg:!block">
                         <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-center lg:gap-2">
-                            <select v-model="filters.division_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                                <option value="">All Divisions</option>
-                                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
-                            </select>
-                            <select v-model="filters.team_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                                <option value="">All Teams</option>
-                                <option v-for="t in viewFilteredTeams" :key="t.id" :value="t.id">{{ t.name }}</option>
-                            </select>
-                            <select v-model="filters.location_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                                <option value="">All Locations</option>
-                                <option v-for="l in locations" :key="l.id" :value="l.id">{{ l.name }}</option>
-                            </select>
-                            <select v-model="filters.field_id" class="w-full lg:w-auto rounded-md border-gray-200 py-1 pl-2 pr-7 text-xs">
-                                <option value="">All Fields</option>
-                                <option v-for="f in availableFields" :key="f.id" :value="f.id">{{ f.name }}</option>
-                            </select>
+                            <SearchSelect v-model="filters.division_id" :options="divisionOptions" placeholder="All Divisions" class="w-full lg:w-40" />
+                            <SearchSelect v-model="filters.team_id" :options="teamFilterOptions" placeholder="All Teams" class="w-full lg:w-40" />
+                            <SearchSelect v-model="filters.location_id" :options="locationOptions" placeholder="All Locations" class="w-full lg:w-40" />
+                            <SearchSelect v-model="filters.field_id" :options="fieldFilterOptions" placeholder="All Fields" class="w-full lg:w-40" />
                             <button v-if="hasFilters" @click="clearFilters" class="text-[11px] font-medium text-brand-600 hover:text-brand-700 py-2 lg:py-0">Clear</button>
                         </div>
                     </div>

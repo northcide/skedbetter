@@ -1,5 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import SearchSelect from '@/Components/SearchSelect.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -47,10 +48,7 @@ const actionBadge = (action) => ({
     <AdminLayout>
         <div class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-gray-900">Platform Audit Log</h2>
-            <select v-model="filterAction" @change="applyFilter" class="w-40">
-                <option value="">All Events</option>
-                <option v-for="a in actions" :key="a" :value="a">{{ actionLabel(a) }}</option>
-            </select>
+            <SearchSelect v-model="filterAction" :options="actions.map(a => ({ value: a, label: actionLabel(a) }))" placeholder="All Events" class="w-44" @update:model-value="applyFilter" />
         </div>
 
         <div class="mt-3 rounded-lg border border-gray-200 bg-white divide-y divide-gray-50">

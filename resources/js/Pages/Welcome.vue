@@ -12,6 +12,12 @@ defineProps({
 const billingAnnual = ref(false);
 const formatLimit = (val) => val === null ? 'Unlimited' : val;
 
+// Lightbox
+const lightboxSrc = ref(null);
+const lightboxAlt = ref('');
+const openLightbox = (src, alt) => { lightboxSrc.value = src; lightboxAlt.value = alt; };
+const closeLightbox = () => { lightboxSrc.value = null; };
+
 // Scroll animation
 const observed = ref(new Set());
 let observer = null;
@@ -122,29 +128,29 @@ const isVisible = (id) => observed.value.has(id);
         <div class="bg-white py-20" data-anim="who" id="who">
             <div class="mx-auto max-w-7xl px-6">
                 <div class="mx-auto max-w-2xl text-center" :class="{ 'animate-fade-in-up': isVisible('who') }">
-                    <h2 class="font-display text-3xl text-gray-900 sm:text-4xl">Built for the people who actually run leagues</h2>
+                    <h2 class="font-display text-3xl text-gray-900 sm:text-4xl">Scheduling shouldn't be a one-person job</h2>
                 </div>
 
                 <div class="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-3">
                     <div class="rounded-2xl bg-brand-50 p-7">
                         <p class="text-2xl font-bold text-brand-700">League Admins</p>
                         <p class="mt-3 text-sm leading-relaxed text-gray-600">You're juggling 40 teams across 12 fields and 3 divisions. You need a bird's-eye view and the power to set rules that coaches actually follow.</p>
-                        <div class="mt-4 rounded-lg bg-white/60 overflow-hidden">
-                            <img src="/images/admin-dashboard.webp" alt="League admin dashboard showing teams, fields, and divisions" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        <div class="mt-4 h-40 rounded-lg bg-white/60 overflow-hidden cursor-pointer" @click="openLightbox('/images/divisions-teams-overview.webp', 'Divisions and teams page showing hierarchical view with nested teams and coach assignments')">
+                            <img src="/images/divisions-teams-overview.webp" alt="Divisions and teams page showing hierarchical view with nested teams and coach assignments" class="max-w-none w-[200%] h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
                         </div>
                     </div>
                     <div class="rounded-2xl bg-field-50 p-7">
                         <p class="text-2xl font-bold text-field-700">Facility Managers</p>
                         <p class="mt-3 text-sm leading-relaxed text-gray-600">You manage the fields, not the league politics. Blackout rain-soaked fields, set available hours, and let the system handle who books what.</p>
-                        <div class="mt-4 rounded-lg bg-white/60 overflow-hidden">
-                            <img src="/images/field-management.webp" alt="Field management with blackout rules and time slots" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        <div class="mt-4 h-40 rounded-lg bg-white/60 overflow-hidden cursor-pointer" @click="openLightbox('/images/field-management.webp', 'Field management with blackout rules and time slots')">
+                            <img src="/images/field-management.webp" alt="Field management with blackout rules and time slots" class="max-w-none w-[200%] h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
                         </div>
                     </div>
                     <div class="rounded-2xl bg-accent-50 p-7">
                         <p class="text-2xl font-bold text-accent-700">Coaches</p>
                         <p class="mt-3 text-sm leading-relaxed text-gray-600">You just want to grab a field for Tuesday practice without calling anyone. Open the app, tap a time slot, done. It syncs to your phone calendar.</p>
-                        <div class="mt-4 rounded-lg bg-white/60 overflow-hidden">
-                            <img src="/images/coach-mobile-view.webp" alt="Coach booking a field from a mobile device" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        <div class="mt-4 h-40 rounded-lg bg-white/60 overflow-hidden cursor-pointer" @click="openLightbox('/images/coach-roster-invites.webp', 'Coach roster showing team assignments with email invite links for magic-link onboarding')">
+                            <img src="/images/coach-roster-invites.webp" alt="Coach roster showing team assignments with email invite links for magic-link onboarding" class="max-w-none w-[200%] h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
                         </div>
                     </div>
                 </div>
@@ -156,7 +162,7 @@ const isVisible = (id) => observed.value.has(id);
             <div class="mx-auto max-w-7xl px-6">
                 <div :class="{ 'animate-fade-in-up': isVisible('features') }">
                     <p class="text-sm font-semibold uppercase tracking-widest text-brand-600">What you get</p>
-                    <h2 class="mt-2 font-display text-3xl text-gray-900 sm:text-4xl">The scheduling toolkit<br class="hidden sm:block"> your league has been missing</h2>
+                    <h2 class="mt-2 font-display text-2xl text-gray-900 whitespace-nowrap sm:text-3xl lg:text-4xl">The scheduling toolkit<br class="lg:hidden"> your league has been missing</h2>
                 </div>
 
                 <div class="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -167,14 +173,8 @@ const isVisible = (id) => observed.value.has(id);
                                 <h3 class="text-xl font-bold text-gray-900">Drag-and-drop calendar</h3>
                                 <p class="mt-2 text-sm leading-relaxed text-gray-600">See every field side-by-side in a resource timeline. Click to book, drag to move, resize to adjust. Day, week, and month views. Color-coded by team.</p>
                             </div>
-                            <div class="rounded-xl bg-gray-100 overflow-hidden">
-                                <img src="/images/drag-drop-calendar.webp" alt="Drag-and-drop calendar with conflict warning overlay" class="w-full h-auto rounded-xl" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                                <div class="hidden aspect-video items-center justify-center p-4" style="display:none;">
-                                    <div class="text-center">
-                                        <svg class="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="9" y1="4" x2="9" y2="10" /><line x1="15" y1="4" x2="15" y2="10" /></svg>
-                                        <p class="text-xs font-semibold text-gray-400">Screenshot coming soon</p>
-                                    </div>
-                                </div>
+                            <div class="h-48 rounded-xl bg-gray-100 overflow-hidden cursor-pointer" @click="openLightbox('/images/drag-drop-calendar.webp', 'Drag-and-drop calendar with conflict warning overlay')">
+                                <img src="/images/drag-drop-calendar.webp" alt="Drag-and-drop calendar with conflict warning overlay" class="w-full h-full object-cover object-top rounded-xl" onerror="this.parentElement.style.display='none';">
                             </div>
                         </div>
                     </div>
@@ -183,23 +183,26 @@ const isVisible = (id) => observed.value.has(id);
                     <div class="rounded-2xl border border-gray-200 bg-white p-6">
                         <h3 class="text-lg font-bold text-gray-900">Conflict prevention</h3>
                         <p class="mt-2 text-sm leading-relaxed text-gray-600">Five layers of detection: field overlaps, team overlaps, blackout periods, weekly limits, and custom rules. Catches problems before they happen.</p>
-                        <div class="mt-3 rounded-lg bg-gray-50 overflow-hidden">
-                            <img src="/images/conflict-detection.webp" alt="Conflict detection warning preventing a double-booking" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        <div class="mt-3 h-36 rounded-lg bg-gray-50 overflow-hidden cursor-pointer" @click="openLightbox('/images/conflict-detection.webp', 'Conflict detection warning preventing a double-booking')">
+                            <img src="/images/conflict-detection.webp" alt="Conflict detection warning preventing a double-booking" class="w-full h-full object-cover object-top rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
                         </div>
                     </div>
 
                     <!-- Small card -->
                     <div class="rounded-2xl border border-gray-200 bg-white p-6">
-                        <h3 class="text-lg font-bold text-gray-900">Multi-league</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-gray-600">Each league is fully isolated — its own teams, fields, divisions, and rules. Run one league or ten from the same account.</p>
+                        <h3 class="text-lg font-bold text-gray-900">Division rules</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-600">Set scheduling rules per division — booking windows, max event limits, and which fields each division can access. Fine-grained control without the complexity.</p>
+                        <div class="relative mt-3 h-36 rounded-lg bg-gray-50 overflow-hidden cursor-pointer" @click="openLightbox('/images/division-schedule-rules.webp', 'Division scheduling rules with field access controls')">
+                            <img src="/images/division-schedule-rules.webp" alt="Division scheduling rules with field access controls" class="max-w-none w-[200%] h-auto rounded-lg absolute bottom-0 left-0" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        </div>
                     </div>
 
-                    <!-- Small card -->
+                    <!-- Small card: Booking Windows -->
                     <div class="rounded-2xl border border-gray-200 bg-white p-6">
-                        <h3 class="text-lg font-bold text-gray-900">Recurring schedules</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-gray-600">Bulk schedule weekly practices in one click. The system skips blackout dates and catches conflicts automatically.</p>
-                        <div class="mt-3 rounded-lg bg-gray-50 overflow-hidden">
-                            <img src="/images/recurring-schedules.webp" alt="Bulk recurring schedule setup form" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        <h3 class="text-lg font-bold text-gray-900">Booking windows</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-600">Control when each division can start booking. Give older divisions first access, then open it up to everyone. Fair, transparent, automatic.</p>
+                        <div class="mt-3 h-36 rounded-lg bg-gray-50 overflow-hidden cursor-pointer" @click="openLightbox('/images/booking-window-priority.webp', 'New Booking Window form assigning early access to older divisions like 10U and 12U Baseball')">
+                            <img src="/images/booking-window-priority.webp" alt="New Booking Window form assigning early access to older divisions like 10U and 12U Baseball" class="w-full h-full object-cover object-top rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
                         </div>
                     </div>
 
@@ -221,7 +224,7 @@ const isVisible = (id) => observed.value.has(id);
             <div class="mx-auto max-w-7xl px-6">
                 <div class="mx-auto max-w-2xl text-center" :class="{ 'animate-fade-in-up': isVisible('how') }">
                     <p class="text-sm font-semibold uppercase tracking-widest text-brand-600">Get started in minutes</p>
-                    <h2 class="mt-2 font-display text-3xl text-gray-900 sm:text-4xl">Three steps to organized scheduling</h2>
+                    <h2 class="mt-2 font-display text-2xl text-gray-900 whitespace-nowrap sm:text-3xl lg:text-4xl">Three steps to<br class="lg:hidden"> organized scheduling</h2>
                 </div>
 
                 <div class="mt-16 space-y-12 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-0">
@@ -230,9 +233,9 @@ const isVisible = (id) => observed.value.has(id);
                         <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-lg font-bold text-white">1</div>
                         <div class="hidden lg:block absolute top-5 left-[calc(50%+28px)] w-[calc(100%-56px)] border-t-2 border-dashed border-brand-200"></div>
                         <h3 class="mt-4 text-lg font-bold text-gray-900">Set up your league</h3>
-                        <p class="mt-2 text-sm text-gray-600 max-w-xs mx-auto">Add your fields, divisions, and teams. Import from a spreadsheet or type them in. Takes about 5 minutes.</p>
-                        <div class="mt-4 mx-auto max-w-xs rounded-lg bg-gray-50 overflow-hidden shadow-sm">
-                            <img src="/images/team-setup.webp" alt="Team list showing a populated division with coaches" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        <p class="mt-2 text-sm text-gray-600">Add your fields, divisions, and teams. Import from a spreadsheet or type them in. Takes about 5 minutes.</p>
+                        <div class="relative mt-4 mx-auto max-w-xs h-40 rounded-lg bg-gray-50 overflow-hidden shadow-sm cursor-pointer" @click="openLightbox('/images/team-setup.webp', 'League setup wizard showing season configuration with step-by-step progress')">
+                            <img src="/images/team-setup.webp" alt="League setup wizard showing season configuration with step-by-step progress" class="max-w-none w-[200%] h-auto rounded-lg" style="margin-left: auto; display: block;" loading="lazy" onerror="this.parentElement.style.display='none';">
                         </div>
                     </div>
 
@@ -241,9 +244,9 @@ const isVisible = (id) => observed.value.has(id);
                         <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-lg font-bold text-white">2</div>
                         <div class="hidden lg:block absolute top-5 left-[calc(50%+28px)] w-[calc(100%-56px)] border-t-2 border-dashed border-brand-200"></div>
                         <h3 class="mt-4 text-lg font-bold text-gray-900">Configure your rules</h3>
-                        <p class="mt-2 text-sm text-gray-600 max-w-xs mx-auto">Booking windows, field time slots, blackout dates, weekly limits. Set it once, the system enforces it.</p>
-                        <div class="mt-4 mx-auto max-w-xs rounded-lg bg-gray-50 overflow-hidden shadow-sm">
-                            <img src="/images/blackout-rules.webp" alt="Blackout rules and field time slot configuration" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        <p class="mt-2 text-sm text-gray-600">Booking windows, field time slots, blackout dates, weekly limits. Set it once, the system enforces it.</p>
+                        <div class="mt-4 mx-auto max-w-xs h-40 rounded-lg bg-gray-50 overflow-hidden shadow-sm cursor-pointer" @click="openLightbox('/images/field-slotting-rules.webp', 'Field slot rules with time slots, day selection, and division access controls')">
+                            <img src="/images/field-slotting-rules.webp" alt="Field slot rules with time slots, day selection, and division access controls" class="max-w-none w-[200%] h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
                         </div>
                     </div>
 
@@ -251,9 +254,9 @@ const isVisible = (id) => observed.value.has(id);
                     <div class="relative text-center lg:px-8">
                         <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent-500 text-lg font-bold text-brand-950">3</div>
                         <h3 class="mt-4 text-lg font-bold text-gray-900">Coaches start booking</h3>
-                        <p class="mt-2 text-sm text-gray-600 max-w-xs mx-auto">Invite your coaches. They pick a field and time from their phone. Conflicts are blocked automatically. Done.</p>
-                        <div class="mt-4 mx-auto max-w-xs rounded-lg bg-gray-50 overflow-hidden shadow-sm">
-                            <img src="/images/coach-booking.webp" alt="Coach selecting a field and time slot to book" class="w-full h-auto rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
+                        <p class="mt-2 text-sm text-gray-600">Invite your coaches. They pick a field and time from their phone. Conflicts are blocked automatically. Done.</p>
+                        <div class="mt-4 mx-auto max-w-xs h-40 rounded-lg bg-gray-50 overflow-hidden shadow-sm cursor-pointer" @click="openLightbox('/images/coach-booking.webp', 'Mobile day view showing color-coded team bookings on a Saturday calendar')">
+                            <img src="/images/coach-booking.webp" alt="Mobile day view showing color-coded team bookings on a Saturday calendar" class="w-full h-full object-cover object-center rounded-lg" loading="lazy" onerror="this.parentElement.style.display='none';">
                         </div>
                     </div>
                 </div>
@@ -394,6 +397,18 @@ const isVisible = (id) => observed.value.has(id);
             </div>
         </footer>
 
+        <!-- Lightbox Modal -->
+        <Teleport to="body">
+            <Transition name="lightbox">
+                <div v-if="lightboxSrc" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" @click.self="closeLightbox">
+                    <button @click="closeLightbox" class="absolute top-4 right-4 text-white/70 hover:text-white transition">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                    <img :src="lightboxSrc" :alt="lightboxAlt" class="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl object-contain">
+                </div>
+            </Transition>
+        </Teleport>
+
         <!-- JSON-LD Structured Data -->
         <component :is="'script'" type="application/ld+json">
         {
@@ -403,13 +418,53 @@ const isVisible = (id) => observed.value.has(id);
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Web",
             "description": "Field scheduling platform for sports leagues with conflict detection, booking windows, and mobile-friendly calendars.",
+            "url": "https://skedbetter.com",
+            "screenshot": "https://skedbetter.com/images/og-image.png",
             "offers": {
                 "@type": "AggregateOffer",
                 "lowPrice": "19",
                 "highPrice": "99",
                 "priceCurrency": "USD",
                 "offerCount": "3"
+            },
+            "creator": {
+                "@type": "Organization",
+                "name": "SkedBetter",
+                "url": "https://skedbetter.com"
             }
+        }
+        </component>
+
+        <component :is="'script'" type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": "What sports does SkedBetter support?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "SkedBetter works for any sport that uses fields or facilities — baseball, softball, soccer, football, lacrosse, field hockey, and more."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Can coaches book their own field time?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes. League admins set the rules — booking windows, field access, weekly limits — and coaches book available slots directly from their phone or computer."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "How does SkedBetter prevent double-bookings?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "SkedBetter uses five layers of conflict detection: field overlaps, team overlaps, blackout periods, weekly limits, and custom rules. Conflicts are caught before they happen."
+                    }
+                }
+            ]
         }
         </component>
     </div>
@@ -422,5 +477,11 @@ const isVisible = (id) => observed.value.has(id);
 }
 .animate-fade-in-up {
     animation: fadeInUp 0.6s ease-out both;
+}
+.lightbox-enter-active, .lightbox-leave-active {
+    transition: opacity 0.2s ease;
+}
+.lightbox-enter-from, .lightbox-leave-to {
+    opacity: 0;
 }
 </style>

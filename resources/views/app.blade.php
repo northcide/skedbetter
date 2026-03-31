@@ -15,13 +15,25 @@
         <meta property="og:description" content="The modern scheduling platform for sports leagues. Manage fields, teams, and time slots with conflict detection and zero double-bookings.">
         <meta property="og:url" content="{{ config('app.url') }}">
         <meta property="og:site_name" content="SkedBetter">
+        <meta property="og:image" content="{{ config('app.url') }}/images/og-image.png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:locale" content="en_US">
 
         <!-- Twitter -->
-        <meta name="twitter:card" content="summary">
+        <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="SkedBetter - Field Scheduling Made Simple">
         <meta name="twitter:description" content="The modern scheduling platform for sports leagues. Manage fields, teams, and time slots with conflict detection and zero double-bookings.">
+        <meta name="twitter:image" content="{{ config('app.url') }}/images/og-image.png">
 
         <link rel="canonical" href="{{ config('app.url') }}">
+
+        <!-- Favicon & Icons -->
+        <link rel="icon" href="/favicon.ico" sizes="any">
+        <link rel="icon" href="/icon.svg" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="manifest" href="/site.webmanifest">
+        <meta name="theme-color" content="#1e3a5f">
 
         <title inertia>{{ config('app.name', 'SkedBetter') }}</title>
 

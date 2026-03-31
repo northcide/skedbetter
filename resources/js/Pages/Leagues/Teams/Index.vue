@@ -2,6 +2,7 @@
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SearchSelect from '@/Components/SearchSelect.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
@@ -219,10 +220,7 @@ onUnmounted(() => removeInertiaListener?.());
         <div class="flex flex-wrap items-center gap-3">
             <h2 class="text-base font-semibold text-gray-900">Team Roster</h2>
             <input v-model="filterSearch" type="text" placeholder="Search..." class="w-32 rounded-md border-gray-300 text-xs" />
-            <select v-model="filterDiv" class="w-32">
-                <option value="">All Divisions</option>
-                <option v-for="d in divisions" :key="d.id" :value="d.id">{{ d.name }}</option>
-            </select>
+            <SearchSelect v-model="filterDiv" :options="divisions.map(d => ({ value: d.id, label: d.name }))" placeholder="All Divisions" class="w-40" />
             <button v-if="isManager && !showAddRow" @click="showAddRow = true"
                 class="text-[10px] font-medium text-brand-600 hover:text-brand-700">+ Add Team</button>
         </div>

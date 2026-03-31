@@ -2,8 +2,9 @@
 import LeagueLayout from '@/Layouts/LeagueLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SearchSelect from '@/Components/SearchSelect.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
     league: Object,
@@ -41,6 +42,10 @@ const filters = ref({
     date_from: props.filters.date_from || '',
     date_to: props.filters.date_to || '',
 });
+
+const seasonOptions = computed(() => props.seasons.map(s => ({ value: s.id, label: s.name })));
+const teamOptions = computed(() => props.teams.map(t => ({ value: t.id, label: t.name })));
+const fieldOptions = computed(() => props.fields.map(f => ({ value: f.id, label: `${f.name} (${f.location?.name || ''})` })));
 
 const applyFilters = () => {
     const params = {};
@@ -97,25 +102,16 @@ const statusBadge = (status) => {
                 <!-- Filters -->
                 <div class="mb-6 overflow-hidden rounded-lg bg-white p-4 shadow-sm">
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-5">
-                        <select v-model="filters.season_id" @change="applyFilters" class="rounded-md border-gray-300 text-sm">
-                            <option value="">All Seasons</option>
-                            <option v-for="s in seasons" :key="s.id" :value="s.id">{{ s.name }}</option>
-                        </select>
-                        <select v-model="filters.team_id" @change="applyFilters" class="rounded-md border-gray-300 text-sm">
-                            <option value="">All Teams</option>
-                            <option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}</option>
-                        </select>
-                        <select v-model="filters.field_id" @change="applyFilters" class="rounded-md border-gray-300 text-sm">
-                            <option value="">All Fields</option>
-                            <option v-for="f in fields" :key="f.id" :value="f.id">{{ f.name }} ({{ f.location?.name }})</option>
-                        </select>
+                        <SearchSelect v-model="filters.season_id" :options="seasonOptions" placeholder="All Seasons" @update:model-value="applyFilters" />
+                        <SearchSelect v-model="filters.team_id" :options="teamOptions" placeholder="All Teams" @update:model-value="applyFilters" />
+                        <SearchSelect v-model="filters.field_id" :options="fieldOptions" placeholder="All Fields" @update:model-value="applyFilters" />
                         <input type="date" v-model="filters.date_from" @change="applyFilters" class="rounded-md border-gray-300 text-sm" placeholder="From" />
                         <input type="date" v-model="filters.date_to" @change="applyFilters" class="rounded-md border-gray-300 text-sm" placeholder="To" />
                     </div>
                 </div>
 
                 <!-- Entries -->
-                <div class="overflow-hidden rounded-lg bg-white shadow-sm">
+                <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
                     <div v-if="entries.data.length === 0" class="p-12 text-center text-gray-500">
                         No schedule entries found.
                     </div>

@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /profile
+Disallow: /checkout/
+Disallow: /notifications
+
+Sitemap: https://skedbetter.com/sitemap.xml
