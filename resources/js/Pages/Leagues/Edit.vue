@@ -48,6 +48,7 @@ function generateToken() {
 }
 
 function revokeToken() {
+    if (!confirm('Expire the current public link? Anyone with the old link will no longer be able to view the calendar. A new link will be generated automatically.')) return;
     tokenProcessing.value = true;
     router.delete(route('leagues.public-token.revoke', props.league.slug), {
         preserveScroll: true,
