@@ -26,6 +26,13 @@ class LeagueController extends Controller
             $leagues->each(fn ($l) => $l->user_role = $l->pivot->role ?? 'coach');
         }
 
+        // Expose public calendar URL for managers
+        $leagues->each(function ($l) {
+            if (in_array($l->user_role, ['superadmin', 'league_admin', 'division_manager']) && $l->public_token) {
+                $l->public_calendar_url = url('/p/' . $l->public_token);
+            }
+        });
+
         // Pending league requests by this user
         $pendingLeagues = League::whereNull('approved_at')
             ->where('requested_by', $user->id)
@@ -173,6 +180,27 @@ class LeagueController extends Controller
         $status = $league->is_active ? 'activated' : 'deactivated';
 
         return back()->with('success', "League \"{$league->name}\" has been {$status}.");
+    }
+
+    public function generatePublicToken(Request $request, string $league)
+    {
+        $league = League::where('slug', $league)->firstOrFail();
+        $this->authorizeLeagueManager($request->user(), $league);
+
+        $league->generatePublicToken();
+
+        return back()->with('success', 'Public calendar link generated.');
+    }
+
+    public function revokePublicToken(Request $request, string $league)
+    {
+        $league = League::where('slug', $league)->firstOrFail();
+        $this->authorizeLeagueManager($request->user(), $league);
+
+        $league->revokePublicToken();
+        $league->generatePublicToken();
+
+        return back()->with('success', 'Old link expired. A new public link has been generated.');
     }
 
     protected function authorizeSuperadmin(): void

@@ -4,7 +4,8 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Head, useForm, Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps({
     league: Object,
@@ -20,6 +21,44 @@ const form = useForm({
 const submit = () => {
     form.put(route('leagues.update', props.league.slug));
 };
+
+// Public calendar link
+const publicUrl = ref(props.league.public_token ? `${window.location.origin}/p/${props.league.public_token}` : null);
+const copied = ref(false);
+const tokenProcessing = ref(false);
+
+function copyPublicUrl() {
+    if (!publicUrl.value) return;
+    navigator.clipboard.writeText(publicUrl.value);
+    copied.value = true;
+    setTimeout(() => { copied.value = false; }, 2000);
+}
+
+function generateToken() {
+    tokenProcessing.value = true;
+    router.post(route('leagues.public-token.generate', props.league.slug), {}, {
+        preserveScroll: true,
+        onSuccess: (page) => {
+            const token = page.props.league.public_token;
+            publicUrl.value = token ? `${window.location.origin}/p/${token}` : null;
+            tokenProcessing.value = false;
+        },
+        onError: () => { tokenProcessing.value = false; },
+    });
+}
+
+function revokeToken() {
+    tokenProcessing.value = true;
+    router.delete(route('leagues.public-token.revoke', props.league.slug), {
+        preserveScroll: true,
+        onSuccess: (page) => {
+            const token = page.props.league.public_token;
+            publicUrl.value = token ? `${window.location.origin}/p/${token}` : null;
+            tokenProcessing.value = false;
+        },
+        onError: () => { tokenProcessing.value = false; },
+    });
+}
 </script>
 
 <template>
@@ -86,6 +125,32 @@ const submit = () => {
                             </PrimaryButton>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Public Calendar Link -->
+            <div class="mt-4 overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                <div class="p-3">
+                    <h3 class="text-sm font-semibold text-gray-900">Public Calendar Link</h3>
+                    <p class="mt-1 text-xs text-gray-500">Share a read-only calendar link with parents, coaches, or the public. No login required.</p>
+
+                    <div v-if="publicUrl" class="mt-3 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <input type="text" :value="publicUrl" readonly class="block w-full rounded-md border-gray-300 bg-gray-50 text-sm text-gray-700" @focus="$event.target.select()" />
+                            <button @click="copyPublicUrl" class="shrink-0 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200">
+                                {{ copied ? 'Copied!' : 'Copy' }}
+                            </button>
+                        </div>
+                        <button @click="revokeToken" :disabled="tokenProcessing" class="text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-50">
+                            Expire &amp; Regenerate Link
+                        </button>
+                    </div>
+
+                    <div v-else class="mt-3">
+                        <button @click="generateToken" :disabled="tokenProcessing" class="rounded-md bg-brand-600 px-3 py-2 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                            Generate Public Link
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

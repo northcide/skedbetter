@@ -14,7 +14,7 @@ class League extends Model
 
     protected $fillable = [
         'name', 'slug', 'description', 'timezone', 'logo_path',
-        'contact_email', 'settings', 'is_active', 'approved_at', 'requested_by',
+        'contact_email', 'settings', 'public_token', 'is_active', 'approved_at', 'requested_by',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at', 'stripe_plan',
     ];
 
@@ -58,6 +58,22 @@ class League extends Model
     public function isPending(): bool
     {
         return $this->approved_at === null;
+    }
+
+    public function generatePublicToken(): string
+    {
+        do {
+            $token = substr(str_replace(['/', '+', '='], '', base64_encode(random_bytes(8))), 0, 8);
+        } while (static::where('public_token', $token)->exists());
+
+        $this->update(['public_token' => $token]);
+
+        return $token;
+    }
+
+    public function revokePublicToken(): void
+    {
+        $this->update(['public_token' => null]);
     }
 
     public function requester()

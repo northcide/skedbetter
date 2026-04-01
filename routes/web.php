@@ -64,6 +64,13 @@ Route::get('/ical/teams/{teamId}', [IcalController::class, 'team'])->name('ical.
 Route::get('/invitations/{token}', [AcceptInvitationController::class, 'show'])->name('invitations.show');
 Route::post('/invitations/{token}/accept', [AcceptInvitationController::class, 'accept'])->name('invitations.accept');
 
+// Public calendar (no auth required)
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/p/{token}', [\App\Http\Controllers\PublicCalendarController::class, 'show'])->name('public.calendar');
+    Route::get('/p/{token}/events', [\App\Http\Controllers\PublicCalendarController::class, 'events'])->name('public.calendar.events');
+    Route::get('/p/{token}/resources', [\App\Http\Controllers\PublicCalendarController::class, 'resources'])->name('public.calendar.resources');
+});
+
 Route::get('/dashboard', function () {
     return redirect()->route('leagues.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -136,6 +143,9 @@ Route::middleware('auth')->group(function () {
             // Manager-only routes
             Route::middleware('league.manager')->group(function () {
                 Route::get('billing', [CheckoutController::class, 'portal'])->name('billing');
+
+                Route::post('public-token', [LeagueController::class, 'generatePublicToken'])->name('public-token.generate');
+                Route::delete('public-token', [LeagueController::class, 'revokePublicToken'])->name('public-token.revoke');
 
                 Route::resource('seasons', SeasonController::class)->except(['show']);
                 Route::resource('divisions', DivisionController::class)->except(['show']);

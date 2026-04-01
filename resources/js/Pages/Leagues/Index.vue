@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps({
     leagues: Array,
@@ -12,6 +13,13 @@ const props = defineProps({
 });
 
 const isLeagueManager = (league) => ['superadmin', 'league_admin', 'division_manager'].includes(league.user_role);
+
+const copiedId = ref(null);
+const copyPublicUrl = async (league) => {
+    await navigator.clipboard.writeText(league.public_calendar_url);
+    copiedId.value = league.id;
+    setTimeout(() => { copiedId.value = null; }, 2000);
+};
 
 const toggleActive = (league) => {
     const action = league.is_active ? 'deactivate' : 'reactivate';
@@ -81,6 +89,9 @@ const deleteLeague = (league) => {
                         <div class="mt-2 flex gap-4">
                             <Link :href="route('leagues.show', league.slug)" class="py-1 text-sm font-medium text-brand-600">Open</Link>
                             <Link v-if="isLeagueManager(league)" :href="route('leagues.edit', league.slug)" class="py-1 text-sm font-medium text-gray-500">Edit</Link>
+                            <button v-if="league.public_calendar_url" @click.prevent="copyPublicUrl(league)" class="py-1 text-sm font-medium text-gray-500">
+                                {{ copiedId === league.id ? 'Copied!' : 'Copy Public Link' }}
+                            </button>
                             <button v-if="isSuperadmin" @click="toggleActive(league)" class="py-1 text-sm font-medium" :class="league.is_active ? 'text-amber-600' : 'text-green-600'">
                                 {{ league.is_active ? 'Deactivate' : 'Reactivate' }}
                             </button>
@@ -122,6 +133,9 @@ const deleteLeague = (league) => {
                                 <div class="flex items-center justify-end gap-2">
                                     <Link :href="route('leagues.show', league.slug)" class="text-[11px] font-medium text-brand-600 hover:text-brand-700">Open</Link>
                                     <Link v-if="isLeagueManager(league)" :href="route('leagues.edit', league.slug)" class="text-[11px] font-medium text-gray-500 hover:text-gray-700">Edit</Link>
+                                    <button v-if="league.public_calendar_url" @click.prevent="copyPublicUrl(league)" class="text-[11px] font-medium text-gray-500 hover:text-gray-700">
+                                        {{ copiedId === league.id ? 'Copied!' : 'Copy Public Link' }}
+                                    </button>
                                     <button v-if="isSuperadmin" @click="toggleActive(league)" class="text-[11px] font-medium" :class="league.is_active ? 'text-amber-600 hover:text-amber-700' : 'text-green-600 hover:text-green-700'">
                                         {{ league.is_active ? 'Deactivate' : 'Reactivate' }}
                                     </button>
