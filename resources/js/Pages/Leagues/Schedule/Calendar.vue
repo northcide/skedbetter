@@ -14,6 +14,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 import interactionPlugin, { Draggable } from '@fullcalendar/interaction';
+import { useWeatherIcons } from '@/Composables/useWeatherIcons';
 
 const props = defineProps({
     league: Object,
@@ -24,7 +25,10 @@ const props = defineProps({
     locations: { type: Array, default: () => [] },
     coachTeamIds: { type: Array, default: () => [] },
     teamWindowStatus: { type: Array, default: () => [] },
+    weather: { type: Object, default: () => ({}) },
 });
+
+const { dayCellDidMount: weatherDayCellDidMount, dayHeaderContent: weatherDayHeaderContent } = useWeatherIcons(props.weather);
 
 const isManager = ['superadmin', 'league_admin', 'division_manager'].includes(props.userRole);
 const isCoach = props.userRole === 'coach';
@@ -442,6 +446,8 @@ const calendarOptions = ref({
     expandRows: true,
     height: 'auto',
     contentHeight: isMobile.value ? 'auto' : 560,
+    dayCellDidMount: (arg) => weatherDayCellDidMount(arg),
+    dayHeaderContent: (arg) => weatherDayHeaderContent(arg),
     dateClick: (info) => {
         if (info.view.type === 'dayGridMonth') {
             const api = calendarRef.value?.getApi();

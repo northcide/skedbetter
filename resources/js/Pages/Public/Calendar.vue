@@ -1,12 +1,13 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import SearchSelect from '@/Components/SearchSelect.vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import axios from 'axios';
+import { useWeatherIcons } from '@/Composables/useWeatherIcons';
 
 const props = defineProps({
     league: Object,
@@ -14,7 +15,10 @@ const props = defineProps({
     divisions: Array,
     locations: Array,
     token: String,
+    weather: { type: Object, default: () => ({}) },
 });
+
+const { dayCellDidMount: weatherDayCellDidMount, dayHeaderContent: weatherDayHeaderContent } = useWeatherIcons(props.weather);
 
 const calendarRef = ref(null);
 const filtersOpen = ref(false);
@@ -118,6 +122,16 @@ function fmt12(time24) {
     return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
+// Mobile event detail popup
+const showDetail = ref(false);
+const detail = ref({});
+
+function clearTooltips() {
+    document.querySelectorAll('.fc-hover-tooltip').forEach(el => el.remove());
+}
+
+onUnmounted(() => clearTooltips());
+
 // Calendar options
 const mobileDefault = isMobile.value ? 'listWeek' : 'timeGridWeek';
 
@@ -147,11 +161,70 @@ const calendarOptions = ref({
     editable: false,
     droppable: false,
     selectable: false,
+    dayCellDidMount: (arg) => weatherDayCellDidMount(arg),
+    dayHeaderContent: (arg) => weatherDayHeaderContent(arg),
     dateClick: (info) => {
         if (info.view.type === 'dayGridMonth') {
             const api = calendarRef.value?.getApi();
             if (api) api.changeView('timeGridDay', info.dateStr);
         }
+    },
+    eventDidMount: (info) => {
+        if (info.event.display === 'background') return;
+        if (info.el._tooltipBound) return;
+        info.el._tooltipBound = true;
+        const ev = info.event;
+
+        let tooltip = null;
+        info.el.addEventListener('mousedown', () => {
+            if (tooltip) { tooltip.remove(); tooltip = null; }
+        });
+        info.el.addEventListener('mouseenter', () => {
+            if (window.innerWidth < 1024) return;
+            const ext = ev.extendedProps || {};
+            const start = ev.start;
+            const end = ev.end || new Date(start.getTime() + 3600000);
+            const time = fmt12(start.toTimeString().slice(0, 5)) + ' – ' + fmt12(end.toTimeString().slice(0, 5));
+            const team = ext.team_name || ev.title;
+            const field = ext.field_name || '';
+            const location = ext.location_name || '';
+            const type = ext.type ? ext.type.charAt(0).toUpperCase() + ext.type.slice(1) : '';
+            const status = ext.status ? ext.status.charAt(0).toUpperCase() + ext.status.slice(1) : '';
+
+            tooltip = document.createElement('div');
+            tooltip.className = 'fc-hover-tooltip';
+            tooltip.innerHTML = `
+                <div style="font-weight:600;font-size:12px;margin-bottom:3px;">${team}</div>
+                <div style="font-size:11px;color:#6b7280;">${time}</div>
+                ${field ? `<div style="font-size:11px;color:#9ca3af;">${field}${location ? ' @ ' + location : ''}</div>` : ''}
+                ${type ? `<div style="font-size:10px;color:#9ca3af;margin-top:2px;">${type}${status ? ' · ' + status : ''}</div>` : ''}
+            `;
+            document.body.appendChild(tooltip);
+            const rect = info.el.getBoundingClientRect();
+            tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 6 + window.scrollY + 'px';
+        });
+        info.el.addEventListener('mouseleave', () => {
+            if (tooltip) { tooltip.remove(); tooltip = null; }
+        });
+    },
+    eventClick: (info) => {
+        if (info.event.display === 'background') return;
+        if (window.innerWidth >= 1024) return; // Desktop uses hover tooltip
+        clearTooltips();
+        const ev = info.event;
+        const ext = ev.extendedProps || {};
+        detail.value = {
+            team: ext.team_name || ev.title,
+            time: fmt12(ev.start?.toTimeString().slice(0, 5)) + ' – ' + fmt12((ev.end || ev.start)?.toTimeString().slice(0, 5)),
+            date: ev.start?.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }),
+            field: ext.field_name || '',
+            location: ext.location_name || '',
+            type: ext.type ? ext.type.charAt(0).toUpperCase() + ext.type.slice(1) : '',
+            status: ext.status ? ext.status.charAt(0).toUpperCase() + ext.status.slice(1) : '',
+            color: ev.backgroundColor || '#3B82F6',
+        };
+        showDetail.value = true;
     },
     eventContent: (arg) => {
         if (arg.view.type === 'dayGridMonth') {
@@ -175,7 +248,6 @@ const calendarOptions = ref({
     datesSet: (info) => {
         saveState({ view: info.view.type, date: info.start.toISOString().slice(0, 10) });
     },
-    timeZone: props.league.timezone || 'America/New_York',
 });
 </script>
 
@@ -212,6 +284,26 @@ const calendarOptions = ref({
             <!-- Calendar -->
             <div class="rounded-b-lg border border-t-0 border-gray-200 bg-white p-1 sm:p-2">
                 <FullCalendar ref="calendarRef" :options="calendarOptions" />
+            </div>
+        </div>
+
+        <!-- Mobile event detail overlay -->
+        <div v-if="showDetail" class="fixed inset-0 z-50 flex items-end justify-center sm:items-center" @click.self="showDetail = false">
+            <div class="fixed inset-0 bg-black/30" @click="showDetail = false"></div>
+            <div class="relative w-full max-w-sm rounded-t-xl sm:rounded-xl bg-white p-4 shadow-xl">
+                <button @click="showDetail = false" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="h-3 w-3 rounded-full" :style="{ background: detail.color }"></span>
+                    <span class="text-sm font-semibold text-gray-900">{{ detail.team }}</span>
+                </div>
+                <div class="space-y-1 text-xs text-gray-600">
+                    <div>{{ detail.date }}</div>
+                    <div>{{ detail.time }}</div>
+                    <div v-if="detail.field" class="text-gray-500">{{ detail.field }}<span v-if="detail.location"> @ {{ detail.location }}</span></div>
+                    <div v-if="detail.type" class="text-gray-400">{{ detail.type }}<span v-if="detail.status"> &middot; {{ detail.status }}</span></div>
+                </div>
             </div>
         </div>
     </div>

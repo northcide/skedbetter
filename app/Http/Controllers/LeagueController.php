@@ -146,9 +146,24 @@ class LeagueController extends Controller
             'description' => 'nullable|string',
             'timezone' => 'required|string|timezone',
             'contact_email' => 'nullable|email',
+            'weather_latitude' => 'nullable|numeric|between:-90,90',
+            'weather_longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
+        // Convert empty strings to null for weather coordinates
+        $validated['weather_latitude'] = $validated['weather_latitude'] ?: null;
+        $validated['weather_longitude'] = $validated['weather_longitude'] ?: null;
+
         $league->update($validated);
+
+        // Fetch weather forecast immediately if coordinates were set
+        if ($league->weather_latitude && $league->weather_longitude) {
+            try {
+                app(\App\Services\WeatherService::class)->refreshForecast($league);
+            } catch (\Throwable $e) {
+                // Non-critical — will be fetched by scheduled command
+            }
+        }
 
         return redirect()->route('leagues.show', $league->slug)
             ->with('success', 'League updated successfully.');
@@ -201,6 +216,21 @@ class LeagueController extends Controller
         $league->generatePublicToken();
 
         return back()->with('success', 'Old link expired. A new public link has been generated.');
+    }
+
+    public function geocodeWeather(Request $request, string $league)
+    {
+        $league = League::where('slug', $league)->firstOrFail();
+        $this->authorizeLeagueManager($request->user(), $league);
+
+        $query = $request->input('q', '');
+        if (! $query) {
+            return response()->json(['error' => 'No query provided'], 422);
+        }
+
+        $result = app(\App\Services\WeatherService::class)->geocode($query);
+
+        return response()->json($result ?? ['error' => 'No results found']);
     }
 
     protected function authorizeSuperadmin(): void

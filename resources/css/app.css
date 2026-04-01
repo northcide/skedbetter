@@ -70,6 +70,23 @@
 .fc .fc-daygrid-day-number { cursor: pointer; }
 .fc .fc-daygrid-more-link { font-size: 10px; font-weight: 600; color: #6366f1; }
 
+/* Weather icons on calendar days */
+/* Weather icon injected into month day cell — absolute positioned on the left */
+.fc .fc-daygrid-day-frame { position: relative; }
+.fc-weather-day { position: absolute; top: 1px; left: 3px; display: inline-flex; align-items: center; gap: 2px; z-index: 1; }
+.fc-weather { display: inline-flex; align-items: center; gap: 2px; }
+.fc-weather-icon { width: 16px; height: 16px; display: inline-block; flex-shrink: 0; }
+.fc-weather-icon svg { width: 100%; height: 100%; }
+.fc-weather-temp { font-size: 9px; font-weight: 600; color: #6b7280; line-height: 1; }
+.fc-weather-header { display: inline-flex; align-items: center; gap: 2px; vertical-align: middle; margin-left: 3px; }
+.fc-weather-header .fc-weather-icon { width: 14px; height: 14px; }
+.fc-weather-header .fc-weather-temp { font-size: 9px; font-weight: 600; color: #6b7280; }
+
+/* List view: weather in day header */
+.fc .fc-list-day-cushion .fc-weather-header { margin-left: 6px; }
+.fc .fc-list-day-cushion .fc-weather-icon { width: 16px; height: 16px; }
+.fc .fc-list-day-cushion .fc-weather-temp { font-size: 10px; }
+
 /* Mobile: prevent iOS zoom on input focus, ensure touch targets */
 @media (max-width: 639px) {
     select, textarea,

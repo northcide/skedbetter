@@ -146,6 +146,7 @@ Route::middleware('auth')->group(function () {
 
                 Route::post('public-token', [LeagueController::class, 'generatePublicToken'])->name('public-token.generate');
                 Route::delete('public-token', [LeagueController::class, 'revokePublicToken'])->name('public-token.revoke');
+                Route::get('weather/geocode', [LeagueController::class, 'geocodeWeather'])->name('weather.geocode');
 
                 Route::resource('seasons', SeasonController::class)->except(['show']);
                 Route::resource('divisions', DivisionController::class)->except(['show']);

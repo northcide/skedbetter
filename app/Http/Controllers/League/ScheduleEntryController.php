@@ -11,6 +11,7 @@ use App\Services\LeagueContext;
 use App\Services\Scheduling\BulkScheduler;
 use App\Services\Scheduling\DTO\ConflictResult;
 use App\Services\Scheduling\SchedulingService;
+use App\Services\WeatherService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -58,6 +59,7 @@ class ScheduleEntryController extends Controller
             'locations' => \App\Models\Location::with(['fields' => fn($q) => $q->orderBy('sort_order')->with(['allowedDivisions:id', 'timeSlots'])])->orderBy('name')->get(),
             'coachTeamIds' => $coachTeamIds,
             'teamWindowStatus' => $teamWindowStatus,
+            'weather' => app(WeatherService::class)->getCachedForecast($context->league()),
         ]);
     }
 

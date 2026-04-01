@@ -14,7 +14,8 @@ class League extends Model
 
     protected $fillable = [
         'name', 'slug', 'description', 'timezone', 'logo_path',
-        'contact_email', 'settings', 'public_token', 'is_active', 'approved_at', 'requested_by',
+        'contact_email', 'settings', 'public_token', 'weather_latitude', 'weather_longitude',
+        'is_active', 'approved_at', 'requested_by',
         'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at', 'stripe_plan',
     ];
 
@@ -25,6 +26,8 @@ class League extends Model
             'is_active' => 'boolean',
             'approved_at' => 'datetime',
             'trial_ends_at' => 'datetime',
+            'weather_latitude' => 'decimal:7',
+            'weather_longitude' => 'decimal:7',
         ];
     }
 

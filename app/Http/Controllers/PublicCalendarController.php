@@ -10,6 +10,7 @@ use App\Models\Location;
 use App\Models\ScheduleEntry;
 use App\Models\Team;
 use App\Services\LeagueContext;
+use App\Services\WeatherService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,6 +42,7 @@ class PublicCalendarController extends Controller
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
             'locations' => Location::with(['fields' => fn ($q) => $q->orderBy('sort_order')])->orderBy('name')->get(),
             'token' => $token,
+            'weather' => app(WeatherService::class)->getCachedForecast($league),
         ]);
     }
 

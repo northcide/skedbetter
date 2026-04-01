@@ -6,6 +6,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
     league: Object,
@@ -16,7 +17,40 @@ const form = useForm({
     description: props.league.description || '',
     timezone: props.league.timezone,
     contact_email: props.league.contact_email || '',
+    weather_latitude: props.league.weather_latitude || '',
+    weather_longitude: props.league.weather_longitude || '',
 });
+
+// Weather location geocoding
+const weatherQuery = ref('');
+const geocoding = ref(false);
+const geocodeResult = ref(null);
+
+async function lookupWeatherLocation() {
+    if (!weatherQuery.value.trim()) return;
+    geocoding.value = true;
+    geocodeResult.value = null;
+    try {
+        const res = await axios.get(route('leagues.weather.geocode', props.league.slug), { params: { q: weatherQuery.value } });
+        if (res.data.latitude) {
+            form.weather_latitude = res.data.latitude;
+            form.weather_longitude = res.data.longitude;
+            geocodeResult.value = res.data.name;
+        } else {
+            geocodeResult.value = 'not found';
+        }
+    } catch {
+        geocodeResult.value = 'error';
+    }
+    geocoding.value = false;
+}
+
+function clearWeatherLocation() {
+    form.weather_latitude = '';
+    form.weather_longitude = '';
+    geocodeResult.value = null;
+    weatherQuery.value = '';
+}
 
 const submit = () => {
     form.put(route('leagues.update', props.league.slug));
@@ -115,6 +149,26 @@ function revokeToken() {
                             <InputLabel for="contact_email" value="Contact Email" />
                             <TextInput id="contact_email" v-model="form.contact_email" type="email" class="mt-1 block w-full" />
                             <InputError :message="form.errors.contact_email" class="mt-2" />
+                        </div>
+
+                        <!-- Weather Location -->
+                        <div>
+                            <InputLabel value="Weather Location" />
+                            <p class="text-[10px] text-gray-400 mb-1">Shows weather icons on calendar days. Enter a city or zip to look up coordinates.</p>
+                            <div class="flex items-center gap-2">
+                                <TextInput v-model="weatherQuery" type="text" placeholder="e.g. 13202 or Syracuse" class="flex-1" @keydown.enter.prevent="lookupWeatherLocation" />
+                                <button type="button" @click="lookupWeatherLocation" :disabled="geocoding" class="shrink-0 rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50">
+                                    {{ geocoding ? 'Looking up...' : 'Lookup' }}
+                                </button>
+                            </div>
+                            <p v-if="geocodeResult && geocodeResult !== 'not found' && geocodeResult !== 'error'" class="mt-1 text-[10px] text-green-600">Found: {{ geocodeResult }}</p>
+                            <p v-if="geocodeResult === 'not found'" class="mt-1 text-[10px] text-amber-600">No results found. Try a different search.</p>
+                            <p v-if="geocodeResult === 'error'" class="mt-1 text-[10px] text-red-600">Lookup failed. Try again.</p>
+                            <div v-if="form.weather_latitude" class="mt-2 flex items-center gap-3 text-[10px] text-gray-500">
+                                <span>Lat: {{ form.weather_latitude }}</span>
+                                <span>Lng: {{ form.weather_longitude }}</span>
+                                <button type="button" @click="clearWeatherLocation" class="text-red-500 hover:text-red-700">Clear</button>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end gap-4">
