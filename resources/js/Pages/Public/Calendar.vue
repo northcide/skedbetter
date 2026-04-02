@@ -255,9 +255,12 @@ const calendarOptions = ref({
     <Head :title="`${league.name} — Schedule`" />
     <div class="min-h-screen bg-gray-50">
         <!-- Header -->
-        <div class="border-b border-gray-200 bg-white px-4 py-3">
-            <h1 class="text-lg font-semibold text-gray-900">{{ league.name }}</h1>
-            <p class="text-xs text-gray-500">Public Schedule</p>
+        <div class="border-b border-gray-200 bg-white px-4 py-3 flex items-center justify-between">
+            <div>
+                <h1 class="text-lg font-semibold text-gray-900">{{ league.name }}</h1>
+                <p class="text-xs text-gray-500">Public Schedule</p>
+            </div>
+            <a href="/login" class="text-sm font-medium text-gray-500 hover:text-gray-700 transition">Login</a>
         </div>
 
         <div class="mx-auto max-w-screen-2xl px-3 py-3">
