@@ -7,7 +7,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command('weather:fetch')->twiceDaily(6, 18);
+        $schedule->command('weather:fetch')->everySixHours();
     })
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
