@@ -68,8 +68,6 @@ function fmtDate(d) {
                             Requested by {{ league.requester.name }} ({{ league.requester.email }})
                         </p>
                         <div class="mt-0.5 flex items-center gap-2">
-                            <span v-if="league.requester?.email_verified_at" class="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-semibold text-green-700">Email Verified</span>
-                            <span v-else class="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-semibold text-amber-700">Email Not Verified</span>
                             <span class="text-[10px] text-gray-400">{{ fmtDate(league.created_at) }}</span>
                         </div>
                     </div>
@@ -79,8 +77,7 @@ function fmtDate(d) {
                             Reject
                         </button>
                         <PrimaryButton @click="approve(league)"
-                            :disabled="processing[league.id] || !league.requester?.email_verified_at" size="sm"
-                            :title="!league.requester?.email_verified_at ? 'User must verify their email first' : ''">
+                            :disabled="processing[league.id]" size="sm">
                             {{ processing[league.id] === 'approving' ? '...' : 'Approve' }}
                         </PrimaryButton>
                     </div>
