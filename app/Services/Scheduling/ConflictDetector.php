@@ -4,6 +4,7 @@ namespace App\Services\Scheduling;
 
 use App\Models\BlackoutRule;
 use App\Models\Division;
+use App\Models\DivisionAvailabilityRule;
 use App\Models\Field;
 use App\Models\ScheduleEntry;
 use App\Models\Team;
@@ -37,6 +38,7 @@ class ConflictDetector
         $result = new ConflictResult();
 
         $this->checkBookingWindow($request, $result);
+        $this->checkDivisionAvailability($request, $result);
         $this->checkFieldDivisionAccess($request, $result);
         $this->checkFieldOverlap($request, $result);
         $this->checkTeamOverlap($request, $result);
@@ -45,6 +47,51 @@ class ConflictDetector
         $this->checkDivisionFieldWeeklyLimit($request, $result);
 
         return $result;
+    }
+
+    protected function checkDivisionAvailability(ScheduleRequest $request, ConflictResult $result): void
+    {
+        $team = Team::withoutGlobalScopes()->find($request->teamId);
+        if (! $team) return;
+
+        $rules = DivisionAvailabilityRule::where('division_id', $team->division_id)->get();
+
+        // No rules = unrestricted
+        if ($rules->isEmpty()) return;
+
+        $date = Carbon::parse($request->date);
+        $dayOfWeek = $date->dayOfWeek; // 0=Sun, 6=Sat
+        $dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        $rule = $rules->firstWhere('day_of_week', $dayOfWeek);
+
+        $divisionName = DB::table('divisions')->where('id', $team->division_id)->value('name') ?? 'Unknown';
+
+        if (! $rule) {
+            $allowedDays = $rules->pluck('day_of_week')->map(fn($d) => $dayNames[$d])->implode(', ');
+            $msg = "Division \"{$divisionName}\" is not allowed to book on {$dayNames[$dayOfWeek]}. Allowed days: {$allowedDays}.";
+            if ($this->isAdmin) {
+                $result->addWarning('division_availability', $msg);
+            } else {
+                $result->addViolation('division_availability', $msg);
+            }
+            return;
+        }
+
+        // Day is allowed — check time window if not all-day
+        if (! $rule->all_day && $rule->start_time && $rule->end_time) {
+            $ruleStart = substr($rule->start_time, 0, 5);
+            $ruleEnd = substr($rule->end_time, 0, 5);
+
+            if ($request->startTime < $ruleStart || $request->endTime > $ruleEnd) {
+                $msg = "Division \"{$divisionName}\" can only book between {$this->fmt($ruleStart)} and {$this->fmt($ruleEnd)} on {$dayNames[$dayOfWeek]}.";
+                if ($this->isAdmin) {
+                    $result->addWarning('division_availability', $msg);
+                } else {
+                    $result->addViolation('division_availability', $msg);
+                }
+            }
+        }
     }
 
     protected function checkFieldOverlap(ScheduleRequest $request, ConflictResult $result): void

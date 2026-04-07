@@ -97,7 +97,7 @@ class DivisionController extends Controller
     {
         $context = app(LeagueContext::class);
 
-        $division->load('allowedFields');
+        $division->load(['allowedFields', 'availabilityRules']);
         $allFields = \App\Models\Field::with('location')->where('is_active', true)->orderBy('name')->get();
 
         // Find fields that have restrictions but DON'T include this division
@@ -113,6 +113,7 @@ class DivisionController extends Controller
             'allowedFieldIds' => $division->allowedFields->pluck('id')->toArray(),
             'blockedFieldIds' => $blockedFieldIds,
             'bookingWindows' => \App\Models\BookingWindow::orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
+            'availabilityRules' => $division->availabilityRules->keyBy('day_of_week'),
             'userRole' => $context->userRole(),
         ]);
     }
@@ -130,11 +131,17 @@ class DivisionController extends Controller
             'field_access' => 'nullable|in:all,specific',
             'allowed_field_ids' => 'nullable|array',
             'allowed_field_ids.*' => 'exists:fields,id',
+            'availability_rules' => 'nullable|array',
+            'availability_rules.*.day_of_week' => 'required|integer|between:0,6',
+            'availability_rules.*.all_day' => 'required|boolean',
+            'availability_rules.*.start_time' => 'nullable|date_format:H:i',
+            'availability_rules.*.end_time' => 'nullable|date_format:H:i|after:availability_rules.*.start_time',
         ]);
 
         $fieldAccess = $validated['field_access'] ?? null;
         $allowedFieldIds = $validated['allowed_field_ids'] ?? [];
-        unset($validated['field_access'], $validated['allowed_field_ids']);
+        $availabilityRules = $validated['availability_rules'] ?? [];
+        unset($validated['field_access'], $validated['allowed_field_ids'], $validated['availability_rules']);
 
         $division->update($validated);
 
@@ -145,6 +152,17 @@ class DivisionController extends Controller
         } elseif ($fieldAccess === 'specific') {
             // Sync: add this division to selected fields, remove from others
             $division->allowedFields()->sync($allowedFieldIds);
+        }
+
+        // Sync availability rules: delete all, re-insert enabled days
+        $division->availabilityRules()->delete();
+        foreach ($availabilityRules as $rule) {
+            $division->availabilityRules()->create([
+                'day_of_week' => $rule['day_of_week'],
+                'all_day' => $rule['all_day'],
+                'start_time' => $rule['all_day'] ? null : ($rule['start_time'] ?? null),
+                'end_time' => $rule['all_day'] ? null : ($rule['end_time'] ?? null),
+            ]);
         }
 
         return redirect()->route('leagues.divisions.index', $league)

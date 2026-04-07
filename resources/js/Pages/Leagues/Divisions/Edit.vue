@@ -6,7 +6,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 
 const props = defineProps({
     league: Object, division: Object, seasons: Array,
@@ -14,10 +14,35 @@ const props = defineProps({
     allowedFieldIds: { type: Array, default: () => [] },
     blockedFieldIds: { type: Array, default: () => [] },
     bookingWindows: { type: Array, default: () => [] },
+    availabilityRules: { type: Object, default: () => ({}) },
     userRole: String,
 });
 
-const open = ref({ details: true, rules: false, fields: false });
+const open = ref({ details: true, rules: false, availability: false, fields: false });
+
+const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const dayAbbrev = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Build reactive state for each day from existing rules
+const days = reactive(
+    Array.from({ length: 7 }, (_, i) => {
+        const existing = props.availabilityRules[i];
+        return {
+            day_of_week: i,
+            enabled: !!existing,
+            all_day: existing ? existing.all_day : true,
+            start_time: existing?.start_time ? existing.start_time.substring(0, 5) : '08:00',
+            end_time: existing?.end_time ? existing.end_time.substring(0, 5) : '20:00',
+        };
+    })
+);
+
+const hasAnyDayEnabled = () => days.some(d => d.enabled);
+const availabilitySummary = () => {
+    if (!hasAnyDayEnabled()) return 'Unrestricted';
+    const count = days.filter(d => d.enabled).length;
+    return count + ' day' + (count !== 1 ? 's' : '');
+};
 const toggle = (key) => { open.value[key] = !open.value[key]; };
 
 const form = useForm({
@@ -30,6 +55,7 @@ const form = useForm({
     booking_window_id: props.division.booking_window_id || '',
     field_access: props.allowedFieldIds.length > 0 ? 'specific' : 'all',
     allowed_field_ids: [...props.allowedFieldIds],
+    availability_rules: [],
 });
 
 const toggleField = (id) => {
@@ -39,6 +65,15 @@ const toggleField = (id) => {
 };
 
 const submit = () => {
+    // Build availability_rules from enabled days only
+    form.availability_rules = days
+        .filter(d => d.enabled)
+        .map(d => ({
+            day_of_week: d.day_of_week,
+            all_day: d.all_day,
+            start_time: d.all_day ? null : d.start_time,
+            end_time: d.all_day ? null : d.end_time,
+        }));
     form.put(route('leagues.divisions.update', [props.league.slug, props.division.id]));
 };
 
@@ -130,6 +165,44 @@ const fieldsByLocation = props.fields.reduce((acc, f) => {
                         </div>
                     </div>
                     <p class="mt-1 text-[10px] text-gray-400">Manage booking windows on the Booking Windows page.</p>
+                </div>
+            </div>
+
+            <!-- Allowed Days & Times -->
+            <div class="border-t border-gray-100">
+                <button type="button" @click="toggle('availability')" class="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50">
+                    <span class="text-xs font-semibold text-gray-900">Allowed Days &amp; Times</span>
+                    <span class="rounded-full px-1.5 py-0.5 text-[10px] font-medium" :class="hasAnyDayEnabled() ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'">
+                        {{ availabilitySummary() }}
+                    </span>
+                </button>
+                <div v-if="open.availability" class="border-t border-gray-100 px-3 py-2 space-y-2">
+                    <p class="text-[10px] text-gray-400">Restrict which days and times this division can book. No days selected = unrestricted (any day, any time).</p>
+
+                    <div class="space-y-1">
+                        <div v-for="day in days" :key="day.day_of_week" class="flex items-center gap-2 rounded border px-2 py-1.5 transition"
+                            :class="day.enabled ? 'border-brand-200 bg-brand-50/50' : 'border-gray-100 bg-gray-50/50'">
+                            <!-- Day toggle -->
+                            <label class="flex items-center gap-1.5 cursor-pointer min-w-[80px]">
+                                <input type="checkbox" v-model="day.enabled" class="rounded text-brand-600 focus:ring-brand-500" />
+                                <span class="text-[11px] font-medium" :class="day.enabled ? 'text-gray-900' : 'text-gray-400'">{{ dayNames[day.day_of_week] }}</span>
+                            </label>
+
+                            <!-- Time options (only when day is enabled) -->
+                            <template v-if="day.enabled">
+                                <label class="flex items-center gap-1 cursor-pointer ml-2">
+                                    <input type="checkbox" v-model="day.all_day" class="rounded text-brand-600 focus:ring-brand-500" />
+                                    <span class="text-[10px] text-gray-500">All day</span>
+                                </label>
+
+                                <template v-if="!day.all_day">
+                                    <input type="time" v-model="day.start_time" class="ml-2 rounded border-gray-200 px-1.5 py-0.5 text-[11px]" />
+                                    <span class="text-[10px] text-gray-400">to</span>
+                                    <input type="time" v-model="day.end_time" class="rounded border-gray-200 px-1.5 py-0.5 text-[11px]" />
+                                </template>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
 

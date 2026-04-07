@@ -35,6 +35,11 @@ class Division extends Model
         return $this->belongsToMany(User::class, 'division_manager_assignments');
     }
 
+    public function availabilityRules()
+    {
+        return $this->hasMany(DivisionAvailabilityRule::class);
+    }
+
     public function allowedFields()
     {
         return $this->belongsToMany(Field::class, 'division_field')
