@@ -52,9 +52,14 @@ class MagicLinkController extends Controller
             return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'invalid']);
         }
 
+        if ($magicLink->used_at) {
+            $this->auditLogin(null, 'login_failed', $request->ip(), ['method' => 'magic_link', 'reason' => 'already_used', 'email' => $magicLink->email]);
+            return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'expired', 'email' => $magicLink->email]);
+        }
+
         if (! $magicLink->isValid()) {
             $this->auditLogin(null, 'login_failed', $request->ip(), ['method' => 'magic_link', 'reason' => 'expired', 'email' => $magicLink->email]);
-            return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'expired']);
+            return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'expired', 'email' => $magicLink->email]);
         }
 
         $user = User::where('email', $magicLink->email)->first();
@@ -69,6 +74,7 @@ class MagicLinkController extends Controller
             $user->update(['email_verified_at' => now()]);
         }
 
+        $magicLink->markUsed();
         $user->update(['last_login_at' => now()]);
 
         Auth::login($user, remember: true);
