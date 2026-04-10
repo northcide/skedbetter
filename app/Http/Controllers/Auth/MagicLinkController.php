@@ -37,8 +37,14 @@ class MagicLinkController extends Controller
         try {
             Mail::to($email)->send(new MagicLinkMail($magicLink));
         } catch (\Exception $e) {
+            $this->auditLogin(null, 'magic_link_failed', $request->ip(), [
+                'email' => $email, 'error' => $e->getMessage(),
+            ]);
+
             return back()->with('error', 'Unable to send email. Please contact your league manager.');
         }
+
+        $this->auditLogin($user->id, 'magic_link_sent', $request->ip(), ['email' => $email]);
 
         return back()->with('success', 'If an account exists with that email, a login link has been sent.');
     }
@@ -53,12 +59,23 @@ class MagicLinkController extends Controller
         }
 
         if ($magicLink->used_at) {
-            $this->auditLogin(null, 'login_failed', $request->ip(), ['method' => 'magic_link', 'reason' => 'already_used', 'email' => $magicLink->email]);
+            $this->auditLogin(null, 'login_failed', $request->ip(), [
+                'method' => 'magic_link', 'reason' => 'already_used', 'email' => $magicLink->email,
+                'link_created' => $magicLink->created_at->toDateTimeString(),
+                'link_used' => $magicLink->used_at->toDateTimeString(),
+                'created_by' => $magicLink->created_by ? 'admin' : 'self',
+            ]);
             return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'expired', 'email' => $magicLink->email]);
         }
 
         if (! $magicLink->isValid()) {
-            $this->auditLogin(null, 'login_failed', $request->ip(), ['method' => 'magic_link', 'reason' => 'expired', 'email' => $magicLink->email]);
+            $this->auditLogin(null, 'login_failed', $request->ip(), [
+                'method' => 'magic_link', 'reason' => 'expired', 'email' => $magicLink->email,
+                'link_created' => $magicLink->created_at->toDateTimeString(),
+                'expired_at' => $magicLink->expires_at->toDateTimeString(),
+                'age_minutes' => (int) $magicLink->created_at->diffInMinutes(now()),
+                'created_by' => $magicLink->created_by ? 'admin' : 'self',
+            ]);
             return Inertia::render('Auth/MagicLinkExpired', ['reason' => 'expired', 'email' => $magicLink->email]);
         }
 
