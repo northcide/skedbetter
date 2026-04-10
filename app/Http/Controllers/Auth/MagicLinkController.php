@@ -51,6 +51,11 @@ class MagicLinkController extends Controller
 
     public function verify(Request $request, string $token)
     {
+        // Already logged in — no need to validate the link
+        if (Auth::check()) {
+            return redirect()->route('leagues.index');
+        }
+
         $magicLink = MagicLink::where('token', $token)->first();
 
         if (! $magicLink) {
