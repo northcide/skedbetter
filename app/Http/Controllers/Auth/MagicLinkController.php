@@ -46,7 +46,7 @@ class MagicLinkController extends Controller
 
         $this->auditLogin($user->id, 'magic_link_sent', $request->ip(), ['email' => $email]);
 
-        return redirect()->route('login')->with('success', 'If an account exists with that email, a login link has been sent.');
+        return redirect()->route('login')->with('success', 'A login link has been sent to your email. Check your inbox (and spam folder) and click the link to sign in.');
     }
 
     public function verify(Request $request, string $token)

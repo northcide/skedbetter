@@ -12,7 +12,7 @@ watch(message, (val) => {
         show.value = true;
         setTimeout(() => { show.value = false; }, 3000);
     }
-});
+}, { immediate: true });
 </script>
 
 <template>

@@ -43,6 +43,14 @@ const submitPassword = () => {
 
         <FlashMessage />
 
+        <div v-if="page.props.flash?.success" class="mt-3 rounded-lg bg-green-50 p-3 text-sm font-medium text-green-700">
+            {{ page.props.flash.success }}
+        </div>
+
+        <div v-if="page.props.flash?.error" class="mt-3 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">
+            {{ page.props.flash.error }}
+        </div>
+
         <div v-if="status" class="mt-3 rounded-lg bg-green-50 p-3 text-sm font-medium text-green-700">
             {{ status }}
         </div>
