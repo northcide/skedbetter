@@ -23,7 +23,7 @@ class MagicLinkController extends Controller
 
         if (! $user) {
             // Don't reveal whether the user exists
-            return back()->with('success', 'If an account exists with that email, a login link has been sent.');
+            return redirect()->route('login')->with('success', 'If an account exists with that email, a login link has been sent.');
         }
 
         // Invalidate existing unused links for this email
@@ -41,12 +41,12 @@ class MagicLinkController extends Controller
                 'email' => $email, 'error' => $e->getMessage(),
             ]);
 
-            return back()->with('error', 'Unable to send email. Please contact your league manager.');
+            return redirect()->route('login')->with('error', 'Unable to send email. Please contact your league manager.');
         }
 
         $this->auditLogin($user->id, 'magic_link_sent', $request->ip(), ['email' => $email]);
 
-        return back()->with('success', 'If an account exists with that email, a login link has been sent.');
+        return redirect()->route('login')->with('success', 'If an account exists with that email, a login link has been sent.');
     }
 
     public function verify(Request $request, string $token)
