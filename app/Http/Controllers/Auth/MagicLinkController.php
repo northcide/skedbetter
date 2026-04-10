@@ -59,6 +59,24 @@ class MagicLinkController extends Controller
         }
 
         if ($magicLink->used_at) {
+            // If the user is already logged in (e.g. duplicate request), just redirect
+            if (Auth::check() && Auth::user()->email === $magicLink->email) {
+                return redirect()->route('leagues.index');
+            }
+
+            // If the link was used within the last 2 minutes (email scanner likely consumed it),
+            // still allow login for the real user
+            if ($magicLink->used_at->diffInSeconds(now()) <= 120) {
+                $user = User::where('email', $magicLink->email)->first();
+                if ($user) {
+                    $user->update(['last_login_at' => now()]);
+                    Auth::login($user, remember: true);
+                    $this->auditLogin($user->id, 'login', $request->ip(), ['method' => 'magic_link']);
+
+                    return redirect()->route('leagues.index');
+                }
+            }
+
             $this->auditLogin(null, 'login_failed', $request->ip(), [
                 'method' => 'magic_link', 'reason' => 'already_used', 'email' => $magicLink->email,
                 'link_created' => $magicLink->created_at->toDateTimeString(),
